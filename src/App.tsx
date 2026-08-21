@@ -7,6 +7,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<ExampleHomepage />} />
+
         <Route path="/alternative" element={<AlternativePage />} />
       </Routes>
     </BrowserRouter>
