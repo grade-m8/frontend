@@ -21,4 +21,9 @@ export default defineConfig([
     },
   },
   eslintConfigPrettier,
+  {
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
 ]);
