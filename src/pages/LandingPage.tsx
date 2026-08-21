@@ -5,11 +5,11 @@ export default function LandingPage() {
                 <div className="m-20 space-y-10">
                     {/* placeholder de logo*/}
                     <div className="w-30 h-30 rounded-full border-5 border-white" />
-                    <h1 className="text-[60px] font-extrabold tracking-tight">
+                    <h1 className="text-[60px] font-black tracking-tight">
                         GRADE-M8
                     </h1>
                 </div>
-                <blockquote className="border-l-2 border-white/60 pl-4 text-h3 font-semibold">
+                <blockquote className="m-20 border-l-4 border-white/40 pl-4 text-[30px] font-semibold tracking-wider">
                     Precisión académica estricta, procesada y estructurada
                     para el alto rendimiento.
                 </blockquote>
