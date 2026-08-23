@@ -17,19 +17,19 @@ export default function LandingPage() {
                     para el alto rendimiento.
                 </blockquote>
             </div>
-            <div className="bg-background p-8 md:p-20 flex flex-col justify-center gap-12">
-                <div className="space-y-1 max-w-md">
-                    <h2 className="text-[40px] tracking-wide font-extrabold text-[var(--color-text-brand)]">
+            <div className="bg-background p-8 md:p-20 flex flex-col items-center justify-center gap-12">
+                <div className="space-y-1 max-w-150">
+                    <h2 className="text-[52px] tracking-wide font-extrabold text-[var(--color-text-brand)]">
                         Bienvenido al Sistema
                     </h2>
-                    <p className="tracking-wider text-h3 text-[var(--color-text-secondary)]">
+                    <p className="tracking-wider text-[22px] text-[var(--color-text-secondary)]">
                         La plataforma centralizada para la gestión de exámenes,
                         calificaciones y rendimiento académico.
                     </p>
                 </div>
-                <Button size="lg" className="w-106 h-15 gap-3 text-lg">
+                <Button size="lg" className="w-150 h-16 gap-3 text-lg">
                     Ingresar a la Plataforma
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-5 h-5" />
                 </Button>
             </div>
         </div>
