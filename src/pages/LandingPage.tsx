@@ -1,13 +1,15 @@
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import logo from "@/assets/logo.svg"
 
 export default function LandingPage() {
     return (
         <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
             <div className="bg-teal-700 text-white p-8 flex flex-col justify-between">
                 <div className="m-20 space-y-10">
-                    {/* placeholder de logo*/}
-                    <div className="w-30 h-30 rounded-full border-5 border-white" />
+                    <div className="w-30 h-30 rounded-full bg-white flex items-center justify-center">
+                        <img src={logo} alt="Logo Grade-M8" className="w-full h-full" />
+                    </div>
                     <h1 className="text-display-lg font-black tracking-tight">
                         GRADE-M8
                     </h1>
