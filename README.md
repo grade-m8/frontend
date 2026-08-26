@@ -6,8 +6,8 @@ Este proyecto usa **Prettier**, **ESLint**, **Husky** y **lint-staged** en conju
 
 - **Prettier**: formatter. Se encarga únicamente de la forma del código (indentación, comillas, longitud de línea, etc.), sin opinar sobre la lógica.
 - **ESLint**: linter. Detecta errores reales o patrones riesgosos en el código (variables no usadas, hooks mal utilizados, imports rotos, etc.). Usamos `eslint-config-prettier` para desactivar las reglas de formato de ESLint que podrían chocar con Prettier, evitando que ambas herramientas compitan entre sí.
-- **Husky**: permite versionar y ejecutar *git hooks* dentro del repo. Sin Husky, los hooks viven en `.git/hooks`, una carpeta que no se sube a Git, por lo que cada persona tendría que configurarlos manualmente. Husky los guarda en `.husky/`, que sí viaja en el repositorio.
-- **lint-staged**: filtra sobre qué archivos corren las herramientas anteriores. En vez de formatear/lintear todo el proyecto en cada commit, corre los comandos configurados solo sobre los archivos que están en el *staging area* (los agregados con `git add`).
+- **Husky**: permite versionar y ejecutar _git hooks_ dentro del repo. Sin Husky, los hooks viven en `.git/hooks`, una carpeta que no se sube a Git, por lo que cada persona tendría que configurarlos manualmente. Husky los guarda en `.husky/`, que sí viaja en el repositorio.
+- **lint-staged**: filtra sobre qué archivos corren las herramientas anteriores. En vez de formatear/lintear todo el proyecto en cada commit, corre los comandos configurados solo sobre los archivos que están en el _staging area_ (los agregados con `git add`).
 
 ### Cómo se encadenan
 
@@ -23,10 +23,7 @@ Este proyecto usa **Prettier**, **ESLint**, **Husky** y **lint-staged** en conju
 ```json
 {
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,css}": [
-      "eslint --fix",
-      "prettier --write"
-    ]
+    "*.{js,jsx,ts,tsx,css}": ["eslint --fix", "prettier --write"]
   }
 }
 ```
@@ -36,9 +33,9 @@ commiteados, se les aplicaran los comandos `eslint --fix` y `prettier --write`.
 
 ### Comandos disponibles
 
-| Comando | Qué hace |
-|---|---|
-| `npm run format` | Formatea todo el proyecto con Prettier |
+| Comando                | Qué hace                                                                      |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| `npm run format`       | Formatea todo el proyecto con Prettier                                        |
 | `npm run format:check` | Verifica que el proyecto esté formateado, sin modificar archivos (útil en CI) |
 
 ### Activar el hook después de `git pull`
