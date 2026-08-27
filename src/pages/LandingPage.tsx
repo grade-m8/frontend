@@ -54,6 +54,7 @@ export default function LandingPage() {
                                 <Input
                                     id="email"
                                     type="email"
+                                    pattern=".+@.+\..+"
                                     placeholder="usuario@institucion.edu.ar"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
