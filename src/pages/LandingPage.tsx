@@ -1,8 +1,10 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Mail, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import logo from "@/assets/logo.svg"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 
 export default function LandingPage() {
     const [showLogin, setShowLogin] = useState(false)
@@ -32,19 +34,76 @@ export default function LandingPage() {
                 </blockquote>
             </div>
             <div className="bg-background p-8 md:p-20 flex flex-col items-center justify-center gap-12">
-                <div className="space-y-5 max-w-150">
-                    <h2 className="text-display tracking-wide font-extrabold text-[var(--color-text-brand)]">
-                        Bienvenido al Sistema
-                    </h2>
-                    <p className="tracking-wider text-h3 text-[var(--color-text-secondary)]">
-                        La plataforma centralizada para la gestión de exámenes,
-                        calificaciones y rendimiento académico.
-                    </p>
-                </div>
-                <Button size="lg" className="w-130 h-16 gap-3 text-lg" onClick={() => setShowLogin(true)}>
-                    Ingresar a la Plataforma
-                    <ArrowRight className="w-5 h-5" />
-                </Button>
+                {showLogin ? (
+                    <form onSubmit={handleSubmit} className="w-full max-w-150 space-y-8">
+                        <div className="space-y-3">
+                            <h2 className="text-display tracking-wide font-extrabold text-foreground">
+                                Acceso al Sistema
+                            </h2>
+                            <p className="tracking-wider text-h3 text-[var(--color-text-secondary)]">
+                                Ingrese sus credenciales institucionales para continuar.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="email">
+                                    <Mail className="w-4 h-4" />
+                                    Correo Electrónico
+                                </Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="usuario@institucion.edu.ar"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="h-12"
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="password">
+                                    <Lock className="w-4 h-4" />
+                                    Contraseña
+                                </Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="h-12"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <Button type="submit" size="lg" className="w-full h-16 gap-3 text-lg">
+                            Ingresar
+                            <ArrowRight className="w-5 h-5" />
+                        </Button>
+                    </form>
+                ) : (
+                    <>
+                        <div className="space-y-5 max-w-150">
+                            <h2 className="text-display tracking-wide font-extrabold text-[var(--color-text-brand)]">
+                                Bienvenido al Sistema
+                            </h2>
+                            <p className="tracking-wider text-h3 text-[var(--color-text-secondary)]">
+                                La plataforma centralizada para la gestión de exámenes,
+                                calificaciones y rendimiento académico.
+                            </p>
+                        </div>
+                        <Button
+                            size="lg"
+                            className="w-130 h-16 gap-3 text-lg"
+                            onClick={() => setShowLogin(true)}
+                        >
+                            Ingresar a la Plataforma
+                            <ArrowRight className="w-5 h-5" />
+                        </Button>
+                    </>
+                )}
             </div>
         </div>
     )
