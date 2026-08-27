@@ -1,8 +1,20 @@
+import { useState } from "react"
+import type { FormEvent } from "react"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import logo from "@/assets/logo.svg"
 
 export default function LandingPage() {
+    const [showLogin, setShowLogin] = useState(false)
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+
+    function handleSubmit(e: FormEvent<HTMLFormElement>) {
+        e.preventDefault()
+        console.log("Mock Login con:", { email, password })
+        // TODO: Integrar método signInWithEmailAndPassword de Firebase Auth aquí.
+    }
+
     return (
         <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
             <div className="bg-teal-700 text-white p-8 flex flex-col justify-between">
@@ -29,7 +41,7 @@ export default function LandingPage() {
                         calificaciones y rendimiento académico.
                     </p>
                 </div>
-                <Button size="lg" className="w-130 h-16 gap-3 text-lg">
+                <Button size="lg" className="w-130 h-16 gap-3 text-lg" onClick={() => setShowLogin(true)}>
                     Ingresar a la Plataforma
                     <ArrowRight className="w-5 h-5" />
                 </Button>
