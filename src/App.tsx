@@ -1,7 +1,9 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom"
-import { Plus } from "lucide-react"
+import { Plus, LayoutGrid, Search } from "lucide-react"
+import { Input } from "./components/ui/input.tsx"
 import LandingPage from "./pages/LandingPage.tsx"
 import { PageHeader } from "./components/layout/PageHeader.tsx"
+import { SectionHeader } from "./components/layout/SectionHeader.tsx"
 import { Button } from "./components/ui/button.tsx"
 
 function App() {
@@ -12,16 +14,30 @@ function App() {
           <Route
             path="/subjects"
             element={
-                <PageHeader
-                    title="Mis Cursos"
-                    subtitle="Bienvenido, teacher"
-                    actions={
-                        <Button className="gap-2 h-12 w-50 font-bold">
-                            <Plus className="h-4 w-4" />
-                            Crear nueva materia
-                        </Button>
-                    }
-                />
+                <div>
+                    <PageHeader
+                        title="Mis Cursos"
+                        subtitle="Bienvenido, teacher"
+                        actions={
+                            <Button className="gap-2 h-12 w-50 font-bold">
+                                <Plus className="h-4 w-4" />
+                                Crear nueva materia
+                            </Button>
+                        }
+                    />
+                    <div className="px-6">
+                        <SectionHeader
+                            title="Listado de Cátedras"
+                            icon={LayoutGrid}
+                            actions={
+                                <div className="relative">
+                                    <Search className="absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2 text-neutral-650" />
+                                    <Input placeholder="Buscar materia..." className="w-59 pl-8" />
+                                </div>
+                            }
+                        />
+                    </div>
+                </div>
             }
           />
         </Routes>
