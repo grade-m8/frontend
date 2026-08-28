@@ -49,7 +49,7 @@ export function SubjectCard({
                 </div>
             </CardContent>
             <CardFooter className="bg-card p-4">
-                <Button onClick={onCtaClick} className="h-13 w-full text-body font-bold">
+                <Button onClick={onCtaClick} className="h-13 w-full text-base font-bold">
                     Ver Mis Exámenes
                 </Button>
             </CardFooter>
