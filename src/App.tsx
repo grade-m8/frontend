@@ -5,6 +5,8 @@ import LandingPage from "./pages/LandingPage.tsx"
 import { PageHeader } from "./components/layout/PageHeader.tsx"
 import { SectionHeader } from "./components/layout/SectionHeader.tsx"
 import { Button } from "./components/ui/button.tsx"
+import { SubjectCard } from "./components/data-display/SubjectCard.tsx"
+import fx from "@/assets/fx.svg"
 
 function App() {
   return (
@@ -36,6 +38,14 @@ function App() {
                                 </div>
                             }
                         />
+                      <div className="mt-4">
+                        <SubjectCard
+                            category="OBLIGATORIA"
+                            title="Matemática Discreta"
+                            subtitle="Prof. A. López - Aula 402"
+                            iconSrc={fx}
+                        />
+                      </div>
                     </div>
                 </div>
             }
