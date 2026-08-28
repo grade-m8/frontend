@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { ArrowRight, Mail, Lock } from "lucide-react";
-import { Button } from "@/components/ui/button/button";
+import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.svg";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
