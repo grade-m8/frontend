@@ -46,6 +46,7 @@ function App() {
                           examValue="15 Oct - Parcial 1"
                           status="Regular"
                           iconSrc={fx}
+                          onCtaClick={() => console.log("click en Ver Mis Exámenes")}
                         />
                       </div>
                     </div>

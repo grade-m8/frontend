@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 
 interface SubjectCardProps {
     category?: string
@@ -9,6 +10,7 @@ interface SubjectCardProps {
     examValue: string
     status: string
     iconSrc?: string
+    onCtaClick?: () => void
 }
 
 export function SubjectCard({
@@ -19,6 +21,7 @@ export function SubjectCard({
     examValue,
     status,
     iconSrc,
+    onCtaClick,
 }: SubjectCardProps) {
     return (
         <Card className="gap-0 rounded-none border border-neutral-650 py-0 shadow-hard ring-0">
@@ -35,7 +38,7 @@ export function SubjectCard({
                 <h3 className="text-h2 font-bold text-neutral-900">{title}</h3>
                 <p className="text-body text-neutral-650">{subtitle}</p>
             </CardHeader>
-            <CardContent className="flex items-end justify-between border-t border-neutral-650 mx-6 px-0 py-6">
+            <CardContent className="flex items-end justify-between border-t border-b border-neutral-650 mx-6 px-0 py-6">
                 <div className="space-y-0.5">
                     <p className="label-micro text-neutral-650">{examLabel}</p>
                     <p className="text-body font-medium text-neutral-900">{examValue}</p>
@@ -45,6 +48,11 @@ export function SubjectCard({
                     <p className="text-body font-bold text-teal-700">{status}</p>
                 </div>
             </CardContent>
+            <CardFooter className="bg-card p-4">
+                <Button onClick={onCtaClick} className="h-13 w-full text-body font-bold">
+                    Ver Mis Exámenes
+                </Button>
+            </CardFooter>
         </Card>
     )
 }
