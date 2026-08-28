@@ -1,10 +1,13 @@
 import { Badge } from "@/components/ui/badge"
-import { Card, CardHeader } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 interface SubjectCardProps {
     category?: string
     title: string
     subtitle: string
+    examLabel?: string
+    examValue: string
+    status: string
     iconSrc?: string
 }
 
@@ -12,11 +15,14 @@ export function SubjectCard({
     category = "OBLIGATORIA",
     title,
     subtitle,
+    examLabel = "PRÓXIMO EXAMEN",
+    examValue,
+    status,
     iconSrc,
 }: SubjectCardProps) {
     return (
         <Card className="gap-0 rounded-none border border-neutral-650 py-0 shadow-hard ring-0">
-            <CardHeader className="flex flex-col items-stretch gap-2 px-6 pt-6 pb-4">
+            <CardHeader className="flex flex-col items-stretch gap-4 px-6 pt-6 pb-4">
                 <div className="flex items-start justify-between">
                     <Badge
                         variant="outline"
@@ -29,6 +35,16 @@ export function SubjectCard({
                 <h3 className="text-h2 font-bold text-neutral-900">{title}</h3>
                 <p className="text-body text-neutral-650">{subtitle}</p>
             </CardHeader>
+            <CardContent className="flex items-end justify-between border-t border-neutral-650 mx-6 px-0 py-6">
+                <div className="space-y-0.5">
+                    <p className="label-micro text-neutral-650">{examLabel}</p>
+                    <p className="text-body font-medium text-neutral-900">{examValue}</p>
+                </div>
+                <div className="space-y-0.5 text-right">
+                    <p className="label-micro text-neutral-650">ESTADO</p>
+                    <p className="text-body font-bold text-teal-700">{status}</p>
+                </div>
+            </CardContent>
         </Card>
     )
 }

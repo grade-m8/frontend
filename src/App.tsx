@@ -40,10 +40,12 @@ function App() {
                         />
                       <div className="mt-4">
                         <SubjectCard
-                            category="OBLIGATORIA"
-                            title="Matemática Discreta"
-                            subtitle="Prof. A. López - Aula 402"
-                            iconSrc={fx}
+                          category="OBLIGATORIA"
+                          title="Matemática Discreta"
+                          subtitle="Prof. A. López - Aula 402"
+                          examValue="15 Oct - Parcial 1"
+                          status="Regular"
+                          iconSrc={fx}
                         />
                       </div>
                     </div>
