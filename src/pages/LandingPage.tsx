@@ -5,16 +5,20 @@ import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.svg";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const navigate = useNavigate();
+
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     console.log("Mock Login con:", { email, password });
     // TODO: Integrar método signInWithEmailAndPassword de Firebase Auth aquí.
+    navigate("/subjects");
   }
 
   return (
