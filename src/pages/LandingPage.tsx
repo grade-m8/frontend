@@ -1,10 +1,11 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { ArrowRight, Mail, Lock } from "lucide-react";
-import { Button } from "@/components/ui/button/button";
+import { Button } from "@/components/ui/button.tsx";
 import logo from "@/assets/logo.svg";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { toast } from "@/components/handler/toastHandler.tsx";
 
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
@@ -13,7 +14,7 @@ export default function LandingPage() {
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    console.log("Mock Login con:", { email, password });
+    toast.success("Login exitoso", 2000);
     // TODO: Integrar método signInWithEmailAndPassword de Firebase Auth aquí.
   }
 
