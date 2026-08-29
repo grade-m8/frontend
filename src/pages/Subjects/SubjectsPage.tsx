@@ -6,6 +6,7 @@ import { SectionHeader } from "@/components/layout/SectionHeader"
 import { Input } from "@/components/ui/input"
 import { SubjectCard } from "@/components/data-display/SubjectCard"
 import fx from "@/assets/fx.svg"
+import { useState } from "react"
 
 const TEACHER_NAME = "A. López"
 
@@ -15,6 +16,11 @@ const subjects = [
 ]
 
 export default function SubjectsPage() {
+    const [query, setQuery] = useState("")
+
+    const filteredSubjects = subjects.filter(
+        (s) => s.name.toLowerCase().includes(query.toLowerCase())
+    )
             return (
             <>
                 <PageHeader
@@ -34,12 +40,17 @@ export default function SubjectsPage() {
                         actions={
                             <div className="relative">
                                 <Search className="absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2 text-neutral-650" />
-                                <Input placeholder="Buscar materia..." className="w-59 pl-8" />
+                                <Input
+                                    placeholder="Buscar materia..."
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    className="w-59 pl-8"
+                                />
                             </div>
                         }
                     />
                     <div className="mt-4 grid grid-cols-1 gap-4 pb-12 md:grid-cols-2 lg:grid-cols-3">
-                        {subjects.map((s) => (
+                        {filteredSubjects.map((s) => (
                             <SubjectCard
                                 key={s.id}
                                 title={s.name}
