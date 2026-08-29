@@ -1,15 +1,12 @@
 import { toast as toastManager } from "@/components/ui/toast"
 
 export const toast = Object.assign(
-    (title: string, description?: string) =>
-        toastManager.add({ title, description }),
+    (title?: string, timeout?: number) =>
+        toastManager.add({ title, timeout }),
     {
-        success: (title: string, description?: string) =>
-            toastManager.add({ title, description, type: "success" }),
-        error: (title: string, description?: string) =>
-            toastManager.add({ title, description, type: "error" }),
-        promise: (...args: Parameters<typeof toastManager.promise>) =>
-            toastManager.promise(...args),
-        close: (id?: string) => toastManager.close(id),
+        success: (title?: string, timeout?: number) =>
+            toastManager.add({ title: title? title : "Operación exitosa", timeout: timeout? timeout : 5000, type: "success" }),
+        error: (title: string, timeout?: number) =>
+            toastManager.add({ title: title? title : "Ocurrió un error", timeout: timeout? timeout : 5000, type: "error" }),
     }
 )
