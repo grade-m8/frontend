@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import LandingPage from "./pages/LandingPage.tsx";
 import SubjectsPage from "./pages/Subjects/SubjectsPage.tsx";
+import { Toaster } from "@/components/ui/toast.tsx";
 
 function App() {
   return (
@@ -9,6 +10,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/subjects" element={<SubjectsPage />} />
       </Routes>
+      <Toaster />
     </BrowserRouter>
   );
 }
