@@ -29,7 +29,7 @@ export function SubjectCard({
   onCtaClick,
 }: SubjectCardProps) {
   return (
-    <Card className="gap-0 rounded-none border border-neutral-650 py-0 shadow-hard ring-0">
+    <Card className="gap-0 rounded-none border border-neutral-650 py-0 shadow-hard ring-0 transition-transform duration-200 hover:-translate-y-1 cursor-pointer">
       <CardHeader className="flex flex-col items-stretch gap-4 px-6 pt-6 pb-4">
         <div className="flex items-start justify-between">
           <Badge
