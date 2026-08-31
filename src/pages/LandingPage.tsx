@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button.tsx";
 import logo from "@/assets/logo.svg";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/handler/toastHandler.tsx";
 
 export default function LandingPage() {
@@ -12,10 +13,13 @@ export default function LandingPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const navigate = useNavigate();
+
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     toast.success("Login exitoso", 2000);
     // TODO: Integrar método signInWithEmailAndPassword de Firebase Auth aquí.
+    navigate("/subjects");
   }
 
   return (
