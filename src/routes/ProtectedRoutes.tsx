@@ -23,8 +23,7 @@ export default function ProtectedRoutes({ allowedRoles }: Props) {
   if (loading) return <h1>Loading...</h1>;
   if (!user || !role)
     return <Navigate to={"/"} state={{ from: location }} replace />;
-  if (!allowedRoles.includes(role))
-    return <Navigate to={"/subjects"} replace />;
+  if (!allowedRoles.includes(role)) return <Navigate to={"/403"} replace />;
 
   return <Outlet />;
 }

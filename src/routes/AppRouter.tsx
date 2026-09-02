@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import ErrorPage from "@/pages/ErrorPage.tsx";
 import LandingPage from "@/pages/LandingPage.tsx";
 import SubjectsPage from "@/pages/Subjects/SubjectsPage.tsx";
 import TestPage from "@/pages/testpages/TestPage.tsx";
@@ -9,6 +10,7 @@ export default function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/403" element={<ErrorPage />} />
 
         <Route
           element={
