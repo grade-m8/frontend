@@ -7,6 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/handler/toastHandler.tsx";
+import { auth } from "@/services/firebase.ts";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useAuthUser } from "@/hooks/useAuthUser.ts";
 
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
@@ -14,12 +17,19 @@ export default function LandingPage() {
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
+  const { role } = useAuthUser();
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    toast.success("Login exitoso", 2000);
-    // TODO: Integrar método signInWithEmailAndPassword de Firebase Auth aquí.
-    navigate("/subjects");
+
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => userCredential.user.getIdTokenResult())
+      .then(() => toast.success("Log in successful!"))
+      .then(() => navigate("/subjects"))
+      .catch(function (error: Error) {
+        toast.error(error.message);
+      })
+      .finally(() => console.log(role));
   }
 
   return (
