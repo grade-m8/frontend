@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import { auth } from "@/services/firebase.ts";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { useAuthUser } from "@/hooks/useAuthUser.ts";
+import { useAuth } from "@/hooks/useAuthUser.ts";
 
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
@@ -17,7 +17,7 @@ export default function LandingPage() {
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
-  const { role } = useAuthUser();
+  const { role } = useAuth();
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();

@@ -1,32 +1,11 @@
-import { auth } from "@/services/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import type { User } from "firebase/auth";
-import { useEffect, useState } from "react";
-import { isRole, type Role } from "@/types/role.ts";
+// contexts/auth/useAuth.ts
+import { useContext } from "react";
+import { AuthContext } from "@/context/AuthContext";
 
-export function useAuthUser() {
-  const [user, setUser] = useState<User | null>(auth.currentUser);
-  const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState<Role>();
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const tokenResult = await user.getIdTokenResult();
-        const claimRole = tokenResult.claims.role;
-
-        setUser(user);
-        setRole(isRole(claimRole) ? claimRole : undefined);
-        setLoading(false);
-      } else {
-        setUser(null);
-        setRole(undefined);
-        setLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  return { user, role, loading };
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth debe usarse dentro de un AuthProvider");
+  }
+  return context;
 }
