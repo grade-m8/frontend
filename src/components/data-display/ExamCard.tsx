@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import fx from "@/assets/fx.svg";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 interface ExamCardProps {
   title: string;
@@ -40,6 +40,7 @@ export function ExamCard({
   onActionClick,
 }: ExamCardProps) {
   const statusClass = getStatusClass(status);
+  const showBadgeIcon = status === "REVISIÓN IA";
 
   return (
     <Card className="rounded-none border border-neutral-650 py-0 shadow-hard ring-0 transition-transform duration-200 hover:-translate-y-1 cursor-pointer">
@@ -50,6 +51,7 @@ export function ExamCard({
             variant="outline"
             className={`label-micro h-auto rounded-none px-2 py-1 ${statusClass}`}
           >
+            {showBadgeIcon && <Sparkles />}
             {status}
           </Badge>
         </div>
@@ -75,7 +77,7 @@ export function ExamCard({
       <CardFooter className="bg-card p-4">
         <Button
           onClick={onActionClick}
-          className="h-13 w-full text-base font-bold"
+          className="h-13 w-full text-base font-bold hover:border-teal-700 hover:bg-card hover:text-teal-700"
         >
           {actionLabel}
           <ArrowRight className="h-4 w-4" />
