@@ -1,6 +1,13 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import fx from "@/assets/fx.svg";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 export function ExamCard() {
   return (
@@ -18,7 +25,7 @@ export function ExamCard() {
         <h3 className="text-h2 font-bold text-neutral-900">Primer Parcial</h3>
         <p className="text-body text-neutral-650">45 Alumnos</p>
       </CardHeader>
-      <CardContent className="flex items-end justify-between border-t border-neutral-650 mx-6 px-0 py-6">
+      <CardContent className="flex items-end justify-between border-t border-b border-neutral-650 mx-6 px-0 py-6">
         <div className="space-y-0.5">
           <p className="label-micro text-neutral-650">FECHA</p>
           <p className="text-body font-medium text-neutral-900">
@@ -30,6 +37,12 @@ export function ExamCard() {
           <p className="text-body font-bold text-teal-700">90 min</p>
         </div>
       </CardContent>
+      <CardFooter className="bg-card p-4">
+        <Button className="h-13 w-full text-base font-bold">
+          Ir Al Examen
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
