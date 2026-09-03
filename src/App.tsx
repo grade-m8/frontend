@@ -10,7 +10,34 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/subjects" element={<SubjectsPage />} />
-        <Route path="/exam-card-test" element={<ExamCard />} />
+        <Route
+          path="/exam-card-test"
+          element={
+            <div className="space-y-4 p-6">
+              <ExamCard
+                title="Primer Parcial"
+                studentCount={45}
+                date="24 Oct, 18:00"
+                durationMinutes={90}
+                status="CORREGIDO"
+              />
+              <ExamCard
+                title="Primer Parcial"
+                studentCount={45}
+                date="24 Oct, 18:00"
+                durationMinutes={90}
+                status="PENDIENTE"
+              />
+              <ExamCard
+                title="Primer Parcial"
+                studentCount={45}
+                date="24 Oct, 18:00"
+                durationMinutes={90}
+                status="REVISIÓN IA"
+              />
+            </div>
+          }
+        />
       </Routes>
       <Toaster />
     </BrowserRouter>
