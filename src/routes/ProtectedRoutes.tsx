@@ -1,5 +1,5 @@
 import type { Role } from "@/types/role.ts";
-import { useAuth } from "@/hooks/useAuthUser.ts";
+import { useAuth } from "@/hooks/useAuth.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
