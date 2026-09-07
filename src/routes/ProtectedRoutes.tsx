@@ -15,7 +15,13 @@ export default function ProtectedRoutes({ allowedRoles }: Props) {
   useEffect(() => {
     if (!loading && !user && !role) {
       toast.error("Need to log in to access page");
-    } else if (!loading && user && role && !allowedRoles.includes(role)) {
+    } else if (
+      !loading &&
+      user &&
+      role &&
+      role !== "Admin" &&
+      !allowedRoles.includes(role)
+    ) {
       toast.error("You don't have access to that page");
     }
   }, [loading, user, role, allowedRoles]);
@@ -23,6 +29,7 @@ export default function ProtectedRoutes({ allowedRoles }: Props) {
   if (loading) return <h1>Loading...</h1>;
   if (!user || !role)
     return <Navigate to={"/"} state={{ from: location }} replace />;
+  if (role === "Admin") return <Outlet />;
   if (!allowedRoles.includes(role)) return <Navigate to={"/403"} replace />;
 
   return <Outlet />;

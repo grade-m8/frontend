@@ -14,7 +14,7 @@ export default function AppRouter() {
 
         <Route
           element={
-            <ProtectedRoutes allowedRoles={["Alumno", "Admin", "Profesor"]} />
+            <ProtectedRoutes allowedRoles={["Student", "Admin", "Professor"]} />
           }
         >
           <Route path="/subjects" element={<SubjectsPage />} />
@@ -26,7 +26,7 @@ export default function AppRouter() {
           />
 
           <Route
-            element={<ProtectedRoutes allowedRoles={["Admin", "Profesor"]} />}
+            element={<ProtectedRoutes allowedRoles={["Admin", "Professor"]} />}
           >
             <Route
               path={"/professorlevel"}
