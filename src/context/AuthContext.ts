@@ -6,6 +6,7 @@ export interface AuthContextValue {
   user: User | null;
   role: Role | undefined;
   loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(
