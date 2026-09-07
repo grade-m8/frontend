@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import { useAuth } from "@/hooks/useAuthUser.ts";
+import { mapErrorMessage } from "@/services/error.ts";
+import firebase from "firebase/compat/app";
 
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
@@ -25,8 +27,9 @@ export default function LandingPage() {
         toast.success("Log in successful!");
         navigate("/subjects");
       })
-      .catch(function (error: Error) {
-        toast.error(error.message);
+      .catch(function (error: firebase.FirebaseError) {
+        const message = mapErrorMessage(error.code);
+        toast.error(message);
       });
   }
 
