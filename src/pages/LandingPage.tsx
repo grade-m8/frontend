@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/handler/toastHandler.tsx";
-import { useAuth } from "@/hooks/useAuthUser.ts";
+import { useAuth } from "@/hooks/useAuth.ts";
 import { mapErrorMessage } from "@/services/error.ts";
 import firebase from "firebase/compat/app";
 
