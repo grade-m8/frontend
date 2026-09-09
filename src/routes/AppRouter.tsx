@@ -4,6 +4,7 @@ import LandingPage from "@/pages/LandingPage.tsx";
 import SubjectsPage from "@/pages/Subjects/SubjectsPage.tsx";
 import TestPage from "@/pages/testpages/TestPage.tsx";
 import ProtectedRoutes from "@/routes/ProtectedRoutes.tsx";
+import EnrollSubjectModal from "@/components/data-display/EnrollSubjectModal.tsx";
 
 export default function AppRouter() {
   return (
@@ -11,6 +12,7 @@ export default function AppRouter() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/403" element={<ErrorPage />} />
+        <Route path="/enrol" element={<EnrollSubjectModal />} />
 
         <Route
           element={

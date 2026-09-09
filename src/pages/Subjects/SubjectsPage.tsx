@@ -22,7 +22,6 @@ export default function SubjectsPage() {
     );
   }
 
-  // 2. Prevenir el renderizado de la grilla mientras se buscan las materias
   if (isLoading) {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4 text-neutral-500">

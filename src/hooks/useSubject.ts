@@ -18,7 +18,6 @@ export function useSubject(user: User | null, role: Role | undefined) {
       }
       try {
         const subjectList: Subject[] = await listOwned(user);
-        console.log("subject list: " + subjectList);
         setSubjects(subjectList);
       } catch {
         navigate("/403");
@@ -28,7 +27,7 @@ export function useSubject(user: User | null, role: Role | undefined) {
     };
 
     loadSubjects();
-  }, [user, navigate]);
+  }, [user, role, navigate]);
 
   return { subjects, isLoading };
 }
