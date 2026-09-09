@@ -4,6 +4,7 @@ import LandingPage from "@/pages/LandingPage.tsx";
 import SubjectsPage from "@/pages/Subjects/SubjectsPage.tsx";
 import TestPage from "@/pages/testpages/TestPage.tsx";
 import ProtectedRoutes from "@/routes/ProtectedRoutes.tsx";
+import { ExamCard } from "@/components/data-display/ExamCard.tsx";
 
 export default function AppRouter() {
   return (
@@ -11,6 +12,35 @@ export default function AppRouter() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/403" element={<ErrorPage />} />
+
+        <Route
+          path="/exam-card-test"
+          element={
+            <div className="space-y-4 p-6">
+              <ExamCard
+                title="Primer Parcial"
+                studentCount={45}
+                date="24 Oct, 18:00"
+                durationMinutes={90}
+                status="CORREGIDO"
+              />
+              <ExamCard
+                title="Primer Parcial"
+                studentCount={45}
+                date="24 Oct, 18:00"
+                durationMinutes={90}
+                status="PENDIENTE"
+              />
+              <ExamCard
+                title="Primer Parcial"
+                studentCount={45}
+                date="24 Oct, 18:00"
+                durationMinutes={90}
+                status="REVISIÓN IA"
+              />
+            </div>
+          }
+        />
 
         <Route
           element={
