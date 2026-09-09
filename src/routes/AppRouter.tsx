@@ -16,7 +16,7 @@ export default function AppRouter() {
         <Route
           path="/exam-card-test"
           element={
-            <div className="space-y-4 p-6">
+            <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2 lg:grid-cols-3">
               <ExamCard
                 title="Primer Parcial"
                 studentCount={45}

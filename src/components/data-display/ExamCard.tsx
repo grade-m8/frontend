@@ -9,15 +9,16 @@ import fx from "@/assets/fx.svg";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 
+// Componente presentacional, no hace fetch ni conoce al backend.
 interface ExamCardProps {
-  title: string;
-  studentCount: number;
-  date: string;
-  durationMinutes: number;
-  status: "CORREGIDO" | "PENDIENTE" | "REVISIÓN IA" | string;
+  title: string; // nombre del examen
+  studentCount: number | string; // cantidad de alumnos inscriptos
+  date: string; // fecha/hora programada
+  durationMinutes: number | string; // duración configurada
+  status: "CORREGIDO" | "PENDIENTE" | "REVISIÓN IA" | string; // estado de corrección
   actionLabel?: string;
   iconSrc?: string;
-  onActionClick?: () => void;
+  onActionClick?: () => void; // conexión al detalle del examen
 }
 
 function getStatusClass(status: string) {
@@ -42,6 +43,13 @@ export function ExamCard({
   const statusClass = getStatusClass(status);
   const showBadgeIcon = status === "REVISIÓN IA";
 
+  const studentLabel =
+    typeof studentCount === "number" ? `${studentCount} Alumnos` : studentCount;
+  const durationLabel =
+    typeof durationMinutes === "number"
+      ? `${durationMinutes} min`
+      : durationMinutes;
+
   return (
     <Card className="rounded-none border border-neutral-650 py-0 shadow-hard ring-0 transition-transform duration-200 hover:-translate-y-1 cursor-pointer">
       <CardHeader className="flex flex-col items-stretch gap-4 px-6 pt-6 pb-4">
@@ -56,9 +64,7 @@ export function ExamCard({
           </Badge>
         </div>
         <h3 className="text-h2 font-bold text-neutral-900">{title}</h3>
-        <p className="text-body text-neutral-650">
-          {studentCount + " Alumnos"}
-        </p>
+        <p className="text-body text-neutral-650">{studentLabel}</p>
       </CardHeader>
 
       <CardContent className="flex items-end justify-between border-t border-b border-neutral-650 mx-6 px-0 py-6">
@@ -68,9 +74,7 @@ export function ExamCard({
         </div>
         <div className="space-y-0.5 text-right">
           <p className="label-micro text-neutral-650">DURACIÓN</p>
-          <p className="text-body font-bold text-teal-700">
-            {durationMinutes + " min"}
-          </p>
+          <p className="text-body font-bold text-teal-700">{durationLabel}</p>
         </div>
       </CardContent>
 
