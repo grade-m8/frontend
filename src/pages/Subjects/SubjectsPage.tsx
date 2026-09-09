@@ -12,7 +12,7 @@ import { useSubject } from "@/hooks/useSubject.ts";
 export default function SubjectsPage() {
   const [query, setQuery] = useState("");
   const context = useAuth();
-  const { subjects, isLoading } = useSubject(context.user);
+  const { subjects, isLoading } = useSubject(context.user, context.role);
 
   if (context.loading) {
     return (
