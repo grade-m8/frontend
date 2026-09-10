@@ -4,11 +4,16 @@ import SubjectsPage from "@/pages/Subjects/SubjectsPage.tsx";
 import TestPage from "@/pages/testpages/TestPage.tsx";
 import ProtectedRoutes from "@/routes/ProtectedRoutes.tsx";
 import RedirectIfAuthenticated from "@/routes/RedirectIfAuthenticated.tsx";
+import SubjectExamsPage from "@/pages/Subjects/SubjectExamsPage";
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route
+          path="/materias/:subjectId/exams"
+          element={<SubjectExamsPage />}
+        />
         <Route element={<RedirectIfAuthenticated />}>
           <Route path="/" element={<LandingPage />} />
         </Route>
