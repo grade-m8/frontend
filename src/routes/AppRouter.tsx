@@ -3,7 +3,6 @@ import LandingPage from "@/pages/LandingPage.tsx";
 import SubjectsPage from "@/pages/Subjects/SubjectsPage.tsx";
 import TestPage from "@/pages/testpages/TestPage.tsx";
 import ProtectedRoutes from "@/routes/ProtectedRoutes.tsx";
-import { ExamCard } from "@/components/data-display/ExamCard.tsx";
 import RedirectIfAuthenticated from "@/routes/RedirectIfAuthenticated.tsx";
 
 export default function AppRouter() {
@@ -13,35 +12,6 @@ export default function AppRouter() {
         <Route element={<RedirectIfAuthenticated />}>
           <Route path="/" element={<LandingPage />} />
         </Route>
-
-        <Route
-          path="/exam-card-test"
-          element={
-            <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2 lg:grid-cols-3">
-              <ExamCard
-                title="Primer Parcial"
-                studentCount={45}
-                date="24 Oct, 18:00"
-                durationMinutes={90}
-                status="CORREGIDO"
-              />
-              <ExamCard
-                title="Primer Parcial"
-                studentCount={45}
-                date="24 Oct, 18:00"
-                durationMinutes={90}
-                status="PENDIENTE"
-              />
-              <ExamCard
-                title="Primer Parcial"
-                studentCount={45}
-                date="24 Oct, 18:00"
-                durationMinutes={90}
-                status="REVISIÓN IA"
-              />
-            </div>
-          }
-        />
 
         <Route
           element={
