@@ -1,17 +1,18 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import ErrorPage from "@/pages/ErrorPage.tsx";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import LandingPage from "@/pages/LandingPage.tsx";
 import SubjectsPage from "@/pages/Subjects/SubjectsPage.tsx";
 import TestPage from "@/pages/testpages/TestPage.tsx";
 import ProtectedRoutes from "@/routes/ProtectedRoutes.tsx";
 import { ExamCard } from "@/components/data-display/ExamCard.tsx";
+import RedirectIfAuthenticated from "@/routes/RedirectIfAuthenticated.tsx";
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/403" element={<ErrorPage />} />
+        <Route element={<RedirectIfAuthenticated />}>
+          <Route path="/" element={<LandingPage />} />
+        </Route>
 
         <Route
           path="/exam-card-test"
@@ -47,7 +48,7 @@ export default function AppRouter() {
             <ProtectedRoutes allowedRoles={["Student", "Admin", "Professor"]} />
           }
         >
-          <Route path="/subjects" element={<SubjectsPage />} />
+          <Route path="/materias" element={<SubjectsPage />} />
 
           {/*------------------------------- These are all examples for the Role guarded routes -------------------------------*/}
           <Route
@@ -74,6 +75,7 @@ export default function AppRouter() {
           </Route>
           {/*------------------------------- These are all examples for the Role guarded routes -------------------------------*/}
         </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
