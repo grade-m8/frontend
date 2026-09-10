@@ -8,11 +8,17 @@ import fx from "@/assets/fx.svg";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth.ts";
 import { useSubject } from "@/hooks/useSubject.ts";
+import EnrollSubjectModal from "@/components/data-display/EnrollSubjectModal.tsx";
 
 export default function SubjectsPage() {
   const [query, setQuery] = useState("");
   const context = useAuth();
   const { subjects, isLoading } = useSubject(context.user, context.role);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
 
   if (context.loading) {
     return (
@@ -40,9 +46,14 @@ export default function SubjectsPage() {
         title="Mis Cursos"
         subtitle={`Bienvenido, ${context.user?.displayName}`}
         actions={
-          <Button className="gap-2 h-12 font-bold">
+          <Button
+            className="gap-2 h-12 font-bold"
+            onClick={() => setIsModalOpen(context.role == "Student")}
+          >
             <Plus className="h-4 w-4" />
-            Crear nueva materia
+            {context.role == "Student"
+              ? "Inscribir nueva materia"
+              : "Crear nueva materia"}
           </Button>
         }
       />
@@ -87,6 +98,7 @@ export default function SubjectsPage() {
           </div>
         )}
       </div>
+      {isModalOpen && <EnrollSubjectModal onClose={handleModalClose} />}
     </>
   );
 }

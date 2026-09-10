@@ -30,6 +30,7 @@ export default function ProtectedRoutes({ allowedRoles }: Props) {
   if (!user || !role)
     return <Navigate to={"/"} state={{ from: location }} replace />;
   if (role === "Admin") return <Outlet />;
+  console.log("role:" + role);
   if (!allowedRoles.includes(role)) return <Navigate to={"/403"} replace />;
 
   return <Outlet />;

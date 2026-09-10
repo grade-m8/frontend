@@ -11,7 +11,7 @@ export interface EnrollSubjectCardProps {
   name: string;
   teacher: string;
   room: string;
-  onEnroll?: () => void;
+  onEnroll: () => void;
 }
 
 export function EnrollSubjectCard({

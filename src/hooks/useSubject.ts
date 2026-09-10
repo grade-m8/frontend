@@ -12,7 +12,7 @@ export function useSubject(user: User | null, role: Role | undefined) {
 
   useEffect(() => {
     const loadSubjects = async () => {
-      if (!user || !role || role == "Student") {
+      if (!user || !role) {
         navigate("/403");
         return;
       }

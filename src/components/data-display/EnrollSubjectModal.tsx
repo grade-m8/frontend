@@ -1,30 +1,38 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Loader2, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EnrollSubjectCard } from "@/components/data-display/EnrollSubjectCard";
 import type { Subject } from "@/types/subject.ts";
-import { listAvailable } from "@/services/subjectService.ts";
+import { enroll, listAvailable } from "@/services/subjectService.ts";
 
-/*interface Props {
-  isOpen: boolean;
+interface Props {
   onClose: () => void;
-}*/
+}
 
-export default function EnrollSubjectModal() {
-  const [availableSujects, setAvailableSubjects] = useState<Subject[]>([]);
+export default function EnrollSubjectModal({ onClose }: Props) {
+  const [availableSubjects, setAvailableSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [search, setSearch] = useState("");
 
+  const loadAvailable = useCallback(() => {
+    return listAvailable();
+  }, []);
+
+  const handleEnroll = async (subjectId: string) => {
+    await enroll(subjectId);
+    await loadAvailable();
+  };
+
   useEffect(() => {
     const loadAvailables = async () => {
-      const availables = await listAvailable();
-      setAvailableSubjects(availables);
+      setIsLoading(true);
+      setAvailableSubjects(await loadAvailable());
       setIsLoading(false);
     };
 
     loadAvailables();
-  }, []);
+  }, [loadAvailable]);
 
   if (isLoading) {
     return (
@@ -35,12 +43,15 @@ export default function EnrollSubjectModal() {
     );
   }
 
-  const filteredSubjects = availableSujects.filter((subject) =>
+  const filteredSubjects = availableSubjects.filter((subject) =>
     subject.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
+    >
       <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl border border-neutral-300 flex flex-col max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between border-b border-neutral-300 px-6 py-5 bg-white shrink-0">
           <h2 className="text-h2 font-bold text-neutral-900 tracking-tight">
@@ -49,7 +60,7 @@ export default function EnrollSubjectModal() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => console.log("you closed the modal")}
+            onClick={() => onClose()}
             className="h-9 w-9 text-neutral-650 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg cursor-pointer"
             aria-label="Cerrar modal"
           >
@@ -84,10 +95,11 @@ export default function EnrollSubjectModal() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredSubjects.map((subject) => (
                 <EnrollSubjectCard
-                  key={subject.id}
+                  key={subject.subjectId}
                   name={subject.name}
-                  teacher={subject.teacher}
-                  room={subject.room}
+                  teacher={subject.teacherEmail ?? ""}
+                  room={subject.room ?? ""}
+                  onEnroll={() => handleEnroll}
                 />
               ))}
             </div>
@@ -97,7 +109,7 @@ export default function EnrollSubjectModal() {
         <div className="flex items-center justify-end border-t border-neutral-300 bg-white px-6 py-4 shrink-0">
           <Button
             type="button"
-            onClick={() => console.log("you closed the modal")}
+            onClick={() => onClose()}
             className="bg-neutral-300 hover:bg-neutral-400 text-neutral-900 font-bold uppercase tracking-wider px-6 h-11 rounded-lg border border-neutral-400 cursor-pointer shadow-sm transition-colors"
           >
             FINALIZAR SELECCION
