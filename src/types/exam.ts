@@ -1,3 +1,6 @@
+// TODO: Sincronizar con interfaces de backend (src/types/exam/) cuando
+// los servicios Callable Functions estén integrados
+
 export type CriterionWeight = "high" | "medium" | "low";
 
 export interface RubricCriterion {
