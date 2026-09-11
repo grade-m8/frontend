@@ -32,3 +32,10 @@ export interface Exam {
   publishedAt?: string;
   scheduledAt?: string;
 }
+
+export interface ExamConfigFormState {
+  generalInfo: ExamGeneralInfo;
+  rubricCriteria: RubricCriterion[];
+  isValid: boolean;
+  isDirty: boolean;
+}
