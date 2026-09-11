@@ -11,7 +11,7 @@ export default function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route
-          path="/materias/:subjectId/exams"
+          path="/materias/:subjectId/examenes"
           element={<SubjectExamsPage />}
         />
         <Route element={<RedirectIfAuthenticated />}>
