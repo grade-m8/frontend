@@ -1,16 +1,25 @@
 import type { Enrollment, Subject } from "@/types/subject.ts";
 import type { User } from "firebase/auth";
 
-export async function listOwned(user: User): Promise<Subject[]> {
-  // TODO descomentar esto y poner la url que va
-  //if (!user) throw throw new Error("failed to fetch subjects")
-  // const response = await fetch("url/posta")
-  // if (!response.ok) throw new Error("failed to fetch subjects")
-  // return response.json()
-  console.log(user);
-  return mockSubjects;
-}
+const baseUrl: string = import.meta.env.VITE_BASE_URL;
 
+export async function listOwned(user: User): Promise<Subject[]> {
+  if (!user) throw new Error("failed to fetch subjects");
+  const token = await user.getIdToken();
+  const payload = { data: {} };
+
+  const response = await fetch(baseUrl + "/listOwnedSubjects", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`, // Inform the server about the data format
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("failed to fetch subjects");
+  const responseData = await response.json();
+  return responseData.result;
+}
 export async function listEnrolled(): Promise<Subject[]> {}
 export async function listAvailable(): Promise<Subject[]> {
   return mockSubjects;
