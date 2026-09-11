@@ -1,31 +1,44 @@
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Plus, LayoutGrid, Search } from "lucide-react";
+import { Plus, LayoutGrid, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Input } from "@/components/ui/input";
 import { SubjectCard } from "@/components/data-display/SubjectCard";
 import fx from "@/assets/fx.svg";
 import { useState } from "react";
-
-const TEACHER_NAME = "A. López";
-
-const subjects = [
-  {
-    id: 1,
-    name: "Matemática Discreta",
-    teacherName: "A. López",
-    room: "Aula 402",
-  },
-  {
-    id: 2,
-    name: "Algoritmos y Estructuras",
-    teacherName: "A. López",
-    room: "Aula 301",
-  },
-];
+import { useAuth } from "@/hooks/useAuth.ts";
+import { useSubject } from "@/hooks/useSubject.ts";
+import EnrollSubjectModal from "@/components/data-display/EnrollSubjectModal.tsx";
 
 export default function SubjectsPage() {
   const [query, setQuery] = useState("");
+  const context = useAuth();
+  const { subjects, isLoading, reloadSubjects } = useSubject(
+    context.user,
+    context.role,
+  );
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
+
+  if (context.loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Cargando sesión...
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-4 text-neutral-500">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <p>Cargando tus materias...</p>
+      </div>
+    );
+  }
 
   const filteredSubjects = subjects.filter((s) =>
     s.name.toLowerCase().includes(query.toLowerCase()),
@@ -34,11 +47,20 @@ export default function SubjectsPage() {
     <>
       <PageHeader
         title="Mis Cursos"
-        subtitle={`Bienvenido, ${TEACHER_NAME}`}
+        subtitle={`Bienvenido, ${context.user?.displayName ?? ""}`}
         actions={
-          <Button className="gap-2 h-12 font-bold">
+          <Button
+            className="gap-2 h-12 font-bold"
+            onClick={() => {
+              if (context.role === "Student") {
+                setIsModalOpen(true);
+              }
+            }}
+          >
             <Plus className="h-4 w-4" />
-            Crear nueva materia
+            {context.role === "Student"
+              ? "Inscribir nueva materia"
+              : "Crear nueva materia"}
           </Button>
         }
       />
@@ -71,9 +93,9 @@ export default function SubjectsPage() {
           <div className="mt-4 grid grid-cols-1 gap-4 pb-12 md:grid-cols-2 lg:grid-cols-3">
             {filteredSubjects.map((s) => (
               <SubjectCard
-                key={s.id}
+                key={s.subjectId}
                 title={s.name}
-                subtitle={`Prof. ${s.teacherName} - ${s.room}`}
+                subtitle={`Prof. ${s.teacherEmail ?? "Titular"} - ${s.room ? s.room : ""}`}
                 examValue="15 Oct - Parcial 1"
                 status="Regular"
                 iconSrc={fx}
@@ -83,6 +105,11 @@ export default function SubjectsPage() {
           </div>
         )}
       </div>
+      <EnrollSubjectModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSuccess={reloadSubjects}
+      />
     </>
   );
 }
