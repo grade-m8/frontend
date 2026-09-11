@@ -4,6 +4,7 @@ import SubjectsPage from "@/pages/Subjects/SubjectsPage.tsx";
 import TestPage from "@/pages/testpages/TestPage.tsx";
 import ProtectedRoutes from "@/routes/ProtectedRoutes.tsx";
 import RedirectIfAuthenticated from "@/routes/RedirectIfAuthenticated.tsx";
+import SubjectExamsPage from "@/pages/Subjects/SubjectExamsPage";
 
 export default function AppRouter() {
   return (
@@ -19,6 +20,10 @@ export default function AppRouter() {
           }
         >
           <Route path="/materias" element={<SubjectsPage />} />
+          <Route
+            path="/materias/:subjectId/examenes"
+            element={<SubjectExamsPage />}
+          />
 
           {/*------------------------------- These are all examples for the Role guarded routes -------------------------------*/}
           <Route
