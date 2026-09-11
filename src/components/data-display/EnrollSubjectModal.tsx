@@ -1,50 +1,88 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EnrollSubjectCard } from "@/components/data-display/EnrollSubjectCard";
 import type { Subject } from "@/types/subject.ts";
 import { enroll, listAvailable } from "@/services/subjectService.ts";
+import { toast } from "@/components/handler/toastHandler.tsx";
+import { useAuth } from "@/hooks/useAuth.ts";
 
 interface Props {
+  isOpen: boolean;
   onClose: () => void;
+  onSuccess: () => void;
 }
 
-export default function EnrollSubjectModal({ onClose }: Props) {
+export default function EnrollSubjectModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: Props) {
   const [availableSubjects, setAvailableSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [enrollingSubjectId, setEnrollingSubjectId] = useState<string | null>(
+    null,
+  );
   const [search, setSearch] = useState("");
-
-  const loadAvailable = useCallback(() => {
-    return listAvailable();
-  }, []);
-
-  const handleEnroll = async (subjectId: string) => {
-    await enroll(subjectId);
-    await loadAvailable();
-  };
+  const { user } = useAuth();
 
   useEffect(() => {
-    const loadAvailables = async () => {
+    if (!isOpen) return;
+
+    const loadAvailableSubjects = async () => {
       setIsLoading(true);
-      setAvailableSubjects(await loadAvailable());
-      setIsLoading(false);
+      try {
+        const subjects = await listAvailable(user);
+        setAvailableSubjects(subjects);
+      } catch {
+        toast.error("Error al cargar las materias disponibles");
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    loadAvailables();
-  }, [loadAvailable]);
+    loadAvailableSubjects();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSearch("");
+  }, [isOpen, user]);
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4 text-neutral-500">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <p>Cargando tus materias...</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!isOpen) return;
 
-  const filteredSubjects = availableSubjects.filter((subject) =>
-    subject.name.toLowerCase().includes(search.toLowerCase()),
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  const handleEnroll = async (subjectId: string) => {
+    setEnrollingSubjectId(subjectId);
+    try {
+      await enroll(user, subjectId);
+      toast.success("Inscripción realizada con éxito");
+      onSuccess();
+      setAvailableSubjects((prev) =>
+        prev.filter((subject) => subject.subjectId !== subjectId),
+      );
+    } catch {
+      toast.error("Error al procesar la inscripción");
+    } finally {
+      setEnrollingSubjectId(null);
+    }
+  };
+
+  const filteredSubjects = availableSubjects.filter(
+    (subject) =>
+      subject.name.toLowerCase().includes(search.toLowerCase()) ||
+      (subject.teacherEmail &&
+        subject.teacherEmail.toLowerCase().includes(search.toLowerCase())),
   );
 
   return (
@@ -52,7 +90,10 @@ export default function EnrollSubjectModal({ onClose }: Props) {
       onClick={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
     >
-      <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl border border-neutral-300 flex flex-col max-h-[90vh] overflow-hidden">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-4xl bg-white rounded-xl shadow-2xl border border-neutral-300 flex flex-col max-h-[90vh] overflow-hidden"
+      >
         <div className="flex items-center justify-between border-b border-neutral-300 px-6 py-5 bg-white shrink-0">
           <h2 className="text-h2 font-bold text-neutral-900 tracking-tight">
             Inscripción a Materias
@@ -60,7 +101,7 @@ export default function EnrollSubjectModal({ onClose }: Props) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => onClose()}
+            onClick={onClose}
             className="h-9 w-9 text-neutral-650 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg cursor-pointer"
             aria-label="Cerrar modal"
           >
@@ -82,7 +123,24 @@ export default function EnrollSubjectModal({ onClose }: Props) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 min-h-0 bg-neutral-50/50">
-          {filteredSubjects.length === 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-16 text-neutral-500 gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-teal-700" />
+              <p className="text-body font-medium">
+                Cargando materias disponibles...
+              </p>
+            </div>
+          ) : availableSubjects.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-neutral-300 py-16 text-center">
+              <p className="text-body font-bold text-neutral-900">
+                No hay materias disponibles
+              </p>
+              <p className="text-sm text-neutral-650 mt-1">
+                Ya estás inscripto en todas las materias activas o no hay cursos
+                abiertos actualmente.
+              </p>
+            </div>
+          ) : filteredSubjects.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-neutral-300 py-16 text-center">
               <p className="text-body font-bold text-neutral-900">
                 No se encontraron cátedras
@@ -99,7 +157,9 @@ export default function EnrollSubjectModal({ onClose }: Props) {
                   name={subject.name}
                   teacher={subject.teacherEmail ?? ""}
                   room={subject.room ?? ""}
-                  onEnroll={() => handleEnroll}
+                  onEnroll={() => handleEnroll(subject.subjectId)}
+                  isLoading={enrollingSubjectId === subject.subjectId}
+                  disabled={enrollingSubjectId !== null}
                 />
               ))}
             </div>
@@ -109,7 +169,7 @@ export default function EnrollSubjectModal({ onClose }: Props) {
         <div className="flex items-center justify-end border-t border-neutral-300 bg-white px-6 py-4 shrink-0">
           <Button
             type="button"
-            onClick={() => onClose()}
+            onClick={onClose}
             className="bg-neutral-300 hover:bg-neutral-400 text-neutral-900 font-bold uppercase tracking-wider px-6 h-11 rounded-lg border border-neutral-400 cursor-pointer shadow-sm transition-colors"
           >
             FINALIZAR SELECCION

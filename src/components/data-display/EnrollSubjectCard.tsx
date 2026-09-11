@@ -5,13 +5,15 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, DoorClosed } from "lucide-react";
+import { User, DoorClosed, Loader2 } from "lucide-react";
 
 export interface EnrollSubjectCardProps {
   name: string;
   teacher: string;
   room: string;
   onEnroll: () => void;
+  isLoading?: boolean;
+  disabled?: boolean;
 }
 
 export function EnrollSubjectCard({
@@ -19,6 +21,8 @@ export function EnrollSubjectCard({
   teacher,
   room,
   onEnroll,
+  isLoading = false,
+  disabled = false,
 }: EnrollSubjectCardProps) {
   return (
     <Card className="gap-0 rounded-none border border-neutral-650 py-0 shadow-hard ring-0 transition-transform duration-200 hover:-translate-y-0.5 bg-card flex flex-col justify-between">
@@ -48,9 +52,11 @@ export function EnrollSubjectCard({
         <Button
           type="button"
           onClick={onEnroll}
-          className="h-11 w-full text-sm font-bold uppercase tracking-wider cursor-pointer"
+          disabled={disabled || isLoading}
+          className="h-11 w-full text-sm font-bold uppercase tracking-wider cursor-pointer gap-2"
         >
-          INSCRIBIRSE
+          {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isLoading ? "INSCRIBIENDO..." : "INSCRIBIRME"}
         </Button>
       </CardFooter>
     </Card>

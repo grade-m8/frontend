@@ -13,7 +13,10 @@ import EnrollSubjectModal from "@/components/data-display/EnrollSubjectModal.tsx
 export default function SubjectsPage() {
   const [query, setQuery] = useState("");
   const context = useAuth();
-  const { subjects, isLoading } = useSubject(context.user, context.role);
+  const { subjects, isLoading, reloadSubjects } = useSubject(
+    context.user,
+    context.role,
+  );
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const handleModalClose = () => {
@@ -44,14 +47,18 @@ export default function SubjectsPage() {
     <>
       <PageHeader
         title="Mis Cursos"
-        subtitle={`Bienvenido, ${context.user?.displayName}`}
+        subtitle={`Bienvenido, ${context.user?.displayName ?? ""}`}
         actions={
           <Button
             className="gap-2 h-12 font-bold"
-            onClick={() => setIsModalOpen(context.role == "Student")}
+            onClick={() => {
+              if (context.role === "Student") {
+                setIsModalOpen(true);
+              }
+            }}
           >
             <Plus className="h-4 w-4" />
-            {context.role == "Student"
+            {context.role === "Student"
               ? "Inscribir nueva materia"
               : "Crear nueva materia"}
           </Button>
@@ -98,7 +105,11 @@ export default function SubjectsPage() {
           </div>
         )}
       </div>
-      {isModalOpen && <EnrollSubjectModal onClose={handleModalClose} />}
+      <EnrollSubjectModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSuccess={reloadSubjects}
+      />
     </>
   );
 }

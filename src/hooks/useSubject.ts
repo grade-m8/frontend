@@ -1,7 +1,7 @@
 import type { User } from "firebase/auth";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Subject } from "@/types/subject.ts";
-import { listOwned } from "@/services/subjectService.ts";
+import { listEnrolled, listOwned } from "@/services/subjectService.ts";
 import { useNavigate } from "react-router-dom";
 import type { Role } from "@/types/role.ts";
 
@@ -10,24 +10,39 @@ export function useSubject(user: User | null, role: Role | undefined) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
+  const loadSubjects = useCallback(async () => {
+    if (!user || !role) {
+      return;
+    }
+    try {
+      let subjectList: Subject[] = [];
+      if (role === "Student") {
+        subjectList = await listEnrolled(user);
+      } else if (role === "Professor" || role === "Admin") {
+        subjectList = await listOwned(user);
+      }
+      setSubjects(subjectList ?? []);
+    } catch (error) {
+      console.error("Failed to load subjects:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user, role]);
+
   useEffect(() => {
-    const loadSubjects = async () => {
-      if (!user || !role) {
-        navigate("/403");
-        return;
-      }
-      try {
-        const subjectList: Subject[] = await listOwned(user);
-        setSubjects(subjectList);
-      } catch {
-        navigate("/403");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (!user || !role) {
+      navigate("/403");
+      return;
+    }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadSubjects();
-  }, [user, role, navigate]);
+  }, [user, role, navigate, loadSubjects]);
 
-  return { subjects, isLoading };
+  const reloadSubjects = useCallback(async () => {
+    setIsLoading(true);
+    await loadSubjects();
+  }, [loadSubjects]);
+
+  return { subjects, isLoading, reloadSubjects };
 }
