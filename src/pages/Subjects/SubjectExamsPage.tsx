@@ -1,6 +1,8 @@
+import { ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { ExamCard } from "@/components/data-display/ExamCard";
+import { Button } from "@/components/ui/button";
 
 const MOCK_EXAMS = [
   {
@@ -29,12 +31,40 @@ const MOCK_EXAMS = [
   },
 ];
 
+// ============================================================================
+// PLACEHOLDERS PARA INTEGRACIÓN FUTURA CON EL BACKEND
+// ============================================================================
+
+// TODO: [Backend Integration] Reemplazar MOCK_EXAMS por el consumo de datos reales:
+// const { exams, loading, error } = useExams(subjectId);
+
+// TODO: [Backend Integration] Conectar acción para crear un nuevo examen:
+function handleCreateExam() {
+  console.log(
+    "Placeholder: Abrir modal o navegar al wizard de creación de exámenes",
+  );
+}
+
+// TODO: [Backend Integration] Conectar navegación al detalle/corrección de cada examen:
+function handleGoToExam(examId: number) {
+  console.log(
+    "Placeholder: Navegar a la pantalla de detalle/corrección del examen:",
+    examId,
+  );
+}
+
 export default function SubjectExamsPage() {
   return (
     <div className="px-6">
       <PageHeader
         title="Matemática II"
         subtitle="Resumen de evaluaciones y métricas académicas en tiempo real"
+        actions={
+          <Button className="gap-2 h-12 font-bold" onClick={handleCreateExam}>
+            Crear nuevo examen
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        }
       />
       <SectionHeader title="Exámenes Recientes" />
       {MOCK_EXAMS.length === 0 ? (
@@ -53,6 +83,7 @@ export default function SubjectExamsPage() {
               date={exam.date}
               durationMinutes={exam.durationMinutes}
               status={exam.status}
+              onActionClick={() => handleGoToExam(exam.id)}
             />
           ))}
         </div>

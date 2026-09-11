@@ -10,10 +10,6 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/materias/:subjectId/examenes"
-          element={<SubjectExamsPage />}
-        />
         <Route element={<RedirectIfAuthenticated />}>
           <Route path="/" element={<LandingPage />} />
         </Route>
@@ -24,6 +20,10 @@ export default function AppRouter() {
           }
         >
           <Route path="/materias" element={<SubjectsPage />} />
+          <Route
+            path="/materias/:subjectId/examenes"
+            element={<SubjectExamsPage />}
+          />
 
           {/*------------------------------- These are all examples for the Role guarded routes -------------------------------*/}
           <Route
