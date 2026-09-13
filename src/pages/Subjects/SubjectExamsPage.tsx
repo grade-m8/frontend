@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { ExamCard } from "@/components/data-display/ExamCard";
@@ -61,8 +61,8 @@ export default function SubjectExamsPage() {
         subtitle="Resumen de evaluaciones y métricas académicas en tiempo real"
         actions={
           <Button className="gap-2 h-12 font-bold" onClick={handleCreateExam}>
+            <Plus className="h-4 w-4" />
             Crear nuevo examen
-            <ArrowRight className="h-4 w-4" />
           </Button>
         }
       />
