@@ -55,7 +55,7 @@ function handleGoToExam(examId: number) {
 
 export default function SubjectExamsPage() {
   return (
-    <div className="px-6">
+    <>
       <PageHeader
         title="Matemática II"
         subtitle="Resumen de evaluaciones y métricas académicas en tiempo real"
@@ -66,28 +66,30 @@ export default function SubjectExamsPage() {
           </Button>
         }
       />
-      <SectionHeader title="Exámenes Recientes" />
-      {MOCK_EXAMS.length === 0 ? (
-        <div className="border border-dashed border-neutral-300 py-16 text-center">
-          <p className="text-body font-bold text-neutral-900">
-            No hay exámenes registrados
-          </p>
-        </div>
-      ) : (
-        <div className="mt-4 grid grid-cols-1 gap-4 pb-12 md:grid-cols-2 lg:grid-cols-3">
-          {MOCK_EXAMS.map((exam) => (
-            <ExamCard
-              key={exam.id}
-              title={exam.title}
-              studentCount={exam.studentCount}
-              date={exam.date}
-              durationMinutes={exam.durationMinutes}
-              status={exam.status}
-              onActionClick={() => handleGoToExam(exam.id)}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+      <div className="px-6">
+        <SectionHeader title="Exámenes Recientes" />
+        {MOCK_EXAMS.length === 0 ? (
+          <div className="border border-dashed border-neutral-300 py-16 text-center">
+            <p className="text-body font-bold text-neutral-900">
+              No hay exámenes registrados
+            </p>
+          </div>
+        ) : (
+          <div className="mt-4 grid grid-cols-1 gap-4 pb-12 md:grid-cols-2 lg:grid-cols-3">
+            {MOCK_EXAMS.map((exam) => (
+              <ExamCard
+                key={exam.id}
+                title={exam.title}
+                studentCount={exam.studentCount}
+                date={exam.date}
+                durationMinutes={exam.durationMinutes}
+                status={exam.status}
+                onActionClick={() => handleGoToExam(exam.id)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
