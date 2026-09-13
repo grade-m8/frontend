@@ -5,9 +5,8 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Input } from "@/components/ui/input";
 import { SubjectCard } from "@/components/data-display/SubjectCard";
 import fx from "@/assets/fx.svg";
-import { useState } from "react";
-
-const TEACHER_NAME = "A. López";
+import { useContext, useState } from "react";
+import { AuthContext } from "@/context/AuthContext";
 
 const subjects = [
   {
@@ -26,6 +25,11 @@ const subjects = [
 
 export default function SubjectsPage() {
   const [query, setQuery] = useState("");
+  const authContext = useContext(AuthContext);
+
+  const userName = authContext?.profile
+    ? `${authContext.profile.firstName} ${authContext.profile.lastName}`
+    : "";
 
   const filteredSubjects = subjects.filter((s) =>
     s.name.toLowerCase().includes(query.toLowerCase()),
@@ -34,7 +38,7 @@ export default function SubjectsPage() {
     <>
       <PageHeader
         title="Mis Cursos"
-        subtitle={`Bienvenido, ${TEACHER_NAME}`}
+        subtitle={userName ? `Bienvenido, ${userName}` : "Bienvenido"}
         actions={
           <Button className="gap-2 h-12 font-bold">
             <Plus className="h-4 w-4" />
