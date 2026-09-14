@@ -25,7 +25,7 @@ export default function LandingPage() {
     login(email, password)
       .then(() => {
         toast.success("Log in successful!");
-        navigate("/subjects");
+        navigate("/materias");
       })
       .catch(function (error: firebase.FirebaseError) {
         const message = mapErrorMessage(error.code);
