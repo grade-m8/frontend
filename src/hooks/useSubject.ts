@@ -28,7 +28,7 @@ export function useSubject(user: User | null, role: Role | undefined) {
     };
 
     loadSubjects();
-  }, [user, navigate]);
+  }, [user, navigate, role]);
 
   return { subjects, isLoading };
 }

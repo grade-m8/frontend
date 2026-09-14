@@ -78,9 +78,9 @@ export default function SubjectsPage() {
               <SubjectCard
                 key={s.subjectId}
                 title={s.name}
-                subtitle={`Prof. ${s.teacherEmail ?? "Titular"} - ${s.room ? s.room : ""}`}
+                subtitle={`Prof. ${s.teacherEmail ?? "Titular"}${s.room ? `- ${s.room}` : ""}`}
                 examValue="15 Oct - Parcial 1"
-                status="Regular"
+                status={s.active ? "Activa" : "Inactiva"}
                 iconSrc={fx}
                 onCtaClick={() => console.log("Ver exámenes de", s.name)}
               />
