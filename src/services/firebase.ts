@@ -23,7 +23,7 @@ export const auth = getAuth(app);
 
 export const functions = getFunctions(app);
 
-if (import.meta.env.VITE_USE_EMULATORS == "true") {
+if (import.meta.env.VITE_USE_EMULATORS === "true") {
   connectFunctionsEmulator(functions, "localhost", 5001);
   connectAuthEmulator(auth, "http://localhost:9099");
   console.log("We are using the Auth emulator!!!");
