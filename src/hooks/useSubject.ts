@@ -4,6 +4,7 @@ import type { Subject } from "@/types/subject.ts";
 import { listOwned } from "@/services/subjectService.ts";
 import { useNavigate } from "react-router-dom";
 import type { Role } from "@/types/role.ts";
+import { toast } from "@/components/handler/toastHandler.tsx";
 
 export function useSubject(user: User | null, role: Role | undefined) {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -11,17 +12,20 @@ export function useSubject(user: User | null, role: Role | undefined) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!user || !role) return;
+
+    if (role == "Student") {
+      navigate("/403");
+      return;
+    }
+
     const loadSubjects = async () => {
-      if (!user || !role || role == "Student") {
-        navigate("/403");
-        return;
-      }
       try {
+        setIsLoading(true);
         const subjectList: Subject[] = await listOwned(user);
-        console.log("subject list: " + subjectList);
         setSubjects(subjectList);
       } catch {
-        navigate("/403");
+        toast.error("No se pudieron cargar las materias");
       } finally {
         setIsLoading(false);
       }
