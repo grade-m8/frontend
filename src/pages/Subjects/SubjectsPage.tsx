@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { SubjectCard } from "@/components/data-display/SubjectCard";
 import fx from "@/assets/fx.svg";
 import { useContext, useState } from "react";
-import { useSubject } from "@/hooks/useSubject.ts";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "@/context/AuthContext.ts";
+import { useSubject } from "@/hooks/useSubject.ts";
+import EnrollSubjectModal from "@/components/data-display/EnrollSubjectModal.tsx";
 
 export default function SubjectsPage() {
   const [query, setQuery] = useState("");
@@ -18,10 +19,15 @@ export default function SubjectsPage() {
     ? `${authContext.profile.firstName} ${authContext.profile.lastName}`
     : "";
 
-  const { subjects, isLoading } = useSubject(
+  const { subjects, isLoading, reloadSubjects } = useSubject(
     authContext ? authContext.user : null,
     authContext ? authContext.role : undefined,
   );
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
+
   const navigate = useNavigate();
 
   if (!authContext || authContext.loading) {
@@ -51,9 +57,18 @@ export default function SubjectsPage() {
         title="Mis Cursos"
         subtitle={userName ? `Bienvenido, ${userName}` : "Bienvenido"}
         actions={
-          <Button className="gap-2 h-12 font-bold">
+          <Button
+            className="gap-2 h-12 font-bold"
+            onClick={() => {
+              if (authContext.role === "Student") {
+                setIsModalOpen(true);
+              }
+            }}
+          >
             <Plus className="h-4 w-4" />
-            Crear nueva materia
+            {authContext.role === "Student"
+              ? "Inscribir nueva materia"
+              : "Crear nueva materia"}
           </Button>
         }
       />
@@ -98,6 +113,11 @@ export default function SubjectsPage() {
           </div>
         )}
       </div>
+      <EnrollSubjectModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSuccess={reloadSubjects}
+      />
     </>
   );
 }
