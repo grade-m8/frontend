@@ -71,7 +71,7 @@ export default function SubjectsPage() {
             <Button
               variant="outline"
               onClick={handleLogout}
-              className="gap-2 h-12 font-bold"
+              className="gap-2 h-12 font-bold cursor-pointer"
             >
               <LogOut className="h-4 w-4" />
               Cerrar Sesión
