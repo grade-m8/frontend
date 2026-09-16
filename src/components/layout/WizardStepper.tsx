@@ -2,23 +2,23 @@ import { ArrowRight } from "lucide-react";
 
 export function WizardStepper() {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-4">
       <div className="flex items-center gap-2">
-        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-700 text-xs font-bold text-white">
-          1
+        <div className="flex h-6 w-6 items-center justify-center rounded-full border border-teal-800 bg-teal-700">
+          <span className="label-micro font-bold text-teal-100">1</span>
         </div>
-        <span className="text-sm font-bold uppercase tracking-wider text-neutral-900">
+        <span className="label-micro font-bold text-teal-800">
           Configuración y Rúbricas
         </span>
       </div>
 
-      <ArrowRight className="h-4 w-4 text-neutral-400" />
+      <ArrowRight className="h-3 w-3 text-neutral-300" />
 
       <div className="flex items-center gap-2">
-        <div className="flex h-6 w-6 items-center justify-center rounded-full border border-neutral-300 text-xs font-bold text-neutral-500">
-          2
+        <div className="flex h-6 w-6 items-center justify-center rounded-full border border-neutral-500">
+          <span className="label-micro text-neutral-500">2</span>
         </div>
-        <span className="text-sm font-bold uppercase tracking-wider text-neutral-500">
+        <span className="label-micro text-neutral-500">
           Preguntas y Contenido
         </span>
       </div>
