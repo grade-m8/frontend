@@ -5,6 +5,7 @@ import TestPage from "@/pages/testpages/TestPage.tsx";
 import ProtectedRoutes from "@/routes/ProtectedRoutes.tsx";
 import RedirectIfAuthenticated from "@/routes/RedirectIfAuthenticated.tsx";
 import SubjectExamsPage from "@/pages/Subjects/SubjectExamsPage";
+import { WizardStepper } from "@/components/layout/WizardStepper.tsx";
 
 export default function AppRouter() {
   return (
@@ -13,6 +14,7 @@ export default function AppRouter() {
         <Route element={<RedirectIfAuthenticated />}>
           <Route path="/" element={<LandingPage />} />
         </Route>
+        <Route path="/wizard-stepper-test" element={<WizardStepper />} />
 
         <Route
           element={
