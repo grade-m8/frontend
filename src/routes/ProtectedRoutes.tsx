@@ -20,14 +20,14 @@ export default function ProtectedRoutes({ allowedRoles }: Props) {
     if (user && role) {
       hadSession.current = true;
       if (role !== "Admin" && !allowedRoles.includes(role)) {
-        toast.error("You don't have access to that page");
+        toast.error("No tienes acceso a esta pagina");
       }
       return;
     }
 
     if (hadSession.current) return;
 
-    toast.error("Need to log in to access page");
+    toast.error("Inicia sesión para acceder a esta página");
   }, [loading, user, role, allowedRoles]);
 
   if (loading) return <h1>Loading...</h1>;
