@@ -1,9 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFunctions } from "firebase/functions";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -22,9 +20,11 @@ console.log("Use emulators value: " + import.meta.env.VITE_USE_EMULATORS);
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
 export const functions = getFunctions(app);
 
-if (import.meta.env.VITE_USE_EMULATORS == "true") {
+if (import.meta.env.VITE_USE_EMULATORS === "true") {
+  connectFunctionsEmulator(functions, "localhost", 5001);
   connectAuthEmulator(auth, "http://localhost:9099");
   console.log("We are using the Auth emulator!!!");
 }

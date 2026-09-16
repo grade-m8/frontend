@@ -12,6 +12,9 @@ import { useSubject } from "@/hooks/useSubject.ts";
 export default function SubjectsPage() {
   const [query, setQuery] = useState("");
   const context = useAuth();
+  const userName = context.user?.displayName
+    ? `${context.user.displayName}`
+    : "";
   const { subjects, isLoading } = useSubject(context.user, context.role);
 
   if (context.loading) {
@@ -39,7 +42,7 @@ export default function SubjectsPage() {
     <>
       <PageHeader
         title="Mis Cursos"
-        subtitle={`Bienvenido, ${context.user?.displayName}`}
+        subtitle={userName ? `Bienvenido, ${userName}` : "Bienvenido"}
         actions={
           <Button className="gap-2 h-12 font-bold">
             <Plus className="h-4 w-4" />
