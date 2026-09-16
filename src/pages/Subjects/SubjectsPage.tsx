@@ -5,26 +5,39 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Input } from "@/components/ui/input";
 import { SubjectCard } from "@/components/data-display/SubjectCard";
 import fx from "@/assets/fx.svg";
-import { useState } from "react";
-import { useSubject } from "@/hooks/useSubject.ts";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "@/context/AuthContext.ts";
+import { useSubject } from "@/hooks/useSubject.ts";
+import EnrollSubjectModal from "@/components/data-display/EnrollSubjectModal.tsx";
 import { toast } from "@/components/handler/toastHandler.tsx";
-import { useAuth } from "@/hooks/useAuth.ts";
 
 export default function SubjectsPage() {
   const [query, setQuery] = useState("");
-  const authContext = useAuth();
+  const authContext = useContext(AuthContext);
 
-  const userName = authContext.profile
+  const userName = authContext?.profile
     ? `${authContext.profile.firstName} ${authContext.profile.lastName}`
     : "";
 
-  const { subjects, isLoading } = useSubject(
-    authContext.user,
-    authContext.role,
+  const { subjects, isLoading, reloadSubjects } = useSubject(
+    authContext ? authContext.user : null,
+    authContext ? authContext.role : undefined,
   );
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
+
   const navigate = useNavigate();
 
+  if (!authContext || authContext.loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Cargando sesión...
+      </div>
+    );
+  }
   const handleLogout = async (): Promise<void> => {
     try {
       await authContext.logout();
@@ -34,14 +47,6 @@ export default function SubjectsPage() {
       toast.error("Error al cerrar sesión");
     }
   };
-
-  if (!authContext || authContext.loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        Cargando sesión...
-      </div>
-    );
-  }
 
   // 2. Prevenir el renderizado de la grilla mientras se buscan las materias
   if (isLoading) {
@@ -71,9 +76,18 @@ export default function SubjectsPage() {
               <LogOut className="h-4 w-4" />
               Cerrar Sesión
             </Button>
-            <Button className="gap-2 h-12 font-bold">
+            <Button
+              className="gap-2 h-12 font-bold"
+              onClick={() => {
+                if (authContext.role === "Student") {
+                  setIsModalOpen(true);
+                }
+              }}
+            >
               <Plus className="h-4 w-4" />
-              Crear nueva materia
+              {authContext.role === "Student"
+                ? "Inscribir nueva materia"
+                : "Crear nueva materia"}
             </Button>
           </div>
         }
@@ -119,6 +133,11 @@ export default function SubjectsPage() {
           </div>
         )}
       </div>
+      <EnrollSubjectModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSuccess={reloadSubjects}
+      />
     </>
   );
 }
