@@ -1,27 +1,14 @@
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Plus, LayoutGrid, Search } from "lucide-react";
+import { Plus, LayoutGrid, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Input } from "@/components/ui/input";
 import { SubjectCard } from "@/components/data-display/SubjectCard";
 import fx from "@/assets/fx.svg";
 import { useContext, useState } from "react";
-import { AuthContext } from "@/context/AuthContext";
-
-const subjects = [
-  {
-    id: 1,
-    name: "Matemática Discreta",
-    teacherName: "A. López",
-    room: "Aula 402",
-  },
-  {
-    id: 2,
-    name: "Algoritmos y Estructuras",
-    teacherName: "A. López",
-    room: "Aula 301",
-  },
-];
+import { useSubject } from "@/hooks/useSubject.ts";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "@/context/AuthContext.ts";
 
 export default function SubjectsPage() {
   const [query, setQuery] = useState("");
@@ -30,6 +17,30 @@ export default function SubjectsPage() {
   const userName = authContext?.profile
     ? `${authContext.profile.firstName} ${authContext.profile.lastName}`
     : "";
+
+  const { subjects, isLoading } = useSubject(
+    authContext ? authContext.user : null,
+    authContext ? authContext.role : undefined,
+  );
+  const navigate = useNavigate();
+
+  if (!authContext || authContext.loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Cargando sesión...
+      </div>
+    );
+  }
+
+  // 2. Prevenir el renderizado de la grilla mientras se buscan las materias
+  if (isLoading) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-4 text-neutral-500">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <p>Cargando tus materias...</p>
+      </div>
+    );
+  }
 
   const filteredSubjects = subjects.filter((s) =>
     s.name.toLowerCase().includes(query.toLowerCase()),
@@ -75,13 +86,13 @@ export default function SubjectsPage() {
           <div className="mt-4 grid grid-cols-1 gap-4 pb-12 md:grid-cols-2 lg:grid-cols-3">
             {filteredSubjects.map((s) => (
               <SubjectCard
-                key={s.id}
+                key={s.subjectId}
                 title={s.name}
-                subtitle={`Prof. ${s.teacherName} - ${s.room}`}
+                subtitle={`Prof. ${s.teacherEmail ?? "Titular"}${s.room ? `- ${s.room}` : ""}`}
                 examValue="15 Oct - Parcial 1"
-                status="Regular"
+                status={s.active ? "Activa" : "Inactiva"}
                 iconSrc={fx}
-                onCtaClick={() => console.log("Ver exámenes de", s.name)}
+                onCtaClick={() => navigate(`/materias/${s.subjectId}/examenes`)}
               />
             ))}
           </div>
