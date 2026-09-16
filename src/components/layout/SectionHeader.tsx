@@ -14,7 +14,7 @@ export function SectionHeader({
 }: SectionHeaderProps) {
   return (
     <div className="flex items-center justify-between gap-4 border-b-2 border-neutral-900 pt-8 pb-4">
-      <div className="flex items-center gap-2">
+      <div className="flex min-h-8 items-center gap-2">
         {Icon && <Icon className="h-[18px] w-[18px] text-neutral-900" />}
         <h2 className="text-h3 font-bold uppercase tracking-tight text-neutral-900">
           {title}
