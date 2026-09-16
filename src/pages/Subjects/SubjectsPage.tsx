@@ -5,19 +5,26 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Input } from "@/components/ui/input";
 import { SubjectCard } from "@/components/data-display/SubjectCard";
 import fx from "@/assets/fx.svg";
-import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth.ts";
+import { useContext, useState } from "react";
 import { useSubject } from "@/hooks/useSubject.ts";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "@/context/AuthContext.ts";
 
 export default function SubjectsPage() {
   const [query, setQuery] = useState("");
-  const context = useAuth();
-  const userName = context.user?.displayName
-    ? `${context.user.displayName}`
-    : "";
-  const { subjects, isLoading } = useSubject(context.user, context.role);
+  const authContext = useContext(AuthContext);
 
-  if (context.loading) {
+  const userName = authContext?.profile
+    ? `${authContext.profile.firstName} ${authContext.profile.lastName}`
+    : "";
+
+  const { subjects, isLoading } = useSubject(
+    authContext ? authContext.user : null,
+    authContext ? authContext.role : undefined,
+  );
+  const navigate = useNavigate();
+
+  if (!authContext || authContext.loading) {
     return (
       <div className="flex h-screen items-center justify-center">
         Cargando sesión...
@@ -85,7 +92,7 @@ export default function SubjectsPage() {
                 examValue="15 Oct - Parcial 1"
                 status={s.active ? "Activa" : "Inactiva"}
                 iconSrc={fx}
-                onCtaClick={() => console.log("Ver exámenes de", s.name)}
+                onCtaClick={() => navigate(`/materias/${s.subjectId}/examenes`)}
               />
             ))}
           </div>
