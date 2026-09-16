@@ -1,5 +1,5 @@
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Plus, LayoutGrid, Search, Loader2 } from "lucide-react";
+import { Plus, LayoutGrid, Search, Loader2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "@/context/AuthContext.ts";
 import { useSubject } from "@/hooks/useSubject.ts";
 import EnrollSubjectModal from "@/components/data-display/EnrollSubjectModal.tsx";
+import { toast } from "@/components/handler/toastHandler.tsx";
 
 export default function SubjectsPage() {
   const [query, setQuery] = useState("");
@@ -37,6 +38,15 @@ export default function SubjectsPage() {
       </div>
     );
   }
+  const handleLogout = async (): Promise<void> => {
+    try {
+      await authContext.logout();
+      toast.success("Sesión cerrada correctamente");
+      navigate("/");
+    } catch {
+      toast.error("Error al cerrar sesión");
+    }
+  };
 
   // 2. Prevenir el renderizado de la grilla mientras se buscan las materias
   if (isLoading) {
@@ -57,19 +67,29 @@ export default function SubjectsPage() {
         title="Mis Cursos"
         subtitle={userName ? `Bienvenido, ${userName}` : "Bienvenido"}
         actions={
-          <Button
-            className="gap-2 h-12 font-bold"
-            onClick={() => {
-              if (authContext.role === "Student") {
-                setIsModalOpen(true);
-              }
-            }}
-          >
-            <Plus className="h-4 w-4" />
-            {authContext.role === "Student"
-              ? "Inscribir nueva materia"
-              : "Crear nueva materia"}
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="gap-2 h-12 font-bold cursor-pointer"
+            >
+              <LogOut className="h-4 w-4" />
+              Cerrar Sesión
+            </Button>
+            <Button
+              className="gap-2 h-12 font-bold"
+              onClick={() => {
+                if (authContext.role === "Student") {
+                  setIsModalOpen(true);
+                }
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              {authContext.role === "Student"
+                ? "Inscribir nueva materia"
+                : "Crear nueva materia"}
+            </Button>
+          </div>
         }
       />
       <div className="px-6">
