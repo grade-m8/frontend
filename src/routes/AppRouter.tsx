@@ -26,31 +26,6 @@ export default function AppRouter() {
             path="/materias/:subjectId/examenes"
             element={<SubjectExamsPage />}
           />
-
-          {/*------------------------------- These are all examples for the Role guarded routes -------------------------------*/}
-          <Route
-            path={"/studentlevel"}
-            element={<TestPage informativeText="all can see this" />}
-          />
-
-          <Route
-            element={<ProtectedRoutes allowedRoles={["Admin", "Professor"]} />}
-          >
-            <Route
-              path={"/professorlevel"}
-              element={
-                <TestPage informativeText="professors and admins can see this" />
-              }
-            />
-          </Route>
-
-          <Route element={<ProtectedRoutes allowedRoles={["Admin"]} />}>
-            <Route
-              path={"/adminlevel"}
-              element={<TestPage informativeText="only admins can see this" />}
-            />
-          </Route>
-          {/*------------------------------- These are all examples for the Role guarded routes -------------------------------*/}
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

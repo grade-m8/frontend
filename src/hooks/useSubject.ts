@@ -2,14 +2,12 @@ import type { User } from "firebase/auth";
 import { useCallback, useEffect, useState } from "react";
 import type { Subject } from "@/types/subject.ts";
 import { listEnrolled, listOwned } from "@/services/subjectService.ts";
-import { useNavigate } from "react-router-dom";
 import type { Role } from "@/types/role.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
 
 export function useSubject(user: User | null, role: Role | undefined) {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const navigate = useNavigate();
 
   const loadSubjects = useCallback(async () => {
     if (!user || !role) return;
@@ -37,7 +35,7 @@ export function useSubject(user: User | null, role: Role | undefined) {
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadSubjects();
-  }, [user, role, navigate, loadSubjects]);
+  }, [user, role, loadSubjects]);
 
   const reloadSubjects = useCallback(async () => {
     await loadSubjects();
