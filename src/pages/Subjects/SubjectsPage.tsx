@@ -1,28 +1,39 @@
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Plus, LayoutGrid, Search, Loader2 } from "lucide-react";
+import { Plus, LayoutGrid, Search, Loader2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Input } from "@/components/ui/input";
 import { SubjectCard } from "@/components/data-display/SubjectCard";
 import fx from "@/assets/fx.svg";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { useSubject } from "@/hooks/useSubject.ts";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "@/context/AuthContext.ts";
+import { toast } from "@/components/handler/toastHandler.tsx";
+import { useAuth } from "@/hooks/useAuth.ts";
 
 export default function SubjectsPage() {
   const [query, setQuery] = useState("");
-  const authContext = useContext(AuthContext);
+  const authContext = useAuth();
 
-  const userName = authContext?.profile
+  const userName = authContext.profile
     ? `${authContext.profile.firstName} ${authContext.profile.lastName}`
     : "";
 
   const { subjects, isLoading } = useSubject(
-    authContext ? authContext.user : null,
-    authContext ? authContext.role : undefined,
+    authContext.user,
+    authContext.role,
   );
   const navigate = useNavigate();
+
+  const handleLogout = async (): Promise<void> => {
+    try {
+      await authContext.logout();
+      toast.success("Sesión cerrada correctamente");
+      navigate("/");
+    } catch {
+      toast.error("Error al cerrar sesión");
+    }
+  };
 
   if (!authContext || authContext.loading) {
     return (
@@ -51,10 +62,20 @@ export default function SubjectsPage() {
         title="Mis Cursos"
         subtitle={userName ? `Bienvenido, ${userName}` : "Bienvenido"}
         actions={
-          <Button className="gap-2 h-12 font-bold">
-            <Plus className="h-4 w-4" />
-            Crear nueva materia
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="gap-2 h-12 font-bold"
+            >
+              <LogOut className="h-4 w-4" />
+              Cerrar Sesión
+            </Button>
+            <Button className="gap-2 h-12 font-bold">
+              <Plus className="h-4 w-4" />
+              Crear nueva materia
+            </Button>
+          </div>
         }
       />
       <div className="px-6">
