@@ -32,7 +32,6 @@ export function useSubject(user: User | null, role: Role | undefined) {
 
   useEffect(() => {
     if (!user || !role) {
-      navigate("/403");
       return;
     }
 
