@@ -4,6 +4,7 @@ import type { Subject } from "@/types/subject.ts";
 import { listEnrolled, listOwned } from "@/services/subjectService.ts";
 import { useNavigate } from "react-router-dom";
 import type { Role } from "@/types/role.ts";
+import { toast } from "@/components/handler/toastHandler.tsx";
 
 export function useSubject(user: User | null, role: Role | undefined) {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -11,10 +12,10 @@ export function useSubject(user: User | null, role: Role | undefined) {
   const navigate = useNavigate();
 
   const loadSubjects = useCallback(async () => {
-    if (!user || !role) {
-      return;
-    }
+    if (!user || !role) return;
+
     try {
+      setIsLoading(true);
       let subjectList: Subject[] = [];
       if (role === "Student") {
         subjectList = await listEnrolled(user);
@@ -22,8 +23,8 @@ export function useSubject(user: User | null, role: Role | undefined) {
         subjectList = await listOwned(user);
       }
       setSubjects(subjectList ?? []);
-    } catch (error) {
-      console.error("Failed to load subjects:", error);
+    } catch {
+      toast.error("No se pudieron cargar las materias");
     } finally {
       setIsLoading(false);
     }
@@ -40,7 +41,6 @@ export function useSubject(user: User | null, role: Role | undefined) {
   }, [user, role, navigate, loadSubjects]);
 
   const reloadSubjects = useCallback(async () => {
-    setIsLoading(true);
     await loadSubjects();
   }, [loadSubjects]);
 

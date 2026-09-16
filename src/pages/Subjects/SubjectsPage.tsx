@@ -5,25 +5,32 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Input } from "@/components/ui/input";
 import { SubjectCard } from "@/components/data-display/SubjectCard";
 import fx from "@/assets/fx.svg";
-import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth.ts";
+import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "@/context/AuthContext.ts";
 import { useSubject } from "@/hooks/useSubject.ts";
 import EnrollSubjectModal from "@/components/data-display/EnrollSubjectModal.tsx";
 
 export default function SubjectsPage() {
   const [query, setQuery] = useState("");
-  const context = useAuth();
+  const authContext = useContext(AuthContext);
+
+  const userName = authContext?.profile
+    ? `${authContext.profile.firstName} ${authContext.profile.lastName}`
+    : "";
+
   const { subjects, isLoading, reloadSubjects } = useSubject(
-    context.user,
-    context.role,
+    authContext ? authContext.user : null,
+    authContext ? authContext.role : undefined,
   );
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
   const handleModalClose = () => {
     setIsModalOpen(false);
   };
 
-  if (context.loading) {
+  const navigate = useNavigate();
+
+  if (!authContext || authContext.loading) {
     return (
       <div className="flex h-screen items-center justify-center">
         Cargando sesión...
@@ -31,6 +38,7 @@ export default function SubjectsPage() {
     );
   }
 
+  // 2. Prevenir el renderizado de la grilla mientras se buscan las materias
   if (isLoading) {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4 text-neutral-500">
@@ -47,18 +55,18 @@ export default function SubjectsPage() {
     <>
       <PageHeader
         title="Mis Cursos"
-        subtitle={`Bienvenido, ${context.user?.displayName ?? ""}`}
+        subtitle={userName ? `Bienvenido, ${userName}` : "Bienvenido"}
         actions={
           <Button
             className="gap-2 h-12 font-bold"
             onClick={() => {
-              if (context.role === "Student") {
+              if (authContext.role === "Student") {
                 setIsModalOpen(true);
               }
             }}
           >
             <Plus className="h-4 w-4" />
-            {context.role === "Student"
+            {authContext.role === "Student"
               ? "Inscribir nueva materia"
               : "Crear nueva materia"}
           </Button>
@@ -95,11 +103,11 @@ export default function SubjectsPage() {
               <SubjectCard
                 key={s.subjectId}
                 title={s.name}
-                subtitle={`Prof. ${s.teacherEmail ?? "Titular"} - ${s.room ? s.room : ""}`}
+                subtitle={`Prof. ${s.teacherEmail ?? "Titular"}${s.room ? `- ${s.room}` : ""}`}
                 examValue="15 Oct - Parcial 1"
-                status="Regular"
+                status={s.active ? "Activa" : "Inactiva"}
                 iconSrc={fx}
-                onCtaClick={() => console.log("Ver exámenes de", s.name)}
+                onCtaClick={() => navigate(`/materias/${s.subjectId}/examenes`)}
               />
             ))}
           </div>
