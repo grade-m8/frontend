@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 const MOCK_EXAMS = [
   {
-    id: 1,
+    id: "1",
     title: "Primer Parcial",
     studentCount: "48 Alumnos",
     date: "24 Oct, 18:00",
@@ -14,7 +14,7 @@ const MOCK_EXAMS = [
     status: "CORREGIDO",
   },
   {
-    id: 2,
+    id: "2",
     title: "Primer Parcial",
     studentCount: "48 Alumnos",
     date: "24 Oct, 13:00",
@@ -22,7 +22,7 @@ const MOCK_EXAMS = [
     status: "PENDIENTE",
   },
   {
-    id: 3,
+    id: "3",
     title: "Primer Parcial",
     studentCount: "45 Alumnos",
     date: "24 Oct, 18:00",
@@ -46,7 +46,7 @@ function handleCreateExam() {
 }
 
 // TODO: [Backend Integration] Conectar navegación al detalle/corrección de cada examen:
-function handleGoToExam(examId: number) {
+function handleGoToExam(examId: string) {
   console.log(
     "Placeholder: Navegar a la pantalla de detalle/corrección del examen:",
     examId,
@@ -69,7 +69,7 @@ export default function SubjectExamsPage() {
       <div className="px-6">
         <SectionHeader title="Exámenes Recientes" />
         {MOCK_EXAMS.length === 0 ? (
-          <div className="border border-dashed border-neutral-300 py-16 text-center">
+          <div className="mt-4 border border-dashed border-neutral-300 py-16 text-center">
             <p className="text-body font-bold text-neutral-900">
               No hay exámenes registrados
             </p>
