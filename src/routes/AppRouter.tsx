@@ -14,7 +14,10 @@ export default function AppRouter() {
         <Route element={<RedirectIfAuthenticated />}>
           <Route path="/" element={<LandingPage />} />
         </Route>
-        <Route path="/wizard-stepper-test" element={<WizardStepper />} />
+        <Route
+          path="/wizard-stepper-test"
+          element={<WizardStepper currentStep="config" />}
+        />
 
         <Route
           element={
