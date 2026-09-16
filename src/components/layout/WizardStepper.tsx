@@ -19,11 +19,13 @@ const DEFAULT_STEPS: WizardStepItem[] = [
 interface WizardStepperProps {
   currentStep: WizardStepId;
   steps?: WizardStepItem[];
+  onStepClick?: (stepId: WizardStepId) => void;
 }
 
 export function WizardStepper({
   currentStep,
   steps = DEFAULT_STEPS,
+  onStepClick,
 }: WizardStepperProps) {
   const currentStepNumber =
     steps.find((s) => s.id === currentStep)?.stepNumber ?? 1;
@@ -33,10 +35,14 @@ export function WizardStepper({
       {steps.map((step, index) => {
         const isActive = step.id === currentStep;
         const isCompleted = step.stepNumber < currentStepNumber;
+        const isClickable = isCompleted && !!onStepClick;
 
         return (
           <div key={step.id} className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
+            <div
+              className={`flex items-center gap-2 ${isClickable ? "cursor-pointer" : ""}`}
+              onClick={isClickable ? () => onStepClick?.(step.id) : undefined}
+            >
               {isActive || isCompleted ? (
                 <div className="flex h-6 w-6 items-center justify-center rounded-full border border-teal-800 bg-teal-700">
                   {isCompleted ? (

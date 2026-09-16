@@ -16,7 +16,12 @@ export default function AppRouter() {
         </Route>
         <Route
           path="/wizard-stepper-test"
-          element={<WizardStepper currentStep="questions" />}
+          element={
+            <WizardStepper
+              currentStep="questions"
+              onStepClick={(id) => console.log("Click en paso:", id)}
+            />
+          }
         />
 
         <Route
