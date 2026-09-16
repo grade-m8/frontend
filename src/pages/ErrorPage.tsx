@@ -25,7 +25,7 @@ export default function ErrorPage() {
             error, contactate con el administrador.
           </p>
         </div>
-        <Button size="lg" onClick={() => navigate("/subjects")}>
+        <Button size="lg" onClick={() => navigate("/materias")}>
           Volver a Materias
           <ArrowRight className="w-5 h-5" />
         </Button>
