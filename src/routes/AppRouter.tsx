@@ -16,7 +16,7 @@ export default function AppRouter() {
         </Route>
         <Route
           path="/wizard-stepper-test"
-          element={<WizardStepper currentStep="config" />}
+          element={<WizardStepper currentStep="questions" />}
         />
 
         <Route
