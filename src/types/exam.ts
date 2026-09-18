@@ -42,3 +42,13 @@ export interface ExamConfigFormState {
   isValid: boolean;
   isDirty: boolean;
 }
+
+export type Question = {
+  questionId: string;
+  order: number;
+  title: string;
+  prompt: string;
+  points: number;
+  idealAnswer: string;
+  createdAt: string;
+};

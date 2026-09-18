@@ -1,4 +1,4 @@
-export function mapErrorMessage(code: string): string {
+export function mapAuthErrorMessage(code: string): string {
   switch (code) {
     case "auth/invalid-credential":
     case "auth/user-not-found":
