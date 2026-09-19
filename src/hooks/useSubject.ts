@@ -16,9 +16,9 @@ export function useSubject(user: User | null, role: Role | undefined) {
       setIsLoading(true);
       let subjectList: Subject[] = [];
       if (role === "Student") {
-        subjectList = await listEnrolled(user);
+        subjectList = await listEnrolled();
       } else if (role === "Professor" || role === "Admin") {
-        subjectList = await listOwned(user);
+        subjectList = await listOwned();
       }
       setSubjects(subjectList ?? []);
     } catch {
