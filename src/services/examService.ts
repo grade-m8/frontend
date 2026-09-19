@@ -18,13 +18,14 @@ async function callFunction<TData, TResult>(
   return result.data;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function createExam(dto: CreateExamDto) {
+export async function createExam(dto: CreateExamDto) {
   return callFunction<CreateExamDto, Exam>("createExam", dto);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function updateExam(examId: string, patch: UpdateExamDto): Promise<Exam> {
+export async function updateExam(
+  examId: string,
+  patch: UpdateExamDto,
+): Promise<Exam> {
   const data = {
     examId: examId,
     patch: patch,
@@ -35,8 +36,7 @@ async function updateExam(examId: string, patch: UpdateExamDto): Promise<Exam> {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function replaceCriteria(
+export async function replaceCriteria(
   examId: string,
   criteria: ReplaceCriteriaDto,
 ): Promise<RubricCriterion[]> {
@@ -50,8 +50,7 @@ async function replaceCriteria(
   >("replaceCriteria", data);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function replaceQuestion(
+export async function replaceQuestion(
   examId: string,
   questions: ReplaceQuestionsDto,
 ): Promise<Question[]> {
@@ -65,21 +64,18 @@ async function replaceQuestion(
   >("replaceQuestions", data);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function getExam(examId: string): Promise<ExamDetail> {
+export async function getExam(examId: string): Promise<ExamDetail> {
   const data = {
     examId: examId,
   };
   return callFunction<{ examId: string }, ExamDetail>("getExam", data);
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function listOwnedExams(subjectId?: string): Promise<Exam[]> {
+export async function listOwnedExams(subjectId?: string): Promise<Exam[]> {
   return callFunction<{ subjectId?: string }, Exam[]>("listOwnedExams", {
     subjectId,
   });
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function listActiveExams(subjectId?: string): Promise<Exam[]> {
+export async function listActiveExams(subjectId?: string): Promise<Exam[]> {
   return callFunction<{ subjectId?: string }, Exam[]>("listActiveExams", {
     subjectId,
   });
