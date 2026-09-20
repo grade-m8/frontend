@@ -1,6 +1,5 @@
-import { httpsCallable } from "firebase/functions";
-import { functions } from "./firebase";
 import type { Role } from "@/types/role";
+import { apiClient } from "@/services/apiClient.ts";
 
 export interface UserProfile {
   uid: string;
@@ -11,10 +10,9 @@ export interface UserProfile {
 }
 
 export async function getProfile(): Promise<UserProfile> {
-  const callable = httpsCallable<void, UserProfile>(
-    functions,
-    "getProfileFunction",
-  );
-  const result = await callable();
-  return result.data;
+  return apiClient.get<UserProfile>("/users/profile");
+}
+
+export async function getProfileByUid(uid: string): Promise<UserProfile> {
+  return apiClient.get<UserProfile>(`/users/${uid}`);
 }
