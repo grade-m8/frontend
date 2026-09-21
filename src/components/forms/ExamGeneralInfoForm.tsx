@@ -1,4 +1,4 @@
-import { Braces } from "lucide-react";
+import { Braces, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -120,33 +120,40 @@ export function ExamGeneralInfoForm({
             Materia / Módulo
           </Label>
           {/* La materia no se puede cambiar una vez creado el examen (isEditMode) */}
-          <select
-            id="exam-subject"
-            value={values.subjectId}
-            onChange={(e) => {
-              const subject = MOCK_SUBJECTS.find(
-                (s) => s.id === e.target.value,
-              );
-              onChange({
-                subjectId: e.target.value,
-                subjectName: subject?.name,
-              });
-            }}
-            aria-invalid={!!fieldErrors.subjectId}
-            aria-describedby={
-              fieldErrors.subjectId ? "exam-subject-error" : undefined
-            }
-            className={SELECT_CLASS}
-            onBlur={() => markTouched("subjectId")}
-            disabled={isEditMode}
-          >
-            <option value="">Seleccionar materia</option>
-            {MOCK_SUBJECTS.map((subject) => (
-              <option key={subject.id} value={subject.id}>
-                {subject.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              id="exam-subject"
+              value={values.subjectId}
+              onChange={(e) => {
+                const subject = MOCK_SUBJECTS.find(
+                  (s) => s.id === e.target.value,
+                );
+                onChange({
+                  subjectId: e.target.value,
+                  subjectName: subject?.name,
+                });
+              }}
+              aria-invalid={!!fieldErrors.subjectId}
+              aria-describedby={
+                fieldErrors.subjectId ? "exam-subject-error" : undefined
+              }
+              className={`${SELECT_CLASS} cursor-pointer appearance-none pr-10`}
+              onBlur={() => markTouched("subjectId")}
+              disabled={isEditMode}
+            >
+              <option value="">Seleccionar materia</option>
+              {MOCK_SUBJECTS.map((subject) => (
+                <option key={subject.id} value={subject.id}>
+                  {subject.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              className={`pointer-events-none absolute top-1/2 right-3 h-5 w-5 -translate-y-1/2 text-neutral-500 ${
+                isEditMode ? "opacity-50" : ""
+              }`}
+            />
+          </div>
           <FieldError id="exam-subject-error" message={fieldErrors.subjectId} />
         </div>
         <div className="flex flex-col gap-2">
