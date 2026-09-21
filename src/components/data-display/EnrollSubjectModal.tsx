@@ -33,7 +33,7 @@ export default function EnrollSubjectModal({
     const loadAvailableSubjects = async () => {
       setIsLoading(true);
       try {
-        const subjects = await listAvailable(user);
+        const subjects = await listAvailable();
         setAvailableSubjects(subjects);
       } catch {
         toast.error("Error al cargar las materias disponibles");
@@ -65,7 +65,7 @@ export default function EnrollSubjectModal({
   const handleEnroll = async (subjectId: string) => {
     setEnrollingSubjectId(subjectId);
     try {
-      await enroll(user, subjectId);
+      await enroll(subjectId);
       toast.success("Inscripción realizada con éxito");
       onSuccess();
       setAvailableSubjects((prev) =>
