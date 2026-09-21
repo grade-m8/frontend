@@ -2,12 +2,21 @@ import { Braces } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { ExamGeneralInfo } from "@/types/exam";
+
+interface ExamGeneralInfoFormProps {
+  values: ExamGeneralInfo;
+  onChange: (updatedFields: Partial<ExamGeneralInfo>) => void;
+}
 
 const LABEL_CLASS = "label-micro text-neutral-650";
 const INPUT_CLASS =
-  "h-12.5 rounded-none border-neutral-650 bg-neutral-50 px-3 py-3 text-base text-neutral-900 md:text-base";
+  "h-12.5 rounded-none border-neutral-650 bg-neutral-50 px-3 py-3 text-base text-neutral-900 md:text-base dark:bg-neutral-50";
 
-export function ExamGeneralInfoForm() {
+export function ExamGeneralInfoForm({
+  values,
+  onChange,
+}: ExamGeneralInfoFormProps) {
   return (
     <Card className="gap-6 rounded-none border border-neutral-200 bg-neutral-100 py-0 ring-0">
       <CardHeader className="mx-6 mt-6 flex items-center gap-2 border-b border-neutral-300 px-0 pb-4">
@@ -23,6 +32,8 @@ export function ExamGeneralInfoForm() {
           </Label>
           <Input
             id="exam-title"
+            value={values.title}
+            onChange={(e) => onChange({ title: e.target.value })}
             placeholder="Evaluación de Algoritmos Avanzados"
             className={INPUT_CLASS}
           />

@@ -6,6 +6,28 @@ import RedirectIfAuthenticated from "@/routes/RedirectIfAuthenticated.tsx";
 import SubjectExamsPage from "@/pages/Subjects/SubjectExamsPage";
 import ErrorPage from "@/pages/ErrorPage.tsx";
 import { ExamGeneralInfoForm } from "@/components/forms/ExamGeneralInfoForm";
+import { useState } from "react";
+import type { ExamGeneralInfo } from "@/types/exam";
+
+const EMPTY_INFO: ExamGeneralInfo = {
+  title: "",
+  subjectId: "",
+  durationMinutes: 0,
+  passingPercentage: 0,
+};
+
+function ExamInfoFormPreview() {
+  const [values, setValues] = useState<ExamGeneralInfo>(EMPTY_INFO);
+  return (
+    <div className="p-6">
+      <ExamGeneralInfoForm
+        values={values}
+        onChange={(fields) => setValues((prev) => ({ ...prev, ...fields }))}
+      />
+      <pre className="mt-4 text-sm">{JSON.stringify(values, null, 2)}</pre>
+    </div>
+  );
+}
 
 export default function AppRouter() {
   return (
@@ -17,14 +39,7 @@ export default function AppRouter() {
 
         <Route path="/403" element={<ErrorPage />} />
 
-        <Route
-          path="/exam-info-form-test"
-          element={
-            <div className="p-6">
-              <ExamGeneralInfoForm />
-            </div>
-          }
-        />
+        <Route path="/exam-info-form-test" element={<ExamInfoFormPreview />} />
 
         <Route
           element={
