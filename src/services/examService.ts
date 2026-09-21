@@ -45,8 +45,8 @@ export async function getExam(examId: string): Promise<ExamDetail> {
   return apiClient.get<ExamDetail>(`/exams/${examId}`);
 }
 
-export async function listOwnedExams(subjectId?: string): Promise<Exam[]> {
-  const endpoint = subjectId ? `/exams/owned/${subjectId}` : "/exams/owned";
+export async function listOwnedExams(subjectId: string): Promise<Exam[]> {
+  const endpoint = `/exams/owned/${subjectId}`;
   return apiClient.get<Exam[]>(endpoint);
 }
 
