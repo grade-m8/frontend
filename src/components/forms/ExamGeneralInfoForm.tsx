@@ -13,6 +13,11 @@ const LABEL_CLASS = "label-micro text-neutral-650";
 const INPUT_CLASS =
   "h-12.5 rounded-none border-neutral-650 bg-neutral-50 px-3 py-3 text-base text-neutral-900 md:text-base dark:bg-neutral-50";
 
+function parseDigits(raw: string): number {
+  const digits = raw.replace(/\D/g, "");
+  return digits === "" ? 0 : Number(digits);
+}
+
 export function ExamGeneralInfoForm({
   values,
   onChange,
@@ -54,7 +59,12 @@ export function ExamGeneralInfoForm({
           </Label>
           <Input
             id="exam-duration"
-            placeholder="90 min"
+            inputMode="numeric"
+            value={values.durationMinutes === 0 ? "" : values.durationMinutes}
+            onChange={(e) =>
+              onChange({ durationMinutes: parseDigits(e.target.value) })
+            }
+            placeholder="90"
             className={INPUT_CLASS}
           />
         </div>
@@ -62,7 +72,18 @@ export function ExamGeneralInfoForm({
           <Label htmlFor="exam-passing" className={LABEL_CLASS}>
             Porcentaje de aprobación
           </Label>
-          <Input id="exam-passing" placeholder="60%" className={INPUT_CLASS} />
+          <Input
+            id="exam-passing"
+            inputMode="numeric"
+            value={
+              values.passingPercentage === 0 ? "" : values.passingPercentage
+            }
+            onChange={(e) =>
+              onChange({ passingPercentage: parseDigits(e.target.value) })
+            }
+            placeholder="60"
+            className={INPUT_CLASS}
+          />
         </div>
       </CardContent>
     </Card>
