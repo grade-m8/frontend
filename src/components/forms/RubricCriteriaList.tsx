@@ -1,5 +1,6 @@
 import { SlidersHorizontal, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { RubricCriterionCard } from "@/components/forms/RubricCriterionCard";
 
 export function RubricCriteriaList() {
   return (
@@ -23,6 +24,7 @@ export function RubricCriteriaList() {
         Establezca los criterios de evaluación. Instruya a la IA sobre qué
         buscar exactamente en las respuestas del alumno.
       </p>
+      <RubricCriterionCard />
     </section>
   );
 }
