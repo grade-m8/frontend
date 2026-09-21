@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ExamGeneralInfo } from "@/types/exam";
+import { useState } from "react";
 
 interface ExamGeneralInfoFormProps {
   values: ExamGeneralInfo;
@@ -31,6 +32,31 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
+type FieldName =
+  "title" | "subjectId" | "durationMinutes" | "passingPercentage";
+
+function validateField(
+  field: FieldName,
+  values: ExamGeneralInfo,
+): string | undefined {
+  switch (field) {
+    case "title":
+      return values.title.trim() === ""
+        ? "El título es obligatorio"
+        : undefined;
+    case "subjectId":
+      return values.subjectId === "" ? "Seleccioná una materia" : undefined;
+    case "durationMinutes":
+      return values.durationMinutes > 0
+        ? undefined
+        : "La duración debe ser mayor a 0";
+    case "passingPercentage":
+      return values.passingPercentage >= 1 && values.passingPercentage <= 100
+        ? undefined
+        : "Debe estar entre 1 y 100";
+  }
+}
+
 // TODO: Cargar materias reales del docente autenticado vía servicio de subjects al conectar el backend
 const MOCK_SUBJECTS = [
   { id: "cs-300", name: "Ciencias de la Computación CS-300" },
@@ -43,6 +69,23 @@ export function ExamGeneralInfoForm({
   onChange,
   errors = {},
 }: ExamGeneralInfoFormProps) {
+  const [touched, setTouched] = useState<Partial<Record<FieldName, boolean>>>(
+    {},
+  );
+
+  const markTouched = (field: FieldName) =>
+    setTouched((prev) => ({ ...prev, [field]: true }));
+
+  const getError = (field: FieldName) =>
+    errors[field] ??
+    (touched[field] ? validateField(field, values) : undefined);
+
+  const fieldErrors = {
+    title: getError("title"),
+    subjectId: getError("subjectId"),
+    durationMinutes: getError("durationMinutes"),
+    passingPercentage: getError("passingPercentage"),
+  };
   return (
     <Card className="gap-6 rounded-none border border-neutral-200 bg-neutral-100 py-0 ring-0">
       <CardHeader className="mx-6 mt-6 flex items-center gap-2 border-b border-neutral-300 px-0 pb-4">
@@ -61,11 +104,14 @@ export function ExamGeneralInfoForm({
             value={values.title}
             onChange={(e) => onChange({ title: e.target.value })}
             placeholder="Evaluación de Algoritmos Avanzados"
-            aria-invalid={!!errors.title}
-            aria-describedby={errors.title ? "exam-title-error" : undefined}
+            aria-invalid={!!fieldErrors.title}
+            aria-describedby={
+              fieldErrors.title ? "exam-title-error" : undefined
+            }
             className={INPUT_CLASS}
+            onBlur={() => markTouched("title")}
           />
-          <FieldError id="exam-title-error" message={errors.title} />
+          <FieldError id="exam-title-error" message={fieldErrors.title} />
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="exam-subject" className={LABEL_CLASS}>
@@ -83,11 +129,12 @@ export function ExamGeneralInfoForm({
                 subjectName: subject?.name,
               });
             }}
-            aria-invalid={!!errors.subjectId}
+            aria-invalid={!!fieldErrors.subjectId}
             aria-describedby={
-              errors.subjectId ? "exam-subject-error" : undefined
+              fieldErrors.subjectId ? "exam-subject-error" : undefined
             }
             className={SELECT_CLASS}
+            onBlur={() => markTouched("subjectId")}
           >
             <option value="">Seleccionar materia</option>
             {MOCK_SUBJECTS.map((subject) => (
@@ -96,7 +143,7 @@ export function ExamGeneralInfoForm({
               </option>
             ))}
           </select>
-          <FieldError id="exam-subject-error" message={errors.subjectId} />
+          <FieldError id="exam-subject-error" message={fieldErrors.subjectId} />
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="exam-duration" className={LABEL_CLASS}>
@@ -110,12 +157,13 @@ export function ExamGeneralInfoForm({
               onChange={(e) =>
                 onChange({ durationMinutes: parseDigits(e.target.value) })
               }
-              aria-invalid={!!errors.durationMinutes}
+              aria-invalid={!!fieldErrors.durationMinutes}
               aria-describedby={
-                errors.durationMinutes ? "exam-duration-error" : undefined
+                fieldErrors.durationMinutes ? "exam-duration-error" : undefined
               }
               placeholder="90"
               className={`${INPUT_CLASS} pr-12`}
+              onBlur={() => markTouched("durationMinutes")}
             />
             <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-base text-neutral-500">
               min
@@ -123,7 +171,7 @@ export function ExamGeneralInfoForm({
           </div>
           <FieldError
             id="exam-duration-error"
-            message={errors.durationMinutes}
+            message={fieldErrors.durationMinutes}
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -140,12 +188,13 @@ export function ExamGeneralInfoForm({
               onChange={(e) =>
                 onChange({ passingPercentage: parseDigits(e.target.value) })
               }
-              aria-invalid={!!errors.passingPercentage}
+              aria-invalid={!!fieldErrors.passingPercentage}
               aria-describedby={
-                errors.passingPercentage ? "exam-passing-error" : undefined
+                fieldErrors.passingPercentage ? "exam-passing-error" : undefined
               }
               placeholder="60"
               className={`${INPUT_CLASS} pr-12`}
+              onBlur={() => markTouched("passingPercentage")}
             />
             <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-base text-neutral-500">
               %
@@ -153,7 +202,7 @@ export function ExamGeneralInfoForm({
           </div>
           <FieldError
             id="exam-passing-error"
-            message={errors.passingPercentage}
+            message={fieldErrors.passingPercentage}
           />
         </div>
       </CardContent>
