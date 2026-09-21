@@ -7,16 +7,28 @@ import type { ExamGeneralInfo } from "@/types/exam";
 interface ExamGeneralInfoFormProps {
   values: ExamGeneralInfo;
   onChange: (updatedFields: Partial<ExamGeneralInfo>) => void;
+  errors?: Record<string, string>;
 }
 
 const LABEL_CLASS = "label-micro text-neutral-650";
-const INPUT_CLASS =
-  "h-12.5 rounded-none border-neutral-650 bg-neutral-50 px-3 py-3 text-base text-neutral-900 md:text-base dark:bg-neutral-50";
+const ERROR_CLASS =
+  "aria-invalid:border-danger-500 aria-invalid:ring-3 aria-invalid:ring-danger-500/20 dark:aria-invalid:border-danger-500 dark:aria-invalid:ring-danger-500/20";
+
+const INPUT_CLASS = `h-12.5 rounded-none border-neutral-650 bg-neutral-50 px-3 py-3 text-base text-neutral-900 md:text-base dark:bg-neutral-50 ${ERROR_CLASS}`;
 const SELECT_CLASS = `w-full border outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 ${INPUT_CLASS}`;
 
 function parseDigits(raw: string): number {
   const digits = raw.replace(/\D/g, "");
   return digits === "" ? 0 : Number(digits);
+}
+
+function FieldError({ id, message }: { id: string; message?: string }) {
+  if (!message) return null;
+  return (
+    <p id={id} className="text-sm text-danger-500">
+      {message}
+    </p>
+  );
 }
 
 // TODO: Cargar materias reales del docente autenticado vía servicio de subjects al conectar el backend
@@ -29,6 +41,7 @@ const MOCK_SUBJECTS = [
 export function ExamGeneralInfoForm({
   values,
   onChange,
+  errors = {},
 }: ExamGeneralInfoFormProps) {
   return (
     <Card className="gap-6 rounded-none border border-neutral-200 bg-neutral-100 py-0 ring-0">
@@ -48,8 +61,11 @@ export function ExamGeneralInfoForm({
             value={values.title}
             onChange={(e) => onChange({ title: e.target.value })}
             placeholder="Evaluación de Algoritmos Avanzados"
+            aria-invalid={!!errors.title}
+            aria-describedby={errors.title ? "exam-title-error" : undefined}
             className={INPUT_CLASS}
           />
+          <FieldError id="exam-title-error" message={errors.title} />
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="exam-subject" className={LABEL_CLASS}>
