@@ -1,5 +1,4 @@
-import { httpsCallable } from "firebase/functions";
-import { functions } from "@/services/firebase.ts";
+import { apiClient } from "@/services/apiClient.ts";
 import type {
   CreateExamDto,
   ExamDetail,
@@ -9,74 +8,46 @@ import type {
 } from "@/types/examDto.ts";
 import type { Exam, Question, RubricCriterion } from "@/types/exam.ts";
 
-async function callFunction<TData, TResult>(
-  name: string,
-  data?: TData,
-): Promise<TResult> {
-  const callable = httpsCallable<TData, TResult>(functions, name);
-  const result = await callable(data as TData);
-  return result.data;
-}
-
-export async function createExam(dto: CreateExamDto) {
-  return callFunction<CreateExamDto, Exam>("createExam", dto);
+export async function createExam(dto: CreateExamDto): Promise<Exam> {
+  return apiClient.post<Exam>("/exams", dto);
 }
 
 export async function updateExam(
   examId: string,
   patch: UpdateExamDto,
 ): Promise<Exam> {
-  const data = {
-    examId: examId,
-    patch: patch,
-  };
-  return callFunction<{ examId: string; patch: UpdateExamDto }, Exam>(
-    "updateExam",
-    data,
-  );
+  return apiClient.patch<Exam>(`/exams/${examId}`, patch);
 }
 
 export async function replaceCriteria(
   examId: string,
   criteria: ReplaceCriteriaDto,
 ): Promise<RubricCriterion[]> {
-  const data = {
-    examId: examId,
-    criteria: criteria,
-  };
-  return callFunction<
-    { examId: string; criteria: ReplaceCriteriaDto },
-    RubricCriterion[]
-  >("replaceCriteria", data);
+  return apiClient.put<RubricCriterion[]>(`/exams/${examId}/criteria`, {
+    criteria,
+  });
 }
 
-export async function replaceQuestion(
+export async function replaceQuestions(
   examId: string,
   questions: ReplaceQuestionsDto,
 ): Promise<Question[]> {
-  const data = {
-    examId: examId,
-    questions: questions,
-  };
-  return callFunction<
-    { examId: string; questions: ReplaceQuestionsDto },
-    Question[]
-  >("replaceQuestions", data);
+  return apiClient.put<Question[]>(`/exams/${examId}/questions`, {
+    questions,
+  });
 }
 
 export async function getExam(examId: string): Promise<ExamDetail> {
-  const data = {
-    examId: examId,
-  };
-  return callFunction<{ examId: string }, ExamDetail>("getExam", data);
+  return apiClient.get<ExamDetail>(`/exams/${examId}`);
 }
+
 export async function listOwnedExams(subjectId?: string): Promise<Exam[]> {
-  return callFunction<{ subjectId?: string }, Exam[]>("listOwnedExams", {
-    subjectId,
-  });
+  const endpoint = subjectId ? `/exams/owned/${subjectId}` : "/exams/owned";
+  return apiClient.get<Exam[]>(endpoint);
 }
-export async function listActiveExams(subjectId?: string): Promise<Exam[]> {
-  return callFunction<{ subjectId?: string }, Exam[]>("listActiveExams", {
-    subjectId,
-  });
+
+export async function listActiveExams(subjectId: string): Promise<Exam[]> {
+  if (!subjectId)
+    throw new Error("subjectId es obligatorio para listar exámenes activos");
+  return apiClient.get<Exam[]>(`/exams/active/${subjectId}`);
 }

@@ -9,9 +9,13 @@ export type UpdateExamDto = Partial<
   Omit<Exam, "examId" | "teacherId" | "createdAt" | "publishedAt">
 >;
 
-export type ReplaceCriteriaDto = Omit<RubricCriterion, "criterionId">[];
+export type ReplaceCriteriaDto = {
+  criteria: Omit<RubricCriterion, "criterionId">[];
+};
 
-export type ReplaceQuestionsDto = Omit<Question, "questionId">[];
+export type ReplaceQuestionsDto = {
+  questions: Omit<Question, "questionId">[];
+};
 
 export interface ExamDetail {
   exam: Exam;
