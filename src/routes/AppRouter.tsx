@@ -18,12 +18,21 @@ const EMPTY_INFO: ExamGeneralInfo = {
 
 function ExamInfoFormPreview() {
   const [values, setValues] = useState<ExamGeneralInfo>(EMPTY_INFO);
+  const [isEditMode, setIsEditMode] = useState(false);
   return (
     <div className="p-6">
+      <label className="mb-4 flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={isEditMode}
+          onChange={(e) => setIsEditMode(e.target.checked)}
+        />
+        Modo edición
+      </label>
       <ExamGeneralInfoForm
         values={values}
         onChange={(fields) => setValues((prev) => ({ ...prev, ...fields }))}
-        errors={{ title: "Este título ya existe" }}
+        isEditMode={isEditMode}
       />
       <pre className="mt-4 text-sm">{JSON.stringify(values, null, 2)}</pre>
     </div>

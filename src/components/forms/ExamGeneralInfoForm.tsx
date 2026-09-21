@@ -9,6 +9,7 @@ interface ExamGeneralInfoFormProps {
   values: ExamGeneralInfo;
   onChange: (updatedFields: Partial<ExamGeneralInfo>) => void;
   errors?: Record<string, string>;
+  isEditMode?: boolean;
 }
 
 const LABEL_CLASS = "label-micro text-neutral-650";
@@ -16,7 +17,7 @@ const ERROR_CLASS =
   "aria-invalid:border-danger-500 aria-invalid:ring-3 aria-invalid:ring-danger-500/20 dark:aria-invalid:border-danger-500 dark:aria-invalid:ring-danger-500/20";
 
 const INPUT_CLASS = `h-12.5 rounded-none border-neutral-650 bg-neutral-50 px-3 py-3 text-base text-neutral-900 md:text-base dark:bg-neutral-50 ${ERROR_CLASS}`;
-const SELECT_CLASS = `w-full border outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 ${INPUT_CLASS}`;
+const SELECT_CLASS = `w-full border outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 ${INPUT_CLASS}`;
 
 function parseDigits(raw: string): number {
   const digits = raw.replace(/\D/g, "");
@@ -68,6 +69,7 @@ export function ExamGeneralInfoForm({
   values,
   onChange,
   errors = {},
+  isEditMode = false,
 }: ExamGeneralInfoFormProps) {
   const [touched, setTouched] = useState<Partial<Record<FieldName, boolean>>>(
     {},
@@ -117,6 +119,7 @@ export function ExamGeneralInfoForm({
           <Label htmlFor="exam-subject" className={LABEL_CLASS}>
             Materia / Módulo
           </Label>
+          {/* La materia no se puede cambiar una vez creado el examen (isEditMode) */}
           <select
             id="exam-subject"
             value={values.subjectId}
@@ -135,6 +138,7 @@ export function ExamGeneralInfoForm({
             }
             className={SELECT_CLASS}
             onBlur={() => markTouched("subjectId")}
+            disabled={isEditMode}
           >
             <option value="">Seleccionar materia</option>
             {MOCK_SUBJECTS.map((subject) => (
