@@ -36,6 +36,10 @@ export async function replaceQuestions(
     questions,
   });
 }
+export const replaceQuestionsAndPublish = (
+  examId: string,
+  questions: ReplaceQuestionsDto,
+) => replaceQuestions(examId, questions);
 
 export async function getExam(examId: string): Promise<ExamDetail> {
   return apiClient.get<ExamDetail>(`/exams/${examId}`);
