@@ -23,7 +23,12 @@ function ExamInfoFormPreview() {
       <ExamGeneralInfoForm
         values={values}
         onChange={(fields) => setValues((prev) => ({ ...prev, ...fields }))}
-        errors={{ title: "El título es obligatorio" }}
+        errors={{
+          title: "El título es obligatorio",
+          subjectId: "Seleccioná una materia",
+          durationMinutes: "La duración debe ser mayor a 0",
+          passingPercentage: "El porcentaje debe estar entre 1 y 100",
+        }}
       />
       <pre className="mt-4 text-sm">{JSON.stringify(values, null, 2)}</pre>
     </div>

@@ -83,6 +83,10 @@ export function ExamGeneralInfoForm({
                 subjectName: subject?.name,
               });
             }}
+            aria-invalid={!!errors.subjectId}
+            aria-describedby={
+              errors.subjectId ? "exam-subject-error" : undefined
+            }
             className={SELECT_CLASS}
           >
             <option value="">Seleccionar materia</option>
@@ -92,6 +96,7 @@ export function ExamGeneralInfoForm({
               </option>
             ))}
           </select>
+          <FieldError id="exam-subject-error" message={errors.subjectId} />
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="exam-duration" className={LABEL_CLASS}>
@@ -105,6 +110,10 @@ export function ExamGeneralInfoForm({
               onChange={(e) =>
                 onChange({ durationMinutes: parseDigits(e.target.value) })
               }
+              aria-invalid={!!errors.durationMinutes}
+              aria-describedby={
+                errors.durationMinutes ? "exam-duration-error" : undefined
+              }
               placeholder="90"
               className={`${INPUT_CLASS} pr-12`}
             />
@@ -112,6 +121,10 @@ export function ExamGeneralInfoForm({
               min
             </span>
           </div>
+          <FieldError
+            id="exam-duration-error"
+            message={errors.durationMinutes}
+          />
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="exam-passing" className={LABEL_CLASS}>
@@ -127,6 +140,10 @@ export function ExamGeneralInfoForm({
               onChange={(e) =>
                 onChange({ passingPercentage: parseDigits(e.target.value) })
               }
+              aria-invalid={!!errors.passingPercentage}
+              aria-describedby={
+                errors.passingPercentage ? "exam-passing-error" : undefined
+              }
               placeholder="60"
               className={`${INPUT_CLASS} pr-12`}
             />
@@ -134,6 +151,10 @@ export function ExamGeneralInfoForm({
               %
             </span>
           </div>
+          <FieldError
+            id="exam-passing-error"
+            message={errors.passingPercentage}
+          />
         </div>
       </CardContent>
     </Card>
