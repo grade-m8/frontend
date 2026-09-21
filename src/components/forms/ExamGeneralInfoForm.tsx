@@ -81,33 +81,43 @@ export function ExamGeneralInfoForm({
           <Label htmlFor="exam-duration" className={LABEL_CLASS}>
             Duración
           </Label>
-          <Input
-            id="exam-duration"
-            inputMode="numeric"
-            value={values.durationMinutes === 0 ? "" : values.durationMinutes}
-            onChange={(e) =>
-              onChange({ durationMinutes: parseDigits(e.target.value) })
-            }
-            placeholder="90"
-            className={INPUT_CLASS}
-          />
+          <div className="relative">
+            <Input
+              id="exam-duration"
+              inputMode="numeric"
+              value={values.durationMinutes === 0 ? "" : values.durationMinutes}
+              onChange={(e) =>
+                onChange({ durationMinutes: parseDigits(e.target.value) })
+              }
+              placeholder="90"
+              className={`${INPUT_CLASS} pr-12`}
+            />
+            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-base text-neutral-500">
+              min
+            </span>
+          </div>
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="exam-passing" className={LABEL_CLASS}>
             Porcentaje de aprobación
           </Label>
-          <Input
-            id="exam-passing"
-            inputMode="numeric"
-            value={
-              values.passingPercentage === 0 ? "" : values.passingPercentage
-            }
-            onChange={(e) =>
-              onChange({ passingPercentage: parseDigits(e.target.value) })
-            }
-            placeholder="60"
-            className={INPUT_CLASS}
-          />
+          <div className="relative">
+            <Input
+              id="exam-passing"
+              inputMode="numeric"
+              value={
+                values.passingPercentage === 0 ? "" : values.passingPercentage
+              }
+              onChange={(e) =>
+                onChange({ passingPercentage: parseDigits(e.target.value) })
+              }
+              placeholder="60"
+              className={`${INPUT_CLASS} pr-12`}
+            />
+            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-base text-neutral-500">
+              %
+            </span>
+          </div>
         </div>
       </CardContent>
     </Card>
