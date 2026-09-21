@@ -5,6 +5,7 @@ import ProtectedRoutes from "@/routes/ProtectedRoutes.tsx";
 import RedirectIfAuthenticated from "@/routes/RedirectIfAuthenticated.tsx";
 import SubjectExamsPage from "@/pages/Subjects/SubjectExamsPage";
 import ErrorPage from "@/pages/ErrorPage.tsx";
+import { RubricCriteriaList } from "@/components/forms/RubricCriteriaList";
 
 export default function AppRouter() {
   return (
@@ -13,6 +14,14 @@ export default function AppRouter() {
         <Route element={<RedirectIfAuthenticated />}>
           <Route path="/" element={<LandingPage />} />
         </Route>
+        <Route
+          path="/rubric-test"
+          element={
+            <div className="p-6">
+              <RubricCriteriaList />
+            </div>
+          }
+        />
 
         <Route path="/403" element={<ErrorPage />} />
 
