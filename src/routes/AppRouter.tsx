@@ -16,6 +16,10 @@ export default function AppRouter() {
         </Route>
 
         <Route path="/teacher/exams/new" element={<ExamConfigPage />} />
+        <Route
+          path="/teacher/exams/:examId/config"
+          element={<ExamConfigPage />}
+        />
 
         <Route path="/403" element={<ErrorPage />} />
 

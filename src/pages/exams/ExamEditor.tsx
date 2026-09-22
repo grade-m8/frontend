@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WizardStepper } from "@/components/layout/WizardStepper";
@@ -27,13 +27,15 @@ const SUGGESTED_CRITERIA: RubricCriterion[] = [
   },
 ];
 
-const INITIAL_STATE: ExamConfigFormState = {
-  generalInfo: {
-    title: "",
-    subjectId: "",
-    durationMinutes: 0,
-    passingPercentage: 0,
-  },
+const EMPTY_GENERAL_INFO: ExamConfigFormState["generalInfo"] = {
+  title: "",
+  subjectId: "",
+  durationMinutes: 0,
+  passingPercentage: 0,
+};
+
+const CREATION_INITIAL_STATE: ExamConfigFormState = {
+  generalInfo: EMPTY_GENERAL_INFO,
   rubricCriteria: SUGGESTED_CRITERIA,
   isValid: false,
   isDirty: false,
@@ -51,8 +53,21 @@ function validateGeneralInfo(info: ExamConfigFormState["generalInfo"]) {
 }
 
 export function ExamConfigPage() {
-  const [formState, setFormState] =
-    useState<ExamConfigFormState>(INITIAL_STATE);
+  const { examId } = useParams<{ examId: string }>();
+  const isEditMode = !!examId;
+
+  // TODO: En modo edición (:examId), cargar la configuración inicial y rúbricas invocando:
+  // - Firebase Callable Function `getExam({ examId })` (retorna ExamDetail { exam, criteria, questions })
+  const [formState, setFormState] = useState<ExamConfigFormState>(() =>
+    isEditMode
+      ? {
+          generalInfo: EMPTY_GENERAL_INFO,
+          rubricCriteria: [],
+          isValid: false,
+          isDirty: false,
+        }
+      : CREATION_INITIAL_STATE,
+  );
   const [generalInfoErrors, setGeneralInfoErrors] = useState<
     Record<string, string>
   >({});
@@ -70,8 +85,16 @@ export function ExamConfigPage() {
       return;
     }
 
-    // TODO: navegar al Paso 2 ("Preguntas y Contenido") una vez que esa ruta exista
-    return;
+    if (isEditMode) {
+      // TODO: Al presionar continuar en modo edición:
+      // - Invocar `updateExam({ examId, patch })` y `replaceCriteria({ examId, criteria })`.
+      // TODO: Navegar a `/teacher/exams/${examId}/questions` una vez que esa ruta exista
+    } else {
+      // TODO: Al presionar continuar en modo creación:
+      // - Invocar `createExam(createExamDto)` para obtener el `examId` generado.
+      // - Invocar `replaceCriteria({ examId, criteria })` para guardar los criterios de rúbrica.
+      // TODO: Navegar a `/teacher/exams/new/questions` una vez que esa ruta exista
+    }
   };
 
   return (
@@ -91,6 +114,7 @@ export function ExamConfigPage() {
       <ExamGeneralInfoForm
         values={formState.generalInfo}
         errors={generalInfoErrors}
+        isEditMode={isEditMode}
         onChange={(fields) =>
           setFormState((prev) => ({
             ...prev,
