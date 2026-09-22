@@ -2,6 +2,23 @@ import { ChevronDown, Info, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { CriterionWeight, RubricCriterion } from "@/types/exam";
+
+interface RubricCriterionCardProps {
+  criterion: RubricCriterion;
+  onUpdate: (criterionId: string, changes: Partial<RubricCriterion>) => void;
+  onRemove: (criterionId: string) => void;
+}
+
+const WEIGHT_OPTIONS: {
+  value: CriterionWeight;
+  name: string;
+  percentage: number;
+}[] = [
+  { value: "high", name: "Alto", percentage: 40 },
+  { value: "medium", name: "Medio", percentage: 20 },
+  { value: "low", name: "Bajo", percentage: 10 },
+];
 
 const LABEL_CLASS = "label-micro text-neutral-650";
 const UNDERLINE_CLASS =
@@ -11,34 +28,59 @@ const SELECT_CLASS =
 const TEXTAREA_CLASS =
   "h-24 w-full resize-y border border-neutral-650 bg-card p-3 text-base text-neutral-900 outline-none placeholder:text-muted-foreground focus-visible:border-teal-700 focus-visible:ring-3 focus-visible:ring-ring/50";
 
-export function RubricCriterionCard() {
+export function RubricCriterionCard({
+  criterion,
+  onUpdate,
+  onRemove,
+}: RubricCriterionCardProps) {
+  const { criterionId } = criterion;
+
+  const handleWeightChange = (value: string) => {
+    const option = WEIGHT_OPTIONS.find((o) => o.value === value);
+    if (!option) return;
+    onUpdate(criterionId, {
+      weight: option.value,
+      weightPercentage: option.percentage,
+    });
+  };
+
   return (
     <div className="relative flex flex-col gap-4 border border-neutral-650 bg-card p-5">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:gap-6 md:pr-[8%]">
         <div className="flex flex-1 flex-col gap-2">
-          <Label htmlFor="criterion-title" className={LABEL_CLASS}>
+          <Label
+            htmlFor={`criterion-title-${criterionId}`}
+            className={LABEL_CLASS}
+          >
             Criterio de evaluación
           </Label>
           <Input
-            id="criterion-title"
-            defaultValue="Rigor Técnico y Precisión"
+            id={`criterion-title-${criterionId}`}
+            value={criterion.title}
+            onChange={(e) => onUpdate(criterionId, { title: e.target.value })}
             placeholder="Ej. Rigor Técnico y Precisión"
             className={`${UNDERLINE_CLASS} font-bold`}
           />
         </div>
         <div className="flex flex-col gap-2 md:w-69">
-          <Label htmlFor="criterion-weight" className={LABEL_CLASS}>
+          <Label
+            htmlFor={`criterion-weight-${criterionId}`}
+            className={LABEL_CLASS}
+          >
             Peso relativo
           </Label>
           <div className="relative">
             <select
-              id="criterion-weight"
-              defaultValue="high"
+              id={`criterion-weight-${criterionId}`}
+              value={criterion.weight}
+              onChange={(e) => handleWeightChange(e.target.value)}
               className={SELECT_CLASS}
             >
-              <option value="high">Alto (40%)</option>
-              <option value="medium">Medio (20%)</option>
-              <option value="low">Bajo (10%)</option>
+              {WEIGHT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.name} ({option.percentage}%)
+                </option>
+              ))}
             </select>
             <ChevronDown className="pointer-events-none absolute top-1/2 right-2 h-5 w-5 -translate-y-1/2 text-neutral-650" />
           </div>
@@ -49,19 +91,24 @@ export function RubricCriterionCard() {
         variant="ghost"
         size="icon-xs"
         aria-label="Eliminar criterio"
+        onClick={() => onRemove(criterionId)}
         className="absolute top-3.5 right-3.5 text-neutral-650"
       >
         <Trash2 className="size-4" />
       </Button>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="criterion-guidance" className={`${LABEL_CLASS} gap-1`}>
+        <Label
+          htmlFor={`criterion-guidance-${criterionId}`}
+          className={`${LABEL_CLASS} gap-1`}
+        >
           Descripción detallada para IA
           <Info className="h-3 w-3" />
         </Label>
         <textarea
-          id="criterion-guidance"
-          defaultValue="El alumno debe utilizar la nomenclatura correcta. Se penalizará severamente el uso de términos ambiguos. La solución propuesta debe compilar mentalmente sin errores lógicos. Busca evidencia de comprensión profunda de la complejidad asintótica."
+          id={`criterion-guidance-${criterionId}`}
+          value={criterion.guidance}
+          onChange={(e) => onUpdate(criterionId, { guidance: e.target.value })}
           placeholder="Ej. El alumno debe utilizar la nomenclatura correcta..."
           className={TEXTAREA_CLASS}
         />
