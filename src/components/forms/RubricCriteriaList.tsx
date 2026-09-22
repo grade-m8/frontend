@@ -22,13 +22,16 @@ export function RubricCriteriaList({
   // TODO: Al conectar con el backend, estos criterios se enviarán mediante la
   // Callable Function replaceCriteria({ examId, criteria })
   const handleAddCriterion = () => {
+    const nextOrder =
+      criteria.reduce((max, c) => Math.max(max, c.order ?? 0), -1) + 1;
+
     onAddCriterion({
       criterionId: crypto.randomUUID(),
       title: "",
       weight: "medium",
       weightPercentage: 20,
       guidance: "",
-      order: criteria.length,
+      order: nextOrder,
     });
   };
 
@@ -69,7 +72,7 @@ export function RubricCriteriaList({
       >
         <Plus className="h-5 w-5 text-neutral-700" />
         <span className="text-body font-bold text-neutral-700">
-          + Añadir Nuevo Criterio
+          Añadir Nuevo Criterio
         </span>
       </button>
     </section>
