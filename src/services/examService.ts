@@ -21,25 +21,21 @@ export async function updateExam(
 
 export async function replaceCriteria(
   examId: string,
-  criteria: ReplaceCriteriaDto,
+  dto: ReplaceCriteriaDto,
 ): Promise<RubricCriterion[]> {
-  return apiClient.put<RubricCriterion[]>(`/exams/${examId}/criteria`, {
-    criteria,
-  });
+  return apiClient.put<RubricCriterion[]>(`/exams/${examId}/criteria`, dto);
 }
 
 export async function replaceQuestions(
   examId: string,
-  questions: ReplaceQuestionsDto,
+  dto: ReplaceQuestionsDto,
 ): Promise<Question[]> {
-  return apiClient.put<Question[]>(`/exams/${examId}/questions`, {
-    questions,
-  });
+  return apiClient.put<Question[]>(`/exams/${examId}/questions`, dto);
 }
 export const replaceQuestionsAndPublish = (
   examId: string,
-  questions: ReplaceQuestionsDto,
-) => replaceQuestions(examId, questions);
+  dto: ReplaceQuestionsDto,
+) => replaceQuestions(examId, dto);
 
 export async function getExam(examId: string): Promise<ExamDetail> {
   return apiClient.get<ExamDetail>(`/exams/${examId}`);
