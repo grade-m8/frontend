@@ -8,6 +8,7 @@ interface RubricCriterionCardProps {
   criterion: RubricCriterion;
   onUpdate: (criterionId: string, changes: Partial<RubricCriterion>) => void;
   onRemove: (criterionId: string) => void;
+  canRemove: boolean;
 }
 
 const WEIGHT_OPTIONS: {
@@ -32,6 +33,7 @@ export function RubricCriterionCard({
   criterion,
   onUpdate,
   onRemove,
+  canRemove,
 }: RubricCriterionCardProps) {
   const { criterionId } = criterion;
 
@@ -92,6 +94,7 @@ export function RubricCriterionCard({
         size="icon-xs"
         aria-label="Eliminar criterio"
         onClick={() => onRemove(criterionId)}
+        disabled={!canRemove}
         className="absolute top-3.5 right-3.5 text-neutral-650"
       >
         <Trash2 className="size-4" />

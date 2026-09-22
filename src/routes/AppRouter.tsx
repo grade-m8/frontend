@@ -6,34 +6,45 @@ import RedirectIfAuthenticated from "@/routes/RedirectIfAuthenticated.tsx";
 import SubjectExamsPage from "@/pages/Subjects/SubjectExamsPage";
 import ErrorPage from "@/pages/ErrorPage.tsx";
 import { useState } from "react";
-import { RubricCriterionCard } from "@/components/forms/RubricCriterionCard";
+import { RubricCriteriaList } from "@/components/forms/RubricCriteriaList";
 import type { RubricCriterion } from "@/types/exam";
 
-const MOCK_CRITERION: RubricCriterion = {
-  criterionId: "c-1",
-  title: "Rigor Técnico y Precisión",
-  weight: "high",
-  weightPercentage: 40,
-  guidance:
-    "El alumno debe utilizar la nomenclatura correcta. Se penalizará severamente el uso de términos ambiguos.",
-  order: 0,
-};
+const MOCK_CRITERIA: RubricCriterion[] = [
+  {
+    criterionId: "c-1",
+    title: "Rigor Técnico y Precisión",
+    weight: "high",
+    weightPercentage: 40,
+    guidance:
+      "El alumno debe utilizar la nomenclatura correcta. Se penalizará severamente el uso de términos ambiguos.",
+    order: 0,
+  },
+  {
+    criterionId: "c-2",
+    title: "Claridad y Estructura",
+    weight: "medium",
+    weightPercentage: 20,
+    guidance: "La explicación debe fluir lógicamente.",
+    order: 1,
+  },
+];
 
-function RubricCardPreview() {
-  const [criterion, setCriterion] = useState(MOCK_CRITERION);
-  const [removedId, setRemovedId] = useState<string | null>(null);
+function RubricListPreview() {
+  const [criteria, setCriteria] = useState(MOCK_CRITERIA);
   return (
     <div className="p-6">
-      <RubricCriterionCard
-        criterion={criterion}
-        onUpdate={(_id, changes) =>
-          setCriterion((prev) => ({ ...prev, ...changes }))
+      <RubricCriteriaList
+        criteria={criteria}
+        onUpdateCriterion={(id, changes) =>
+          setCriteria((prev) =>
+            prev.map((c) => (c.criterionId === id ? { ...c, ...changes } : c)),
+          )
         }
-        onRemove={(id) => setRemovedId(id)}
+        onRemoveCriterion={(id) =>
+          setCriteria((prev) => prev.filter((c) => c.criterionId !== id))
+        }
       />
-      <pre className="mt-4 text-sm">
-        {JSON.stringify({ criterion, removeCalledWith: removedId }, null, 2)}
-      </pre>
+      <pre className="mt-4 text-sm">{JSON.stringify(criteria, null, 2)}</pre>
     </div>
   );
 }
@@ -49,7 +60,7 @@ export default function AppRouter() {
           path="/rubric-test"
           element={
             <div className="p-6">
-              <RubricCardPreview />
+              <RubricListPreview />
             </div>
           }
         />

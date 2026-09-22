@@ -1,7 +1,22 @@
 import { SlidersHorizontal, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { RubricCriterionCard } from "@/components/forms/RubricCriterionCard";
+import type { RubricCriterion } from "@/types/exam";
 
-export function RubricCriteriaList() {
+interface RubricCriteriaListProps {
+  criteria: RubricCriterion[];
+  onUpdateCriterion: (
+    criterionId: string,
+    changes: Partial<RubricCriterion>,
+  ) => void;
+  onRemoveCriterion: (criterionId: string) => void;
+}
+
+export function RubricCriteriaList({
+  criteria,
+  onUpdateCriterion,
+  onRemoveCriterion,
+}: RubricCriteriaListProps) {
   return (
     <section className="flex flex-col gap-6 border border-neutral-300 bg-neutral-50 p-6">
       <div className="flex items-center justify-between border-b border-neutral-300 pb-4">
@@ -23,6 +38,15 @@ export function RubricCriteriaList() {
         Establezca los criterios de evaluación. Instruya a la IA sobre qué
         buscar exactamente en las respuestas del alumno.
       </p>
+      {criteria.map((criterion) => (
+        <RubricCriterionCard
+          key={criterion.criterionId}
+          criterion={criterion}
+          onUpdate={onUpdateCriterion}
+          onRemove={onRemoveCriterion}
+          canRemove={criteria.length > 1}
+        />
+      ))}
     </section>
   );
 }
