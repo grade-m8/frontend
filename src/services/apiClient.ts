@@ -54,4 +54,38 @@ export const apiClient = {
 
     return response.json();
   },
+
+  async put<T>(endpoint: string, body?: unknown): Promise<T> {
+    const headers = await getAuthHeader();
+    const baseUrl = getBaseUrl();
+    const response = await fetch(`${baseUrl}${endpoint}`, {
+      method: "PUT",
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  async patch<T>(endpoint: string, body?: unknown): Promise<T> {
+    const headers = await getAuthHeader();
+    const baseUrl = getBaseUrl();
+    const response = await fetch(`${baseUrl}${endpoint}`, {
+      method: "PATCH",
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error ${response.status}`);
+    }
+
+    return response.json();
+  },
 };
