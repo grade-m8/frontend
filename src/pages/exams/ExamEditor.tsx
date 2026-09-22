@@ -1,7 +1,28 @@
 import { useState } from "react";
 import { WizardStepper } from "@/components/layout/WizardStepper";
 import { ExamGeneralInfoForm } from "@/components/forms/ExamGeneralInfoForm";
-import type { ExamConfigFormState } from "@/types/exam";
+import { RubricCriteriaList } from "@/components/forms/RubricCriteriaList";
+import type { ExamConfigFormState, RubricCriterion } from "@/types/exam";
+
+const SUGGESTED_CRITERIA: RubricCriterion[] = [
+  {
+    criterionId: crypto.randomUUID(),
+    title: "Rigor Técnico y Precisión",
+    weight: "high",
+    weightPercentage: 40,
+    guidance:
+      "El alumno debe utilizar la nomenclatura correcta. Se penalizará severamente el uso de términos ambiguos.",
+    order: 0,
+  },
+  {
+    criterionId: crypto.randomUUID(),
+    title: "Claridad y Estructura",
+    weight: "medium",
+    weightPercentage: 20,
+    guidance: "La explicación debe fluir lógicamente.",
+    order: 1,
+  },
+];
 
 const INITIAL_STATE: ExamConfigFormState = {
   generalInfo: {
@@ -10,7 +31,7 @@ const INITIAL_STATE: ExamConfigFormState = {
     durationMinutes: 0,
     passingPercentage: 0,
   },
-  rubricCriteria: [],
+  rubricCriteria: SUGGESTED_CRITERIA,
   isValid: false,
   isDirty: false,
 };
@@ -39,6 +60,34 @@ export function ExamConfigPage() {
           setFormState((prev) => ({
             ...prev,
             generalInfo: { ...prev.generalInfo, ...fields },
+            isDirty: true,
+          }))
+        }
+      />
+      <RubricCriteriaList
+        criteria={formState.rubricCriteria}
+        onAddCriterion={(criterion) =>
+          setFormState((prev) => ({
+            ...prev,
+            rubricCriteria: [...prev.rubricCriteria, criterion],
+            isDirty: true,
+          }))
+        }
+        onUpdateCriterion={(id, changes) =>
+          setFormState((prev) => ({
+            ...prev,
+            rubricCriteria: prev.rubricCriteria.map((c) =>
+              c.criterionId === id ? { ...c, ...changes } : c,
+            ),
+            isDirty: true,
+          }))
+        }
+        onRemoveCriterion={(id) =>
+          setFormState((prev) => ({
+            ...prev,
+            rubricCriteria: prev.rubricCriteria.filter(
+              (c) => c.criterionId !== id,
+            ),
             isDirty: true,
           }))
         }
