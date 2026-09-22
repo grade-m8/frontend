@@ -5,6 +5,7 @@ import ProtectedRoutes from "@/routes/ProtectedRoutes.tsx";
 import RedirectIfAuthenticated from "@/routes/RedirectIfAuthenticated.tsx";
 import SubjectExamsPage from "@/pages/Subjects/SubjectExamsPage";
 import ErrorPage from "@/pages/ErrorPage.tsx";
+import { ExamConfigPage } from "@/pages/exams/ExamEditor";
 
 export default function AppRouter() {
   return (
@@ -13,6 +14,8 @@ export default function AppRouter() {
         <Route element={<RedirectIfAuthenticated />}>
           <Route path="/" element={<LandingPage />} />
         </Route>
+
+        <Route path="/teacher/exams/new" element={<ExamConfigPage />} />
 
         <Route path="/403" element={<ErrorPage />} />
 
