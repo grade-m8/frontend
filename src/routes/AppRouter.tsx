@@ -35,6 +35,9 @@ function RubricListPreview() {
     <div className="p-6">
       <RubricCriteriaList
         criteria={criteria}
+        onAddCriterion={(criterion) =>
+          setCriteria((prev) => [...prev, criterion])
+        }
         onUpdateCriterion={(id, changes) =>
           setCriteria((prev) =>
             prev.map((c) => (c.criterionId === id ? { ...c, ...changes } : c)),

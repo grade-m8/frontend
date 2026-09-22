@@ -1,10 +1,11 @@
-import { SlidersHorizontal, Sparkles } from "lucide-react";
+import { Plus, SlidersHorizontal, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { RubricCriterionCard } from "@/components/forms/RubricCriterionCard";
 import type { RubricCriterion } from "@/types/exam";
 
 interface RubricCriteriaListProps {
   criteria: RubricCriterion[];
+  onAddCriterion: (criterion: RubricCriterion) => void;
   onUpdateCriterion: (
     criterionId: string,
     changes: Partial<RubricCriterion>,
@@ -14,9 +15,21 @@ interface RubricCriteriaListProps {
 
 export function RubricCriteriaList({
   criteria,
+  onAddCriterion,
   onUpdateCriterion,
   onRemoveCriterion,
 }: RubricCriteriaListProps) {
+  const handleAddCriterion = () => {
+    onAddCriterion({
+      criterionId: crypto.randomUUID(),
+      title: "",
+      weight: "medium",
+      weightPercentage: 20,
+      guidance: "",
+      order: criteria.length,
+    });
+  };
+
   return (
     <section className="flex flex-col gap-6 border border-neutral-300 bg-neutral-50 p-6">
       <div className="flex items-center justify-between border-b border-neutral-300 pb-4">
@@ -47,6 +60,16 @@ export function RubricCriteriaList({
           canRemove={criteria.length > 1}
         />
       ))}
+      <button
+        type="button"
+        onClick={handleAddCriterion}
+        className="flex w-full flex-col items-center justify-center gap-2 border-2 border-dashed border-neutral-500 py-4 text-center transition-colors hover:border-teal-700 cursor-pointer"
+      >
+        <Plus className="h-5 w-5 text-neutral-700" />
+        <span className="text-body font-bold text-neutral-700">
+          + Añadir Nuevo Criterio
+        </span>
+      </button>
     </section>
   );
 }
