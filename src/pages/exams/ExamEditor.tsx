@@ -39,10 +39,40 @@ const INITIAL_STATE: ExamConfigFormState = {
   isDirty: false,
 };
 
+function validateGeneralInfo(info: ExamConfigFormState["generalInfo"]) {
+  const errors: Record<string, string> = {};
+  if (info.title.trim() === "") errors.title = "El título es obligatorio";
+  if (info.subjectId === "") errors.subjectId = "Seleccioná una materia";
+  if (info.durationMinutes <= 0)
+    errors.durationMinutes = "La duración debe ser mayor a 0";
+  if (info.passingPercentage < 1 || info.passingPercentage > 100)
+    errors.passingPercentage = "Debe estar entre 1 y 100";
+  return errors;
+}
+
 export function ExamConfigPage() {
   const [formState, setFormState] =
     useState<ExamConfigFormState>(INITIAL_STATE);
+  const [generalInfoErrors, setGeneralInfoErrors] = useState<
+    Record<string, string>
+  >({});
   const navigate = useNavigate();
+
+  const handleContinue = () => {
+    const errors = validateGeneralInfo(formState.generalInfo);
+    setGeneralInfoErrors(errors);
+
+    const hasInvalidCriterion = formState.rubricCriteria.some(
+      (c) => c.title.trim() === "" || c.guidance.trim() === "",
+    );
+
+    if (Object.keys(errors).length > 0 || hasInvalidCriterion) {
+      return;
+    }
+
+    // TODO: navegar al Paso 2 ("Preguntas y Contenido") una vez que esa ruta exista
+    return;
+  };
 
   return (
     <div className="flex flex-col gap-8 px-6 py-8">
@@ -60,6 +90,7 @@ export function ExamConfigPage() {
       </div>
       <ExamGeneralInfoForm
         values={formState.generalInfo}
+        errors={generalInfoErrors}
         onChange={(fields) =>
           setFormState((prev) => ({
             ...prev,
@@ -100,7 +131,7 @@ export function ExamConfigPage() {
         <Button variant="outline" onClick={() => navigate("/materias")}>
           Cancelar
         </Button>
-        <Button>
+        <Button onClick={handleContinue}>
           Continuar al editor de preguntas
           <ArrowRight className="h-4 w-4" />
         </Button>
