@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { WizardStepper } from "@/components/layout/WizardStepper";
 import { ExamGeneralInfoForm } from "@/components/forms/ExamGeneralInfoForm";
 import { RubricCriteriaList } from "@/components/forms/RubricCriteriaList";
@@ -39,6 +42,7 @@ const INITIAL_STATE: ExamConfigFormState = {
 export function ExamConfigPage() {
   const [formState, setFormState] =
     useState<ExamConfigFormState>(INITIAL_STATE);
+  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col gap-8 px-6 py-8">
@@ -92,6 +96,15 @@ export function ExamConfigPage() {
           }))
         }
       />
+      <div className="flex justify-end gap-4 border-t border-neutral-300 pt-6">
+        <Button variant="outline" onClick={() => navigate("/materias")}>
+          Cancelar
+        </Button>
+        <Button>
+          Continuar al editor de preguntas
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }
