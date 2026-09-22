@@ -71,9 +71,11 @@ export function ExamConfigPage() {
   const [generalInfoErrors, setGeneralInfoErrors] = useState<
     Record<string, string>
   >({});
+  const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
 
   const handleContinue = () => {
+    setSubmitted(true);
     const errors = validateGeneralInfo(formState.generalInfo);
     setGeneralInfoErrors(errors);
 
@@ -125,6 +127,7 @@ export function ExamConfigPage() {
       />
       <RubricCriteriaList
         criteria={formState.rubricCriteria}
+        showErrors={submitted}
         onAddCriterion={(criterion) =>
           setFormState((prev) => ({
             ...prev,

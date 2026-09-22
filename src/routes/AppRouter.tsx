@@ -14,12 +14,13 @@ export default function AppRouter() {
         <Route element={<RedirectIfAuthenticated />}>
           <Route path="/" element={<LandingPage />} />
         </Route>
-
-        <Route path="/teacher/exams/new" element={<ExamConfigPage />} />
-        <Route
-          path="/teacher/exams/:examId/config"
-          element={<ExamConfigPage />}
-        />
+        <Route element={<ProtectedRoutes allowedRoles={["Professor"]} />}>
+          <Route path="/teacher/exams/new" element={<ExamConfigPage />} />
+          <Route
+            path="/teacher/exams/:examId/config"
+            element={<ExamConfigPage />}
+          />
+        </Route>
 
         <Route path="/403" element={<ErrorPage />} />
 
