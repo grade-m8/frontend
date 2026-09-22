@@ -19,6 +19,8 @@ export function RubricCriteriaList({
   onUpdateCriterion,
   onRemoveCriterion,
 }: RubricCriteriaListProps) {
+  // TODO: Al conectar con el backend, estos criterios se enviarán mediante la
+  // Callable Function replaceCriteria({ examId, criteria })
   const handleAddCriterion = () => {
     onAddCriterion({
       criterionId: crypto.randomUUID(),
