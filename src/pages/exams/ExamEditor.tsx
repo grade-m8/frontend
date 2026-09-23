@@ -6,6 +6,7 @@ import { WizardStepper } from "@/components/layout/WizardStepper";
 import { ExamGeneralInfoForm } from "@/components/forms/ExamGeneralInfoForm";
 import { RubricCriteriaList } from "@/components/forms/RubricCriteriaList";
 import type { ExamConfigFormState, RubricCriterion } from "@/types/exam";
+// import {useExam} from "@/hooks/useExam.ts";
 
 const SUGGESTED_CRITERIA: RubricCriterion[] = [
   {
@@ -56,8 +57,7 @@ export function ExamConfigPage() {
   const { examId } = useParams<{ examId: string }>();
   const isEditMode = !!examId;
 
-  // TODO: En modo edición (:examId), cargar la configuración inicial y rúbricas invocando:
-  // - Firebase Callable Function `getExam({ examId })` (retorna ExamDetail { exam, criteria, questions })
+  // const {exam} = useExam(examId)
   const [formState, setFormState] = useState<ExamConfigFormState>(() =>
     isEditMode
       ? {
