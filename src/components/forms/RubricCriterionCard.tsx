@@ -10,6 +10,7 @@ interface RubricCriterionCardProps {
   onUpdate: (criterionId: string, changes: Partial<RubricCriterion>) => void;
   onRemove: (criterionId: string) => void;
   canRemove: boolean;
+  showErrors: boolean;
 }
 
 const WEIGHT_OPTIONS: {
@@ -44,16 +45,17 @@ export function RubricCriterionCard({
   onUpdate,
   onRemove,
   canRemove,
+  showErrors,
 }: RubricCriterionCardProps) {
   const { criterionId } = criterion;
   const [touched, setTouched] = useState({ title: false, guidance: false });
 
   const titleError =
-    touched.title && criterion.title.trim() === ""
+    (touched.title || showErrors) && criterion.title.trim() === ""
       ? "El criterio no puede quedar vacío"
       : undefined;
   const guidanceError =
-    touched.guidance && criterion.guidance.trim() === ""
+    (touched.guidance || showErrors) && criterion.guidance.trim() === ""
       ? "La descripción no puede quedar vacía"
       : undefined;
 

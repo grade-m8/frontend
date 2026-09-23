@@ -11,6 +11,7 @@ interface RubricCriteriaListProps {
     changes: Partial<RubricCriterion>,
   ) => void;
   onRemoveCriterion: (criterionId: string) => void;
+  showErrors: boolean;
 }
 
 export function RubricCriteriaList({
@@ -18,6 +19,7 @@ export function RubricCriteriaList({
   onAddCriterion,
   onUpdateCriterion,
   onRemoveCriterion,
+  showErrors,
 }: RubricCriteriaListProps) {
   // TODO: Al conectar con el backend, estos criterios se enviarán mediante la
   // Callable Function replaceCriteria({ examId, criteria })
@@ -63,6 +65,7 @@ export function RubricCriteriaList({
           onUpdate={onUpdateCriterion}
           onRemove={onRemoveCriterion}
           canRemove={criteria.length > 1}
+          showErrors={showErrors}
         />
       ))}
       <button
