@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WizardStepper } from "@/components/layout/WizardStepper";
 import { ExamGeneralInfoForm } from "@/components/forms/ExamGeneralInfoForm";
 import { RubricCriteriaList } from "@/components/forms/RubricCriteriaList";
-import type { ExamConfigFormState, RubricCriterion } from "@/types/exam";
-// import {useExam} from "@/hooks/useExam.ts";
+import type { Exam, ExamConfigFormState, RubricCriterion } from "@/types/exam";
+import { useExam, type ExamLoadError } from "@/hooks/useExam.ts";
+import { toast } from "@/components/handler/toastHandler.tsx";
 
 const SUGGESTED_CRITERIA: RubricCriterion[] = [
   {
@@ -42,6 +43,32 @@ const CREATION_INITIAL_STATE: ExamConfigFormState = {
   isDirty: false,
 };
 
+const EDITION_INITIAL_STATE: ExamConfigFormState = {
+  generalInfo: EMPTY_GENERAL_INFO,
+  rubricCriteria: [],
+  isValid: false,
+  isDirty: false,
+};
+
+// `subjectName` no viene en `Exam`: el <select> de ExamGeneralInfoForm ya
+// resuelve el nombre matcheando `subjectId` contra la lista de materias.
+const extractExamGeneralInfo = (
+  exam: Exam,
+): ExamConfigFormState["generalInfo"] => ({
+  title: exam.title,
+  subjectId: exam.subjectId,
+  durationMinutes: exam.durationMinutes,
+  passingPercentage: exam.passingPercentage,
+  scheduledAt: exam.scheduledAt,
+});
+
+const LOAD_ERROR_MESSAGES: Record<ExamLoadError, string> = {
+  "not-found": "El examen solicitado no existe.",
+  forbidden: "No tenés permisos para acceder a este examen.",
+  unauthenticated: "Tu sesión expiró. Iniciá sesión nuevamente.",
+  unknown: "No se pudo cargar el examen. Intentá nuevamente.",
+};
+
 function validateGeneralInfo(info: ExamConfigFormState["generalInfo"]) {
   const errors: Record<string, string> = {};
   if (info.title.trim() === "") errors.title = "El título es obligatorio";
@@ -57,22 +84,37 @@ export function ExamConfigPage() {
   const { examId } = useParams<{ examId: string }>();
   const isEditMode = !!examId;
 
-  // const {exam} = useExam(examId)
+  const { exam, criteria, isLoading, error } = useExam(examId);
   const [formState, setFormState] = useState<ExamConfigFormState>(() =>
-    isEditMode
-      ? {
-          generalInfo: EMPTY_GENERAL_INFO,
-          rubricCriteria: [],
-          isValid: false,
-          isDirty: false,
-        }
-      : CREATION_INITIAL_STATE,
+    isEditMode ? EDITION_INITIAL_STATE : CREATION_INITIAL_STATE,
   );
   const [generalInfoErrors, setGeneralInfoErrors] = useState<
     Record<string, string>
   >({});
   const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
+
+  const hydratedExamIdRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!exam || hydratedExamIdRef.current === exam.examId) {
+      return;
+    }
+    hydratedExamIdRef.current = exam.examId;
+    setFormState({
+      generalInfo: extractExamGeneralInfo(exam),
+      rubricCriteria: criteria ?? [],
+      isValid: false,
+      isDirty: false,
+    });
+  }, [exam, criteria]);
+
+  useEffect(() => {
+    if (!error) return;
+    toast.error(LOAD_ERROR_MESSAGES[error]);
+    // `replace` para que "atrás" no devuelva al examen inaccesible.
+    navigate("/materias", { replace: true });
+  }, [error, navigate]);
 
   const handleContinue = () => {
     setSubmitted(true);
@@ -98,6 +140,15 @@ export function ExamConfigPage() {
       // TODO: Navegar a `/teacher/exams/new/questions` una vez que esa ruta exista
     }
   };
+
+  if (isLoading || error) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-4 text-neutral-500">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <p>Cargando el examen...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-8 px-6 py-8">

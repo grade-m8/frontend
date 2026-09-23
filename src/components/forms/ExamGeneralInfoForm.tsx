@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ExamGeneralInfo } from "@/types/exam";
-import { useContext, useState } from "react";
-import { AuthContext } from "@/context/AuthContext.ts";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth.ts";
 import { useSubject } from "@/hooks/useSubject.ts";
 
 interface ExamGeneralInfoFormProps {
@@ -66,12 +66,9 @@ export function ExamGeneralInfoForm({
   errors = {},
   isEditMode = false,
 }: ExamGeneralInfoFormProps) {
-  const authContext = useContext(AuthContext);
+  const { user, role } = useAuth();
 
-  const { subjects } = useSubject(
-    authContext ? authContext.user : null,
-    authContext ? authContext.role : undefined,
-  );
+  const { subjects, isLoading: isLoadingSubjects } = useSubject(user, role);
 
   const [touched, setTouched] = useState<Partial<Record<FieldName, boolean>>>(
     {},
@@ -141,9 +138,13 @@ export function ExamGeneralInfoForm({
               }
               className={`${SELECT_CLASS} cursor-pointer appearance-none pr-10`}
               onBlur={() => markTouched("subjectId")}
-              disabled={isEditMode}
+              disabled={isEditMode || isLoadingSubjects}
             >
-              <option value="">Seleccionar materia</option>
+              <option value="">
+                {isLoadingSubjects
+                  ? "Cargando materias..."
+                  : "Seleccionar materia"}
+              </option>
               {subjects.map((subject) => (
                 <option key={subject.subjectId} value={subject.subjectId}>
                   {subject.name}
@@ -152,7 +153,7 @@ export function ExamGeneralInfoForm({
             </select>
             <ChevronDown
               className={`pointer-events-none absolute top-1/2 right-3 h-5 w-5 -translate-y-1/2 text-neutral-500 ${
-                isEditMode ? "opacity-50" : ""
+                isEditMode || isLoadingSubjects ? "opacity-50" : ""
               }`}
             />
           </div>
