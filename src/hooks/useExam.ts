@@ -70,5 +70,11 @@ export function useExam(examId: string | undefined) {
     await loadExam();
   }, [loadExam]);
 
+  // const updateExamData = useCallback(async () => {
+  //   try {
+  //     setIsLoading(true);
+  //   }
+  // })
+
   return { exam, criteria, questions, isLoading, error, reloadExam };
 }
