@@ -66,16 +66,10 @@ export interface ExamSummaryMetadata {
 }
 
 // TODO: Vincular con ReplaceQuestionsDto y getExam({ examId }) del backend al integrar Firebase Callable Functions.
-export interface ExamDetail {
-  exam: Exam;
-  criteria: RubricCriterion[];
-  questions: Question[];
-}
 
 export interface QuestionEditorState {
   questions: Question[];
-  editingQuestionId: string;
+  editingQuestionId: string | null;
   isCreating: boolean;
-  isValid: boolean;
-  isDirty: boolean;
+  error: Record<string, Record<string, string>>;
 }
