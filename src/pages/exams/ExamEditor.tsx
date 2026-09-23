@@ -8,6 +8,13 @@ import { RubricCriteriaList } from "@/components/forms/RubricCriteriaList";
 import type { Exam, ExamConfigFormState, RubricCriterion } from "@/types/exam";
 import { useExam, type ExamLoadError } from "@/hooks/useExam.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
+import type { ReplaceCriteriaDto } from "@/types/examDto.ts";
+import {
+  createExam,
+  replaceCriteria,
+  updateExam,
+} from "@/services/examService.ts";
+import { getApiErrorMessage } from "@/services/error.ts";
 
 const SUGGESTED_CRITERIA: RubricCriterion[] = [
   {
@@ -80,6 +87,22 @@ function validateGeneralInfo(info: ExamConfigFormState["generalInfo"]) {
   return errors;
 }
 
+// Se listan los campos explícitamente en vez de descartar `criterionId`: el
+// backend no filtra nada al crear (`create` hace `{...input}` y lo persiste
+// tal cual), así que cualquier campo de UI que se agregue a `RubricCriterion`
+// terminaría en Firestore sin que nadie lo note.
+function toCriteriaDto(criteria: RubricCriterion[]): ReplaceCriteriaDto {
+  return {
+    criteria: criteria.map((c, index) => ({
+      title: c.title,
+      weight: c.weight,
+      weightPercentage: c.weightPercentage,
+      guidance: c.guidance,
+      order: index + 1,
+    })),
+  };
+}
+
 export function ExamConfigPage() {
   const { examId } = useParams<{ examId: string }>();
   const isEditMode = !!examId;
@@ -92,6 +115,7 @@ export function ExamConfigPage() {
     Record<string, string>
   >({});
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const hydratedExamIdRef = useRef<string | undefined>(undefined);
@@ -116,26 +140,73 @@ export function ExamConfigPage() {
     navigate("/materias", { replace: true });
   }, [error, navigate]);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     setSubmitted(true);
     const errors = validateGeneralInfo(formState.generalInfo);
     setGeneralInfoErrors(errors);
 
-    const hasInvalidCriterion = formState.rubricCriteria.length === 0;
+    const hasNoCriteria = formState.rubricCriteria.length === 0;
+    const hasIncompleteCriterion = formState.rubricCriteria.some(
+      (c) => c.title.trim() === "" || c.guidance.trim() === "",
+    );
 
-    if (Object.keys(errors).length > 0 || hasInvalidCriterion) {
+    if (
+      Object.keys(errors).length > 0 ||
+      hasNoCriteria ||
+      hasIncompleteCriterion
+    ) {
       return;
     }
 
-    if (isEditMode) {
-      // TODO: Al presionar continuar en modo edición:
-      // - Invocar `updateExam({ examId, patch })` y `replaceCriteria({ examId, criteria })`.
-      // TODO: Navegar a `/teacher/exams/${examId}/questions` una vez que esa ruta exista
-    } else {
-      // TODO: Al presionar continuar en modo creación:
-      // - Invocar `createExam(createExamDto)` para obtener el `examId` generado.
-      // - Invocar `replaceCriteria({ examId, criteria })` para guardar los criterios de rúbrica.
-      // TODO: Navegar a `/teacher/exams/new/questions` una vez que esa ruta exista
+    const {
+      title,
+      subjectId,
+      durationMinutes,
+      passingPercentage,
+      scheduledAt,
+    } = formState.generalInfo;
+    const criteriaDto = toCriteriaDto(formState.rubricCriteria);
+
+    setIsSubmitting(true);
+    try {
+      // TODO: `/teacher/exams/:examId/questions` todavía no existe en
+      // AppRouter.tsx, así que por ahora estos navigate() rebotan a `/`.
+      if (examId) {
+        // `subjectId` no se envía: la materia es inmutable una vez creado el
+        // examen, y el backend lo filtra de todos modos.
+        await Promise.all([
+          updateExam(examId, {
+            title,
+            durationMinutes,
+            passingPercentage,
+            scheduledAt,
+          }),
+          replaceCriteria(examId, criteriaDto),
+        ]);
+        toast.success("Examen actualizado correctamente");
+        navigate(`/teacher/exams/${examId}/questions`);
+      } else {
+        const newExam = await createExam({
+          title,
+          subjectId,
+          durationMinutes,
+          passingPercentage,
+          scheduledAt,
+        });
+        await replaceCriteria(newExam.examId, criteriaDto);
+        toast.success("Examen creado correctamente");
+        navigate(`/teacher/exams/${newExam.examId}/questions`);
+      }
+    } catch (err) {
+      toast.error(
+        getApiErrorMessage(
+          err,
+          "No se pudo guardar el examen. Intentá nuevamente.",
+        ),
+      );
+      // Sólo acá: en el camino feliz navegamos y el componente se desmonta,
+      // así que rehabilitar el botón antes sólo abriría lugar a un doble click.
+      setIsSubmitting(false);
     }
   };
 
@@ -204,12 +275,17 @@ export function ExamConfigPage() {
         }
       />
       <div className="flex justify-end gap-4 border-t border-neutral-300 pt-6">
-        <Button variant="outline" onClick={() => navigate("/materias")}>
+        <Button
+          variant="outline"
+          onClick={() => navigate("/materias")}
+          disabled={isSubmitting}
+        >
           Cancelar
         </Button>
-        <Button onClick={handleContinue}>
-          Continuar al editor de preguntas
-          <ArrowRight className="h-4 w-4" />
+        <Button onClick={handleContinue} disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isSubmitting ? "Guardando..." : "Continuar al editor de preguntas"}
+          {!isSubmitting && <ArrowRight className="h-4 w-4" />}
         </Button>
       </div>
     </div>
