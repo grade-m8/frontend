@@ -54,7 +54,7 @@ export type Question = {
   type?: QuestionType;
 };
 
-export type QuestionType = "essay"; //TODO en ningun lado estan especificados los tipos
+export type QuestionType = "essay";
 
 export type StudentQuestion = Omit<Question, "idealAnswer">;
 
@@ -66,10 +66,11 @@ export interface ExamSummaryMetadata {
 }
 
 // TODO: Vincular con ReplaceQuestionsDto y getExam({ examId }) del backend al integrar Firebase Callable Functions.
+export type { ExamDetail } from "./examDto";
 
 export interface QuestionEditorState {
   questions: Question[];
   editingQuestionId: string | null;
   isCreating: boolean;
-  error: Record<string, Record<string, string>>;
+  errors: Record<string, Record<string, string>>;
 }
