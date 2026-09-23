@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card.tsx";
-import { Brain, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 export interface AICalloutProps {
   mode: "view" | "edit";
@@ -15,7 +15,7 @@ export function AICallout(props: AICalloutProps) {
       return (
         <div className="border border-teal-200 bg-teal-50/20 rounded-lg p-5">
           <div className="flex flex-row gap-2 items-center">
-            <Brain className="h-4 w-4 shrink-0 text-teal-700" />
+            <Sparkles className="h-4 w-4 shrink-0 text-teal-700" />
             <h3 className="text-sm font-bold text-teal-800 uppercase tracking-wide">
               CALIBRACIÓN DE IA: RESPUESTA IDEAL
             </h3>
