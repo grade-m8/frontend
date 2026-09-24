@@ -23,7 +23,7 @@ export function QuestionReadView({
   const typeOption = getQuestionTypeOption(question);
 
   return (
-    <div className="space-y-4 rounded-lg border border-neutral-200 bg-card p-6">
+    <div className="border border-neutral-300 rounded-lg p-6 bg-surface-card shadow-soft space-y-4">
       <div className="flex items-start justify-between gap-4 border-b border-neutral-200 pb-4">
         <div className="flex flex-wrap items-center gap-3">
           <Badge
@@ -45,7 +45,7 @@ export function QuestionReadView({
           </Badge>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="font-label text-label tracking-label text-neutral-650">
+          <span className="text-sm font-semibold text-neutral-700">
             {question.points} Puntos
           </span>
           <Button
@@ -70,8 +70,10 @@ export function QuestionReadView({
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="label-micro text-neutral-650">Prompt / Enunciado</span>
-        <p className="text-body font-normal whitespace-pre-wrap text-neutral-900">
+        <span className="text-micro uppercase tracking-wider text-neutral-500 font-bold">
+          Prompt / Enunciado
+        </span>
+        <p className="text-sm font-medium text-neutral-800 leading-relaxed">
           {question.prompt}
         </p>
       </div>
