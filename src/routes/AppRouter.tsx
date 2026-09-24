@@ -74,7 +74,7 @@ export default function AppRouter() {
 const fakeQuestion: Question = {
   questionId: "1",
   order: 2,
-  title: "title",
+  title: "Desarrollo Temático",
   prompt: "This is a prompt",
   points: 4,
   idealAnswer: "This is an ideal answer",
