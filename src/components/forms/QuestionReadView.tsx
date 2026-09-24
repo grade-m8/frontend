@@ -3,12 +3,14 @@ import { AICallout } from "@/components/data-display/AICallout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getQuestionTypeOption } from "@/lib/questionTypes";
-import type { QuestionCardProps } from "@/components/forms/QuestionCard";
+import type { Question } from "@/types/exam.ts";
 
-type QuestionReadViewProps = Pick<
-  QuestionCardProps,
-  "question" | "index" | "onEdit" | "onDelete"
->;
+interface QuestionReadViewProps {
+  question: Question;
+  index: number;
+  onDelete: (questionId: string) => void;
+  onEdit: () => void;
+}
 
 export function QuestionReadView({
   question,
@@ -48,7 +50,7 @@ export function QuestionReadView({
             variant="ghost"
             size="icon-sm"
             aria-label="Editar pregunta"
-            onClick={() => onEdit(question.questionId)}
+            onClick={() => onEdit()}
             className="text-neutral-650"
           >
             <Pencil className="size-4" />

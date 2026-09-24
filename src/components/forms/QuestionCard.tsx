@@ -1,6 +1,7 @@
 import { QuestionEditForm } from "@/components/forms/QuestionEditForm";
 import { QuestionReadView } from "@/components/forms/QuestionReadView";
 import type { Question } from "@/types/exam.ts";
+import { useState } from "react";
 
 export interface QuestionCardProps {
   question: Question;
@@ -13,10 +14,11 @@ export interface QuestionCardProps {
 }
 
 export default function QuestionCard(props: QuestionCardProps) {
-  const { question, index, isEditing, onEdit, onDelete, onSave, onCancel } =
-    props;
+  const { question, index, isEditing, onDelete, onSave, onCancel } = props;
+  const [editMode, setEditMode] = useState<boolean>(isEditing);
+  const handleReadEdit = () => setEditMode(true);
 
-  if (isEditing) {
+  if (editMode) {
     return (
       <QuestionEditForm
         question={question}
@@ -32,7 +34,7 @@ export default function QuestionCard(props: QuestionCardProps) {
     <QuestionReadView
       question={question}
       index={index}
-      onEdit={onEdit}
+      onEdit={handleReadEdit}
       onDelete={onDelete}
     />
   );
