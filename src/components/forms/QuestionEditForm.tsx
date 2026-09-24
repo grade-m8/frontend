@@ -16,17 +16,25 @@ type QuestionEditFormProps = Pick<
   "question" | "index" | "onDelete" | "onSave" | "onCancel"
 >;
 
-const LABEL_CLASS = "label-micro text-neutral-650";
+// Colores tomados del theme (tailwind.css), mapeados desde el spec de Figma:
+// primary/main -> teal-600, primary/shade -> teal-700, primary/tint-2 -> teal-400
+// secondary/shade-2 -> neutral-900, secondary/shade -> neutral-650, secondary/main -> neutral-200, secondary/tint-2 -> card
+
 const ERROR_CLASS =
   "aria-invalid:border-danger-500 aria-invalid:ring-3 aria-invalid:ring-danger-500/20 dark:aria-invalid:border-danger-500 dark:aria-invalid:ring-danger-500/20";
-const INPUT_CLASS = `h-10 rounded-md border-neutral-300 bg-white px-3 text-base text-neutral-900 focus-visible:border-teal-600 md:text-base ${ERROR_CLASS}`;
+const INPUT_CLASS = `h-10 rounded-md border border-b-2 border-neutral-900 bg-card px-3 text-body text-neutral-900 outline-none focus-visible:border-teal-600 ${ERROR_CLASS}`;
 const SELECT_CLASS =
-  "h-10 w-full cursor-pointer appearance-none rounded-md border border-neutral-300 bg-white px-3 pr-10 text-base text-neutral-900 outline-none focus-visible:border-teal-600";
-const TEXTAREA_CLASS = `min-h-[90px] w-full resize-y rounded-md border border-neutral-300 bg-white p-3 text-base text-neutral-900 outline-none placeholder:text-muted-foreground focus-visible:border-teal-600 focus-visible:ring-3 focus-visible:ring-ring/50 ${ERROR_CLASS}`;
+  "h-11 w-full cursor-pointer appearance-none rounded-md border border-b-2 border-neutral-900 bg-card px-3 pr-10 text-body text-neutral-900 outline-none";
+const TEXTAREA_CLASS = `min-h-32 w-full resize-y rounded-md border-2 border-neutral-900 bg-card p-4 text-body text-neutral-900 outline-none placeholder:text-neutral-650 focus-visible:ring-3 focus-visible:ring-ring/50 ${ERROR_CLASS}`;
 
-function parseDigits(raw: string): number {
-  const digits = raw.replace(/\D/g, "");
-  return digits === "" ? 0 : Number(digits);
+function sanitizePointsInput(raw: string): string {
+  const digitsAndDots = raw.replace(/[^\d.]/g, "");
+  const firstDot = digitsAndDots.indexOf(".");
+  if (firstDot === -1) return digitsAndDots;
+  return (
+    digitsAndDots.slice(0, firstDot + 1) +
+    digitsAndDots.slice(firstDot + 1).replace(/\./g, "")
+  );
 }
 
 function FieldError({ id, message }: { id: string; message?: string }) {
@@ -59,6 +67,9 @@ export function QuestionEditForm({
   // borrador siempre arranca de los datos persistidos y "Cancelar" los descarta.
   const [draft, setDraft] = useState<Question>(question);
   const [submitted, setSubmitted] = useState(false);
+  const [pointsInput, setPointsInput] = useState(
+    question.points === 0 ? "" : String(question.points),
+  );
 
   const { questionId } = question;
   const errors = validateQuestion(draft);
@@ -67,6 +78,14 @@ export function QuestionEditForm({
   const updateDraft = (changes: Partial<Question>) =>
     setDraft((prev) => ({ ...prev, ...changes }));
 
+  const handlePointsChange = (raw: string) => {
+    const cleaned = sanitizePointsInput(raw);
+    setPointsInput(cleaned);
+    updateDraft({
+      points: cleaned === "" || cleaned === "." ? 0 : Number(cleaned),
+    });
+  };
+
   const handleConfirm = () => {
     setSubmitted(true);
     if (Object.keys(errors).length > 0) return;
@@ -74,42 +93,28 @@ export function QuestionEditForm({
   };
 
   return (
-    <div className="space-y-5 rounded-lg border-2 border-teal-600 bg-card p-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="flex flex-1 items-end gap-3">
-          <span className="rounded bg-teal-900 px-2 py-1 text-sm font-bold text-white">
+    <div className="flex flex-col gap-6 rounded-lg border-2 border-teal-600 bg-card p-6 shadow-hard">
+      <div className="flex items-center justify-between border-b border-neutral-200 pb-4">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center rounded-md bg-teal-600 px-3 py-1 label-micro text-teal-400">
             P{index}
           </span>
-          <div className="flex flex-1 flex-col gap-2">
-            <Label
-              htmlFor={`question-title-${questionId}`}
-              className="label-micro text-teal-800"
-            >
-              Editando pregunta
-            </Label>
-            <Input
-              id={`question-title-${questionId}`}
-              value={draft.title}
-              onChange={(e) => updateDraft({ title: e.target.value })}
-              placeholder="Ej. Desarrollo Temático"
-              className={`${INPUT_CLASS} font-bold`}
-            />
-          </div>
+          <span className="label-micro text-neutral-650">
+            Editando pregunta…
+          </span>
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-row gap-2">
           <Label
             htmlFor={`question-points-${questionId}`}
-            className={LABEL_CLASS}
+            className="label-micro text-neutral-900"
           >
             Puntos
           </Label>
           <Input
             id={`question-points-${questionId}`}
             inputMode="numeric"
-            value={draft.points === 0 ? "" : draft.points}
-            onChange={(e) =>
-              updateDraft({ points: parseDigits(e.target.value) })
-            }
+            value={pointsInput}
+            onChange={(e) => handlePointsChange(e.target.value)}
             placeholder="0"
             aria-invalid={!!visibleErrors.points}
             aria-describedby={
@@ -129,7 +134,7 @@ export function QuestionEditForm({
       <div className="flex flex-col gap-2">
         <Label
           htmlFor={`question-prompt-${questionId}`}
-          className={LABEL_CLASS}
+          className="label-micro text-neutral-900"
         >
           Enunciado de la pregunta
         </Label>
@@ -152,11 +157,14 @@ export function QuestionEditForm({
         />
       </div>
 
-      <div className="flex flex-col gap-2 md:w-69">
-        <Label htmlFor={`question-type-${questionId}`} className={LABEL_CLASS}>
-          Tipo de pregunta
+      <div className="flex items-center gap-3">
+        <Label
+          htmlFor={`question-type-${questionId}`}
+          className="label-micro text-neutral-900"
+        >
+          Tipo:
         </Label>
-        <div className="relative">
+        <div className="relative w-56">
           <select
             id={`question-type-${questionId}`}
             value={draft.type ?? DEFAULT_QUESTION_TYPE}
@@ -171,7 +179,7 @@ export function QuestionEditForm({
               </option>
             ))}
           </select>
-          <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-5 w-5 -translate-y-1/2 text-neutral-500" />
+          <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-5 w-5 -translate-y-1/2 text-neutral-650" />
         </div>
       </div>
 
@@ -182,8 +190,13 @@ export function QuestionEditForm({
         error={visibleErrors.idealAnswer}
       />
 
-      <div className="flex justify-end gap-3 pt-2">
-        <Button variant="outline" size="lg" onClick={onCancel}>
+      <div className="flex justify-end gap-4 pt-2">
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={onCancel}
+          className="border-teal-700 text-teal-700 hover:bg-teal-50"
+        >
           Cancelar
         </Button>
         <Button

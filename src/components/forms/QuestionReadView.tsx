@@ -10,9 +10,6 @@ type QuestionReadViewProps = Pick<
   "question" | "index" | "onEdit" | "onDelete"
 >;
 
-const PROMPT_LABEL_CLASS =
-  "text-micro font-bold tracking-wider text-neutral-500 uppercase";
-
 export function QuestionReadView({
   question,
   index,
@@ -69,7 +66,9 @@ export function QuestionReadView({
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className={PROMPT_LABEL_CLASS}>Prompt / Enunciado</span>
+        <span className="text-micro font-bold tracking-wider text-neutral-500 uppercase">
+          Prompt / Enunciado
+        </span>
         <p className="text-sm leading-relaxed font-medium whitespace-pre-wrap text-neutral-800">
           {question.prompt}
         </p>
