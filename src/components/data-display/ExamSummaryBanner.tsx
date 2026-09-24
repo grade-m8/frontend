@@ -16,7 +16,12 @@ export function ExamSummaryBanner({
   return (
     <Card className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 rounded-none border border-neutral-200 bg-neutral-100 p-6 ring-0 shadow-none">
       <div className="flex flex-col min-w-0">
-        <h2 className="text-h2 font-bold text-neutral-900 truncate">{title}</h2>
+        <h2
+          title={title}
+          className="text-h2 font-bold text-neutral-900 truncate"
+        >
+          {title}
+        </h2>
         {subtitle && (
           <p className="text-sm text-neutral-650 mt-1">{subtitle}</p>
         )}
