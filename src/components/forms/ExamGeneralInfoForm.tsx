@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ExamGeneralInfo } from "@/types/exam";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth.ts";
+import { useSubject } from "@/hooks/useSubject.ts";
 
 interface ExamGeneralInfoFormProps {
   values: ExamGeneralInfo;
@@ -58,19 +60,16 @@ function validateField(
   }
 }
 
-// TODO: Cargar materias reales del docente autenticado vía servicio de subjects al conectar el backend
-const MOCK_SUBJECTS = [
-  { id: "cs-300", name: "Ciencias de la Computación CS-300" },
-  { id: "mat-2", name: "Matemática II" },
-  { id: "alg-1", name: "Algoritmos y Estructuras" },
-];
-
 export function ExamGeneralInfoForm({
   values,
   onChange,
   errors = {},
   isEditMode = false,
 }: ExamGeneralInfoFormProps) {
+  const { user, role } = useAuth();
+
+  const { subjects, isLoading: isLoadingSubjects } = useSubject(user, role);
+
   const [touched, setTouched] = useState<Partial<Record<FieldName, boolean>>>(
     {},
   );
@@ -125,8 +124,8 @@ export function ExamGeneralInfoForm({
               id="exam-subject"
               value={values.subjectId}
               onChange={(e) => {
-                const subject = MOCK_SUBJECTS.find(
-                  (s) => s.id === e.target.value,
+                const subject = subjects.find(
+                  (s) => s.subjectId === e.target.value,
                 );
                 onChange({
                   subjectId: e.target.value,
@@ -139,18 +138,22 @@ export function ExamGeneralInfoForm({
               }
               className={`${SELECT_CLASS} cursor-pointer appearance-none pr-10`}
               onBlur={() => markTouched("subjectId")}
-              disabled={isEditMode}
+              disabled={isEditMode || isLoadingSubjects}
             >
-              <option value="">Seleccionar materia</option>
-              {MOCK_SUBJECTS.map((subject) => (
-                <option key={subject.id} value={subject.id}>
+              <option value="">
+                {isLoadingSubjects
+                  ? "Cargando materias..."
+                  : "Seleccionar materia"}
+              </option>
+              {subjects.map((subject) => (
+                <option key={subject.subjectId} value={subject.subjectId}>
                   {subject.name}
                 </option>
               ))}
             </select>
             <ChevronDown
               className={`pointer-events-none absolute top-1/2 right-3 h-5 w-5 -translate-y-1/2 text-neutral-500 ${
-                isEditMode ? "opacity-50" : ""
+                isEditMode || isLoadingSubjects ? "opacity-50" : ""
               }`}
             />
           </div>
