@@ -10,10 +10,6 @@ type QuestionReadViewProps = Pick<
   "question" | "index" | "onEdit" | "onDelete"
 >;
 
-// Estilo de la spec de Figma ("Question 1: Defined State") para el label
-// "PROMPT / ENUNCIADO": Geist 500 12px uppercase tracking-label, ya cubierto
-// por la clase compartida label-micro.
-
 export function QuestionReadView({
   question,
   index,

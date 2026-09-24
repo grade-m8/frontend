@@ -16,10 +16,6 @@ type QuestionEditFormProps = Pick<
   "question" | "index" | "onSave" | "onCancel"
 >;
 
-// Colores tomados del theme (tailwind.css), mapeados desde el spec de Figma:
-// primary/main -> teal-600, primary/shade -> teal-700, primary/tint-2 -> teal-400
-// secondary/shade-2 -> neutral-900, secondary/shade -> neutral-650, secondary/main -> neutral-200, secondary/tint-2 -> card
-
 const ERROR_CLASS =
   "aria-invalid:border-danger-500 aria-invalid:ring-3 aria-invalid:ring-danger-500/20 dark:aria-invalid:border-danger-500 dark:aria-invalid:ring-danger-500/20";
 const INPUT_CLASS = `h-10 rounded-md border border-b-2 border-neutral-900 bg-card px-3 text-body text-neutral-900 outline-none focus-visible:border-teal-600 ${ERROR_CLASS}`;
@@ -62,8 +58,6 @@ export function QuestionEditForm({
   onSave,
   onCancel,
 }: QuestionEditFormProps) {
-  // Este componente se monta de cero cada vez que se abre la edición, así que el
-  // borrador siempre arranca de los datos persistidos y "Cancelar" los descarta.
   const [draft, setDraft] = useState<Question>(question);
   const [submitted, setSubmitted] = useState(false);
   const [pointsInput, setPointsInput] = useState(
