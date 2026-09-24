@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Trash2 } from "lucide-react";
 import { AICallout } from "@/components/data-display/AICallout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,10 +10,11 @@ import {
 } from "@/lib/questionTypes";
 import type { Question, QuestionType } from "@/types/exam.ts";
 import type { QuestionCardProps } from "@/components/forms/QuestionCard";
+import { Badge } from "@/components/ui/badge.tsx";
 
 type QuestionEditFormProps = Pick<
   QuestionCardProps,
-  "question" | "index" | "onSave" | "onCancel"
+  "question" | "index" | "onSave" | "onDelete" | "onCancel"
 >;
 
 const ERROR_CLASS =
@@ -21,7 +22,7 @@ const ERROR_CLASS =
 const INPUT_CLASS = `h-10 rounded-md border border-b-2 border-neutral-900 bg-card px-3 text-body text-neutral-900 outline-none focus-visible:border-teal-600 ${ERROR_CLASS}`;
 const SELECT_CLASS =
   "h-11 w-full cursor-pointer appearance-none rounded-md border border-b-2 border-neutral-900 bg-card px-3 pr-10 text-body text-neutral-900 outline-none";
-const TEXTAREA_CLASS = `min-h-32 w-full resize-y rounded-md border-2 border-neutral-900 bg-card p-4 text-body text-neutral-900 outline-none placeholder:text-neutral-650 focus-visible:ring-3 focus-visible:ring-ring/50 ${ERROR_CLASS}`;
+const TEXTAREA_CLASS = `min-h-[90PX] w-full resize-y rounded-md border border-neutral-300 bg-card p-3 text-body text-neutral-900 outline-none placeholder:text-neutral-650 focus-visible:ring-3 focus-visible:ring-ring/50 ${ERROR_CLASS}`;
 
 function sanitizePointsInput(raw: string): string {
   const digitsAndDots = raw.replace(/[^\d.]/g, "");
@@ -56,6 +57,7 @@ export function QuestionEditForm({
   question,
   index,
   onSave,
+  onDelete,
   onCancel,
 }: QuestionEditFormProps) {
   const [draft, setDraft] = useState<Question>(question);
@@ -86,12 +88,12 @@ export function QuestionEditForm({
   };
 
   return (
-    <div className="flex flex-col gap-6 rounded-lg border-2 border-teal-600 bg-card p-6 shadow-hard">
+    <div className="flex flex-col gap-6 rounded-lg border-2 border-teal-600 bg-card p-6 shadow-hard bg-surface-card space-y-5">
       <div className="flex items-center justify-between border-b border-neutral-200 pb-4">
         <div className="flex items-center gap-3">
-          <span className="flex items-center rounded-md bg-teal-600 px-3 py-1 label-micro text-teal-400">
+          <Badge className="flex items-center rounded bg-teal-900 px-2 py-1  font-bold text-white">
             P{index}
-          </span>
+          </Badge>
           <span className="label-micro text-neutral-650">
             Editando pregunta…
           </span>
@@ -183,7 +185,7 @@ export function QuestionEditForm({
         error={visibleErrors.idealAnswer}
       />
 
-      <div className="flex justify-end gap-4 pt-2">
+      <div className="flex justify-end gap-3 pt-2">
         <Button
           variant="outline"
           size="lg"
@@ -191,6 +193,14 @@ export function QuestionEditForm({
           className="border-teal-700 text-teal-700 hover:bg-teal-50"
         >
           Cancelar
+        </Button>
+        <Button
+          variant="destructive"
+          size="lg"
+          onClick={() => onDelete(questionId)}
+        >
+          <Trash2 className="size-4" />
+          Eliminar
         </Button>
         <Button size="lg" onClick={handleConfirm}>
           Confirmar
