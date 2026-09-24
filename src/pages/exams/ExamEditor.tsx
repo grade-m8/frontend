@@ -210,7 +210,7 @@ export function ExamConfigPage() {
     }
   };
 
-  if (isLoading || error) {
+  if (isLoading) {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4 text-neutral-500">
         <Loader2 className="h-8 w-8 animate-spin" />
