@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, Trash2 } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { AICallout } from "@/components/data-display/AICallout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import type { QuestionCardProps } from "@/components/forms/QuestionCard";
 
 type QuestionEditFormProps = Pick<
   QuestionCardProps,
-  "question" | "index" | "onDelete" | "onSave" | "onCancel"
+  "question" | "index" | "onSave" | "onCancel"
 >;
 
 // Colores tomados del theme (tailwind.css), mapeados desde el spec de Figma:
@@ -59,7 +59,6 @@ function validateQuestion(draft: Question): Record<string, string> {
 export function QuestionEditForm({
   question,
   index,
-  onDelete,
   onSave,
   onCancel,
 }: QuestionEditFormProps) {
@@ -198,14 +197,6 @@ export function QuestionEditForm({
           className="border-teal-700 text-teal-700 hover:bg-teal-50"
         >
           Cancelar
-        </Button>
-        <Button
-          variant="destructive"
-          size="lg"
-          onClick={() => onDelete(questionId)}
-        >
-          <Trash2 className="size-4" />
-          Eliminar
         </Button>
         <Button size="lg" onClick={handleConfirm}>
           Confirmar

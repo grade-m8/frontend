@@ -10,6 +10,10 @@ type QuestionReadViewProps = Pick<
   "question" | "index" | "onEdit" | "onDelete"
 >;
 
+// Estilo de la spec de Figma ("Question 1: Defined State") para el label
+// "PROMPT / ENUNCIADO": Geist 500 12px uppercase tracking-label, ya cubierto
+// por la clase compartida label-micro.
+
 export function QuestionReadView({
   question,
   index,
@@ -19,12 +23,12 @@ export function QuestionReadView({
   const typeOption = getQuestionTypeOption(question);
 
   return (
-    <div className="space-y-4 rounded-lg border border-neutral-300 bg-card p-6 shadow-soft">
-      <div className="flex items-start justify-between gap-4">
+    <div className="space-y-4 rounded-lg border border-neutral-200 bg-card p-6">
+      <div className="flex items-start justify-between gap-4 border-b border-neutral-200 pb-4">
         <div className="flex flex-wrap items-center gap-3">
           <Badge
             variant="outline"
-            className="h-6 rounded-md border-neutral-300 bg-neutral-100 px-2 font-label tracking-label text-neutral-700"
+            className="h-6 rounded-md border-neutral-200 bg-neutral-100 px-2 font-label tracking-label text-neutral-900"
           >
             P{index}
           </Badge>
@@ -35,13 +39,13 @@ export function QuestionReadView({
           </h3>
           <Badge
             variant="outline"
-            className="h-5.5 rounded-xs border-teal-700 bg-teal-700/20 px-2 py-1 font-label tracking-label text-teal-800"
+            className="h-5.5 rounded-sm border-neutral-200 bg-card px-2 py-0.5 font-sans text-micro tracking-label text-neutral-650 uppercase"
           >
             {typeOption.badge}
           </Badge>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="text-sm font-semibold text-neutral-700">
+          <span className="font-label text-label tracking-label text-neutral-650">
             {question.points} Puntos
           </span>
           <Button
@@ -66,10 +70,8 @@ export function QuestionReadView({
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="text-micro font-bold tracking-wider text-neutral-500 uppercase">
-          Prompt / Enunciado
-        </span>
-        <p className="text-sm leading-relaxed font-medium whitespace-pre-wrap text-neutral-800">
+        <span className="label-micro text-neutral-650">Prompt / Enunciado</span>
+        <p className="text-body font-normal whitespace-pre-wrap text-neutral-900">
           {question.prompt}
         </p>
       </div>
