@@ -6,8 +6,6 @@ import RedirectIfAuthenticated from "@/routes/RedirectIfAuthenticated.tsx";
 import SubjectExamsPage from "@/pages/Subjects/SubjectExamsPage";
 import ErrorPage from "@/pages/ErrorPage.tsx";
 import { ExamConfigPage } from "@/pages/exams/ExamEditor";
-import QuestionCard from "@/components/forms/QuestionCard.tsx";
-import type { Question } from "@/types/exam.ts";
 
 export default function AppRouter() {
   return (
@@ -21,20 +19,6 @@ export default function AppRouter() {
           <Route
             path="/teacher/exams/:examId/config"
             element={<ExamConfigPage />}
-          />
-          <Route
-            path="/teacher/test"
-            element={
-              <QuestionCard
-                question={fakeQuestion()}
-                index={1}
-                isEditing={true}
-                onEdit={() => console.log("edited")}
-                onDelete={() => console.log("delete")}
-                onSave={() => console.log("save")}
-                onCancel={() => console.log("cancel")}
-              />
-            }
           />
         </Route>
         <Route path="/403" element={<ErrorPage />} />
@@ -53,15 +37,4 @@ export default function AppRouter() {
       </Routes>
     </BrowserRouter>
   );
-}
-
-function fakeQuestion(): Question {
-  return {
-    questionId: "1",
-    order: 1,
-    title: "This is the title",
-    prompt: "this is the prompt",
-    points: 10,
-    idealAnswer: "This is an ideal answer",
-  };
 }
