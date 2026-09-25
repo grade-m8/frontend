@@ -21,9 +21,7 @@ export default function AppRouter() {
             element={<ExamConfigPage />}
           />
         </Route>
-
         <Route path="/403" element={<ErrorPage />} />
-
         <Route
           element={
             <ProtectedRoutes allowedRoles={["Student", "Admin", "Professor"]} />
