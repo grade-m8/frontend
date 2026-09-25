@@ -22,7 +22,7 @@ const ERROR_CLASS =
 const INPUT_CLASS = `h-10 rounded-md border border-b-2 border-neutral-900 bg-card px-3 text-body text-neutral-900 outline-none focus-visible:border-teal-600 ${ERROR_CLASS}`;
 const SELECT_CLASS =
   "h-11 w-full cursor-pointer appearance-none rounded-md border border-b-2 border-neutral-900 bg-card px-3 pr-10 text-body text-neutral-900 outline-none";
-const TEXTAREA_CLASS = `min-h-[90PX] w-full resize-y rounded-md border border-neutral-300 bg-card p-3 text-body text-neutral-900 outline-none placeholder:text-neutral-650 focus-visible:ring-3 focus-visible:ring-ring/50 ${ERROR_CLASS}`;
+const TEXTAREA_CLASS = `min-h-[90px] w-full resize-y rounded-md border border-neutral-300 bg-card p-3 text-body text-neutral-900 outline-none placeholder:text-neutral-650 focus-visible:ring-3 focus-visible:ring-ring/50 ${ERROR_CLASS}`;
 
 function sanitizePointsInput(raw: string): string {
   const digitsAndDots = raw.replace(/[^\d.]/g, "");
@@ -84,11 +84,15 @@ export function QuestionEditForm({
   const handleConfirm = () => {
     setSubmitted(true);
     if (Object.keys(errors).length > 0) return;
-    onSave({ ...draft, type: draft.type ?? DEFAULT_QUESTION_TYPE });
+    onSave({
+      ...draft,
+      type: draft.type,
+      title: draft.title.trim() ?? DEFAULT_QUESTION_TYPE,
+    });
   };
 
   return (
-    <div className="flex flex-col gap-6 rounded-lg border-2 border-teal-600 bg-card p-6 shadow-hard bg-surface-card space-y-5">
+    <div className="flex flex-col gap-6 rounded-lg border-2 border-teal-600 p-6 shadow-hard bg-surface-card">
       <div className="flex items-center justify-between border-b border-neutral-200 pb-4">
         <div className="flex items-center gap-3">
           <Badge className="flex items-center rounded bg-teal-900 px-2 py-1  font-bold text-white">
@@ -127,6 +131,19 @@ export function QuestionEditForm({
       </div>
 
       <div className="flex flex-col gap-2">
+        <Label
+          htmlFor={`question-title-${questionId}`}
+          className="label-micro text-neutral-900"
+        >
+          Título de la pregunta
+        </Label>
+        <Input
+          id={`question-title-${questionId}`}
+          value={draft.title}
+          onChange={(e) => updateDraft({ title: e.target.value })}
+          placeholder="Título de la pregunta"
+          className={INPUT_CLASS}
+        />
         <Label
           htmlFor={`question-prompt-${questionId}`}
           className="label-micro text-neutral-900"

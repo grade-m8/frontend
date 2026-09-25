@@ -25,8 +25,8 @@ export default function AppRouter() {
             path="/teacher/exams/:examId/questions"
             element={<ExamQuestionsEditor />}
           />
-          <Route path="/403" element={<ErrorPage />} />
         </Route>
+        <Route path="/403" element={<ErrorPage />} />
         <Route
           element={
             <ProtectedRoutes allowedRoles={["Student", "Admin", "Professor"]} />
