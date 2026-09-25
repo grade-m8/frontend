@@ -41,6 +41,32 @@ function isEmptyDraft(question: Question): boolean {
   return question.prompt.trim() === "" && question.idealAnswer.trim() === "";
 }
 
+// Devuelve el primer motivo por el que el examen no se puede publicar, o null
+// si está listo. No valida `title`: QuestionEditForm todavía no expone ese
+// campo, así que exigirlo haría imposible publicar.
+function getPublishError(
+  questions: Question[],
+  editingQuestionId: string | null,
+): string | null {
+  if (questions.length === 0) {
+    return "Agregá al menos una pregunta antes de publicar.";
+  }
+  if (editingQuestionId !== null) {
+    return "Confirmá o cancelá la pregunta que estás editando.";
+  }
+  const hasIncomplete = questions.some(
+    (q) =>
+      q.prompt.trim() === "" || q.idealAnswer.trim() === "" || !(q.points > 0),
+  );
+  if (hasIncomplete) {
+    return "Hay preguntas incompletas: revisá enunciado, puntos y respuesta ideal.";
+  }
+  if (questions.reduce((sum, q) => sum + q.points, 0) <= 0) {
+    return "El puntaje total del examen debe ser mayor a 0.";
+  }
+  return null;
+}
+
 export function ExamQuestionsEditor() {
   const { examId } = useParams<{ examId: string }>();
   const navigate = useNavigate();
@@ -89,12 +115,17 @@ export function ExamQuestionsEditor() {
   };
 
   const handleBack = () => {
-    navigate(`/teacher/exams/${examId}/ExamConfigStep`);
+    navigate(`/teacher/exams/${examId}/config`);
   };
 
   const handlePublish = () => {
-    // TODO: validar (ej. al menos 1 pregunta, ninguna con errores) y
-    // persistir vía el endpoint/mutación real antes de navegar.
+    const publishError = getPublishError(questions, editingQuestionId);
+    if (publishError) {
+      toast.error(publishError);
+      return;
+    }
+
+    // TODO: persistir vía el endpoint real antes de navegar.
     console.log("Guardar y publicar", { exam, totalPoints });
   };
 
