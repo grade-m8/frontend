@@ -86,8 +86,8 @@ export function QuestionEditForm({
     if (Object.keys(errors).length > 0) return;
     onSave({
       ...draft,
-      type: draft.type,
-      title: draft.title.trim() ?? DEFAULT_QUESTION_TYPE,
+      type: draft.type ?? DEFAULT_QUESTION_TYPE,
+      title: draft.title.trim() || `Pregunta ${index}`,
     });
   };
 
