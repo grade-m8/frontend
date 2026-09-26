@@ -212,7 +212,7 @@ export function SubmissionAuditPage() {
             {examTitle}
           </h2>
           <p className="text-body text-neutral-650 font-normal">
-            Alumno: {studentId} ({studentName})
+            Estudiante: {studentName} (Legajo: {studentId})
           </p>
         </div>
         {/*Points*/}
