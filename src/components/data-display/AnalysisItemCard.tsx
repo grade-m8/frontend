@@ -6,9 +6,10 @@ export interface AnalysisItemCardProps {
 }
 
 export function AnalysisItemCard({ item }: AnalysisItemCardProps) {
-  const isPositive = item.points >= 0;
-  const formattedPoints =
-    item.points > 0 ? `+${item.points} pts` : `${item.points} pts`;
+  const isPositive = item.points > 0;
+  const formattedPoints = isPositive
+    ? `+${item.points} pts`
+    : `${item.points} pts`;
 
   return (
     <div
