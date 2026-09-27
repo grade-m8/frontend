@@ -72,7 +72,7 @@ function getPublishError(
   return null;
 }
 
-export function ExamQuestionsEditor() {
+export function QuestionEditorPage() {
   const { examId } = useParams<{ examId: string }>();
   const navigate = useNavigate();
 

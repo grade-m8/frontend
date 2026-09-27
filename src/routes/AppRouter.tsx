@@ -6,7 +6,7 @@ import RedirectIfAuthenticated from "@/routes/RedirectIfAuthenticated.tsx";
 import SubjectExamsPage from "@/pages/Subjects/SubjectExamsPage";
 import ErrorPage from "@/pages/ErrorPage.tsx";
 import { ExamConfigPage } from "@/pages/exams/ExamEditor";
-import { ExamQuestionsEditor } from "@/pages/exams/ExamQuestionsEditor.tsx";
+import { QuestionEditorPage } from "@/pages/exams/QuestionEditorPage.tsx";
 import { SubmissionAuditPage } from "@/pages/exams/SubmissionAuditPage.tsx";
 
 export default function AppRouter() {
@@ -24,7 +24,7 @@ export default function AppRouter() {
           />
           <Route
             path="/teacher/exams/:examId/questions"
-            element={<ExamQuestionsEditor />}
+            element={<QuestionEditorPage />}
           />
           <Route
             path="/teacher/submissions/:submissionId"
