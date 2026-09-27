@@ -104,27 +104,29 @@ export function QuestionEditForm({
             Editando pregunta…
           </span>
         </div>
-        <div className="flex flex-row gap-2">
-          <Label
-            htmlFor={`question-points-${questionId}`}
-            className="label-micro text-neutral-900"
-          >
-            Puntos
-          </Label>
-          <Input
-            id={`question-points-${questionId}`}
-            inputMode="numeric"
-            value={pointsInput}
-            onChange={(e) => handlePointsChange(e.target.value)}
-            placeholder="0"
-            aria-invalid={!!visibleErrors.points}
-            aria-describedby={
-              visibleErrors.points
-                ? `question-points-error-${questionId}`
-                : undefined
-            }
-            className={`${INPUT_CLASS} w-20 text-center font-bold`}
-          />
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-row items-center gap-2">
+            <Label
+              htmlFor={`question-points-${questionId}`}
+              className="label-micro text-neutral-900"
+            >
+              Puntos
+            </Label>
+            <Input
+              id={`question-points-${questionId}`}
+              inputMode="numeric"
+              value={pointsInput}
+              onChange={(e) => handlePointsChange(e.target.value)}
+              placeholder="0"
+              aria-invalid={!!visibleErrors.points}
+              aria-describedby={
+                visibleErrors.points
+                  ? `question-points-error-${questionId}`
+                  : undefined
+              }
+              className={`${INPUT_CLASS} w-20 text-center font-bold`}
+            />
+          </div>
           <FieldError
             id={`question-points-error-${questionId}`}
             message={visibleErrors.points}
