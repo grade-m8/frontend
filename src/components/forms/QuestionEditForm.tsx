@@ -45,6 +45,8 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 
 function validateQuestion(draft: Question): Record<string, string> {
   const errors: Record<string, string> = {};
+  if (draft.title.trim() === "")
+    errors.title = "El título no puede quedar vacío";
   if (draft.prompt.trim() === "")
     errors.prompt = "El enunciado no puede quedar vacío";
   if (!(draft.points > 0)) errors.points = "El puntaje debe ser mayor a 0";
@@ -87,7 +89,7 @@ export function QuestionEditForm({
     onSave({
       ...draft,
       type: draft.type ?? DEFAULT_QUESTION_TYPE,
-      title: draft.title.trim() || `Pregunta ${index}`,
+      title: draft.title.trim(),
     });
   };
 
@@ -142,7 +144,17 @@ export function QuestionEditForm({
           value={draft.title}
           onChange={(e) => updateDraft({ title: e.target.value })}
           placeholder="Título de la pregunta"
+          aria-invalid={!!visibleErrors.title}
+          aria-describedby={
+            visibleErrors.title
+              ? `question-title-error-${questionId}`
+              : undefined
+          }
           className={INPUT_CLASS}
+        />
+        <FieldError
+          id={`question-title-error-${questionId}`}
+          message={visibleErrors.title}
         />
         <Label
           htmlFor={`question-prompt-${questionId}`}

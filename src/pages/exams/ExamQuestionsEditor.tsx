@@ -42,8 +42,10 @@ function isEmptyDraft(question: Question): boolean {
 }
 
 // Devuelve el primer motivo por el que el examen no se puede publicar, o null
-// si está listo. No valida `title`: QuestionEditForm todavía no expone ese
-// campo, así que exigirlo haría imposible publicar.
+// si está listo. Exige título, enunciado, puntos y respuesta ideal en cada
+// pregunta: QuestionEditForm valida los mismos campos al confirmar, así que
+// esto funciona como red de seguridad (por ejemplo, preguntas que lleguen del
+// backend sin título).
 function getPublishError(
   questions: Question[],
   editingQuestionId: string | null,
@@ -56,10 +58,13 @@ function getPublishError(
   }
   const hasIncomplete = questions.some(
     (q) =>
-      q.prompt.trim() === "" || q.idealAnswer.trim() === "" || !(q.points > 0),
+      q.title.trim() === "" ||
+      q.prompt.trim() === "" ||
+      q.idealAnswer.trim() === "" ||
+      !(q.points > 0),
   );
   if (hasIncomplete) {
-    return "Hay preguntas incompletas: revisá enunciado, puntos y respuesta ideal.";
+    return "Hay preguntas incompletas: revisá título, enunciado, puntos y respuesta ideal.";
   }
   if (questions.reduce((sum, q) => sum + q.points, 0) <= 0) {
     return "El puntaje total del examen debe ser mayor a 0.";
