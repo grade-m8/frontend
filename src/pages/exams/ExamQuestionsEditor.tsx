@@ -86,6 +86,7 @@ export function ExamQuestionsEditor() {
   const handleAddQuestion = () => {
     const draft = createDraftQuestion();
     setQuestions((prev) => [...prev, draft]);
+    if (editingQuestionId != null) handleCancelEdit(editingQuestionId);
     setEditingQuestionId(draft.questionId);
   };
 
@@ -105,6 +106,11 @@ export function ExamQuestionsEditor() {
       }),
     );
     setEditingQuestionId(null);
+  };
+
+  const handleEdit = (questionId: string) => {
+    if (editingQuestionId != null) handleCancelEdit(editingQuestionId);
+    setEditingQuestionId(questionId);
   };
 
   const handleDeleteQuestion = (questionId: string) => {
@@ -151,7 +157,7 @@ export function ExamQuestionsEditor() {
             question={question}
             index={index + 1}
             isEditing={editingQuestionId === question.questionId}
-            onEdit={setEditingQuestionId}
+            onEdit={() => handleEdit(question.questionId)}
             onCancel={() => handleCancelEdit(question.questionId)}
             onSave={handleSaveQuestion}
             onDelete={handleDeleteQuestion}
