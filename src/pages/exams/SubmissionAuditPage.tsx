@@ -17,6 +17,9 @@ import { useAnswerDetail } from "@/hooks/useAnswerDetail.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import { getApiErrorMessage } from "@/services/error.ts";
 
+const POLL_INTERVAL_MS = 5000;
+const MAX_POLL_ATTEMPTS = 60;
+
 export function SubmissionAuditPage() {
   const { submissionId } = useParams<{ submissionId: string }>();
   const navigate = useNavigate();
@@ -25,16 +28,18 @@ export function SubmissionAuditPage() {
   const [studentId, setStudentId] = useState<string>("");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>("");
+  const [pollAttempts, setPollAttempts] = useState<number>(0);
 
   const [isLoadingInitial, setIsLoadingInitial] = useState<boolean>(true);
   const [initialError, setInitialError] = useState<
     "not-found" | "generic" | null
   >(null);
 
-  const { detail, isLoading: isLoadingAnswer } = useAnswerDetail(
-    submissionId,
-    selectedQuestionId,
-  );
+  const {
+    detail,
+    isLoading: isLoadingAnswer,
+    reload,
+  } = useAnswerDetail(submissionId, selectedQuestionId);
 
   const loadInitialData = useCallback(async () => {
     if (!submissionId) {
@@ -97,7 +102,30 @@ export function SubmissionAuditPage() {
 
   function handleSelectQuestion(questionId: string): void {
     setSelectedQuestionId(questionId);
+    setPollAttempts(0);
   }
+
+  const isGrading =
+    detail?.answer.gradingStatus === "pending" ||
+    detail?.answer.gradingStatus === "queued" ||
+    detail?.answer.gradingStatus === "grading";
+  const isFailed = detail?.answer.gradingStatus === "failed";
+  const isGraded = detail?.answer.gradingStatus === "graded";
+
+  useEffect(() => {
+    if (!isGrading || pollAttempts >= MAX_POLL_ATTEMPTS) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      setPollAttempts((prev) => prev + 1);
+      void reload();
+    }, POLL_INTERVAL_MS);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [isGrading, pollAttempts, reload]);
 
   if (isLoadingInitial) {
     return (
@@ -153,13 +181,6 @@ export function SubmissionAuditPage() {
       </div>
     );
   }
-
-  const isGrading =
-    detail?.answer.gradingStatus === "pending" ||
-    detail?.answer.gradingStatus === "queued" ||
-    detail?.answer.gradingStatus === "grading";
-  const isFailed = detail?.answer.gradingStatus === "failed";
-  const isGraded = detail?.answer.gradingStatus === "graded";
 
   const currentQuestion = questions.find(
     (q) => q.questionId === selectedQuestionId,
@@ -299,15 +320,34 @@ export function SubmissionAuditPage() {
                 <Loader2 className="w-6 h-6 text-teal-700 animate-spin" />
               </div>
             ) : isGrading ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-                <Loader2 className="w-8 h-8 text-teal-700 animate-spin" />
-                <p className="text-sm font-medium text-neutral-800">
-                  La IA está corrigiendo esta respuesta…
-                </p>
-                <span className="font-label text-xs text-neutral-650">
-                  Esto puede tomar unos segundos
-                </span>
-              </div>
+              pollAttempts >= MAX_POLL_ATTEMPTS ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
+                  <AlertCircle className="w-8 h-8 text-neutral-500" />
+                  <p className="text-sm font-medium text-neutral-800 max-w-xs">
+                    La corrección está tardando más de lo esperado.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPollAttempts(0);
+                      void reload();
+                    }}
+                    className="px-4 py-2 bg-teal-700 text-white text-xs font-label uppercase tracking-label font-bold hover:bg-teal-800 transition-colors cursor-pointer"
+                  >
+                    Actualizar
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
+                  <Loader2 className="w-8 h-8 text-teal-700 animate-spin" />
+                  <p className="text-sm font-medium text-neutral-800">
+                    La IA está corrigiendo esta respuesta…
+                  </p>
+                  <span className="font-label text-xs text-neutral-650">
+                    Esto puede tomar unos segundos
+                  </span>
+                </div>
+              )
             ) : isFailed ? (
               <div className="flex flex-col items-center justify-center py-12 text-center gap-3 p-4 bg-danger-50 border border-danger-200">
                 <AlertCircle className="w-8 h-8 text-danger-600 shrink-0" />
