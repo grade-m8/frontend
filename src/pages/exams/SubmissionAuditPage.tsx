@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Cpu, FileText, Loader2, AlertCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Cpu,
+  FileText,
+  Loader2,
+  AlertCircle,
+  Sparkles,
+} from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import { AnalysisItemCard } from "@/components/data-display/AnalysisItemCard.tsx";
 import type { AnswerDetail } from "@/types/audit.ts";
@@ -9,8 +16,6 @@ import type { Question } from "@/types/exam.ts";
 // TODO: [Integración 4.1.3] reemplazar mocks por submissionService.
 const MOCK_EXAM_TITLE = "Primer Parcial - Análisis Estructural";
 const MOCK_STUDENT_ID = "88492";
-const MOCK_STUDENT_NAME = "Martín Gómez";
-const MOCK_RESOLUTION_TIME = "45 min";
 
 const MOCK_QUESTIONS: Pick<
   Question,
@@ -146,12 +151,11 @@ const MOCK_ANSWER_DETAILS_MAP: Record<string, AnswerDetail> = {
 export function SubmissionAuditPage() {
   const { submissionId } = useParams<{ submissionId: string }>();
   const navigate = useNavigate();
+  void submissionId;
 
   // TODO: [Integración 4.1.3] reemplazar mocks por submissionService.
   const [examTitle] = useState<string>(MOCK_EXAM_TITLE);
   const [studentId] = useState<string>(MOCK_STUDENT_ID);
-  const [studentName] = useState<string>(MOCK_STUDENT_NAME);
-  const [resolutionTime] = useState<string>(MOCK_RESOLUTION_TIME);
   const [questions] =
     useState<Pick<Question, "questionId" | "title" | "order" | "points">[]>(
       MOCK_QUESTIONS,
@@ -169,24 +173,17 @@ export function SubmissionAuditPage() {
     // TODO: [Integración 4.1.3] fetchAnswerDetail(submissionId, questionId)
   }
 
-  void {
-    submissionId,
-    examTitle,
-    studentId,
-    studentName,
-    questions,
-    selectedQuestionId,
-    handleSelectQuestion,
-    detail,
-    setDetail,
-  };
-
   const isGrading =
     detail?.answer.gradingStatus === "pending" ||
     detail?.answer.gradingStatus === "queued" ||
     detail?.answer.gradingStatus === "grading";
   const isFailed = detail?.answer.gradingStatus === "failed";
   const isGraded = detail?.answer.gradingStatus === "graded";
+
+  const currentQuestion = questions.find(
+    (q) => q.questionId === selectedQuestionId,
+  );
+  const maxPoints = detail?.question.points ?? currentQuestion?.points ?? "—";
 
   return (
     <div className="min-h-screen bg-background">
@@ -204,29 +201,32 @@ export function SubmissionAuditPage() {
               Volver a entregas
             </button>
             <span className="text-neutral-300">|</span>
-            <span className="inline-flex items-center w-fit px-2 py-1 bg-neutral-100 text-neutral-900 font-label text-xs font-medium uppercase tracking-[1.2px] leading-none">
+            <span className="inline-flex items-center w-fit px-2 py-1 bg-neutral-100 text-neutral-900 font-label text-xs font-medium uppercase tracking-label-wide leading-none">
               AUDITORÍA Y REVISIÓN
             </span>
           </div>
-          <h2 className="pt-1 text-h2 font-bold text-neutral-900 truncate">
+          <h2
+            title={examTitle}
+            className="pt-1 text-h2 font-bold text-neutral-900 truncate"
+          >
             {examTitle}
           </h2>
           <p className="text-body text-neutral-650 font-normal">
-            Estudiante: {studentName} (Legajo: {studentId})
+            Alumno: {studentId}
           </p>
         </div>
         {/*Points*/}
         <div className="flex flex-col sm:items-end gap-1 shrink-0">
-          <span className="font-label text-xs font-medium uppercase tracking-[1.2px] leading-none text-neutral-650 sm:text-right">
+          <span className="font-label text-xs font-medium uppercase tracking-label-wide leading-none text-neutral-650 sm:text-right">
             CALIFICACIÓN SUGERIDA (IA)
           </span>
 
           <div className="flex items-baseline sm:justify-end">
-            <span className="text-[48px] font-bold leading-[1.1] tracking-[-0.96px] text-teal-700 sm:text-right">
+            <span className="text-display-lg font-bold leading-none tracking-display text-teal-700 sm:text-right">
               {detail?.answer.aiScore ?? "—"}
             </span>
             <span className="pl-2 text-h2 font-semibold text-neutral-650 sm:text-right">
-              / {detail?.question.points ?? 100}
+              / {maxPoints}
             </span>
           </div>
         </div>
@@ -234,7 +234,7 @@ export function SubmissionAuditPage() {
 
       {/*QUESTION SELECTOR BAR*/}
       <div className="w-full px-6 pt-6 pb-2 flex items-center gap-3">
-        <span className="font-label text-xs font-semibold uppercase tracking-[1.2px] text-neutral-650">
+        <span className="font-label text-xs font-semibold uppercase tracking-label-wide text-neutral-650">
           PREGUNTAS:
         </span>
         <div
@@ -255,7 +255,7 @@ export function SubmissionAuditPage() {
                   type="button"
                   onClick={() => handleSelectQuestion(q.questionId)}
                   className={cn(
-                    "px-4 py-2 text-xs font-label uppercase tracking-[0.6px] border transition-all cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-teal-700",
+                    "px-4 py-2 text-xs font-label uppercase tracking-label border transition-all cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-teal-700",
                     isSelected
                       ? "bg-teal-700 text-white border-teal-800 font-bold shadow-sm"
                       : "bg-card text-neutral-650 hover:text-neutral-900 hover:bg-neutral-100 border-neutral-300 font-medium",
@@ -279,9 +279,6 @@ export function SubmissionAuditPage() {
                 <FileText className="w-4 h-5 text-neutral-900" />
                 <span>Respuesta del Estudiante</span>
               </h3>
-              <div className="font-label text-xs font-medium tracking-[0.6px] text-neutral-650">
-                Tiempo de resolución: {resolutionTime}
-              </div>
             </div>
           </div>
 
@@ -340,6 +337,21 @@ export function SubmissionAuditPage() {
 
             {isGraded && (
               <>
+                {/* aiFeedback en bloque destacado */}
+                {detail?.answer.aiFeedback && (
+                  <div className="border-l-4 border-teal-600 bg-teal-50/40 p-4 rounded-r-md">
+                    <div className="flex flex-row gap-2 items-center">
+                      <Sparkles className="h-4 w-4 shrink-0 text-teal-700" />
+                      <h4 className="text-sm font-bold text-teal-800 tracking-label-wide uppercase">
+                        Feedback General de la IA
+                      </h4>
+                    </div>
+                    <p className="mt-2 text-sm text-neutral-800 leading-relaxed whitespace-pre-wrap">
+                      {detail.answer.aiFeedback}
+                    </p>
+                  </div>
+                )}
+
                 {/* Lista de AnalysisItemCards */}
                 {detail?.analysisItems && detail.analysisItems.length > 0 ? (
                   <div className="flex flex-col gap-3">
