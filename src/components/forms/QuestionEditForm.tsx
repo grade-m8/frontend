@@ -23,6 +23,10 @@ const INPUT_CLASS = `h-10 rounded-md border border-b-2 border-neutral-900 bg-car
 const SELECT_CLASS =
   "h-11 w-full cursor-pointer appearance-none rounded-md border border-b-2 border-neutral-900 bg-card px-3 pr-10 text-body text-neutral-900 outline-none";
 const TEXTAREA_CLASS = `min-h-[90px] w-full resize-y rounded-md border border-neutral-300 bg-card p-3 text-body text-neutral-900 outline-none placeholder:text-neutral-650 focus-visible:ring-3 focus-visible:ring-ring/50 ${ERROR_CLASS}`;
+// AICallout no expone clases, así que el estado de error se pinta desde este
+// wrapper apuntando a su contenedor y a su textarea.
+const AI_CALLOUT_ERROR_CLASS =
+  "[&>div]:border-danger-500 [&>div]:ring-3 [&>div]:ring-danger-500/20 [&_textarea]:border-danger-500 [&_textarea:focus]:border-danger-500";
 
 function sanitizePointsInput(raw: string): string {
   const digitsAndDots = raw.replace(/[^\d.]/g, "");
@@ -209,12 +213,20 @@ export function QuestionEditForm({
         </div>
       </div>
 
-      <AICallout
-        mode="edit"
-        value={draft.idealAnswer}
-        onChange={(idealAnswer) => updateDraft({ idealAnswer })}
-        error={visibleErrors.idealAnswer}
-      />
+      <div
+        className={
+          visibleErrors.idealAnswer
+            ? `rounded-lg ${AI_CALLOUT_ERROR_CLASS}`
+            : ""
+        }
+      >
+        <AICallout
+          mode="edit"
+          value={draft.idealAnswer}
+          onChange={(idealAnswer) => updateDraft({ idealAnswer })}
+          error={visibleErrors.idealAnswer}
+        />
+      </div>
 
       <div className="flex justify-end gap-3 pt-2">
         <Button
