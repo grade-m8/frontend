@@ -23,6 +23,10 @@ const INPUT_CLASS = `h-10 rounded-md border border-b-2 border-neutral-900 bg-car
 const SELECT_CLASS =
   "h-11 w-full cursor-pointer appearance-none rounded-md border border-b-2 border-neutral-900 bg-card px-3 pr-10 text-body text-neutral-900 outline-none";
 const TEXTAREA_CLASS = `min-h-[90px] w-full resize-y rounded-md border border-neutral-300 bg-card p-3 text-body text-neutral-900 outline-none placeholder:text-neutral-650 focus-visible:ring-3 focus-visible:ring-ring/50 ${ERROR_CLASS}`;
+// AICallout no expone clases, así que el estado de error se pinta desde este
+// wrapper apuntando a su contenedor y a su textarea.
+const AI_CALLOUT_ERROR_CLASS =
+  "[&>div]:border-danger-500 [&>div]:ring-3 [&>div]:ring-danger-500/20 [&_textarea]:border-danger-500 [&_textarea:focus]:border-danger-500";
 
 function sanitizePointsInput(raw: string): string {
   const digitsAndDots = raw.replace(/[^\d.]/g, "");
@@ -45,6 +49,8 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 
 function validateQuestion(draft: Question): Record<string, string> {
   const errors: Record<string, string> = {};
+  if (draft.title.trim() === "")
+    errors.title = "El título no puede quedar vacío";
   if (draft.prompt.trim() === "")
     errors.prompt = "El enunciado no puede quedar vacío";
   if (!(draft.points > 0)) errors.points = "El puntaje debe ser mayor a 0";
@@ -87,7 +93,7 @@ export function QuestionEditForm({
     onSave({
       ...draft,
       type: draft.type ?? DEFAULT_QUESTION_TYPE,
-      title: draft.title.trim() || `Pregunta ${index}`,
+      title: draft.title.trim(),
     });
   };
 
@@ -102,27 +108,29 @@ export function QuestionEditForm({
             Editando pregunta…
           </span>
         </div>
-        <div className="flex flex-row gap-2">
-          <Label
-            htmlFor={`question-points-${questionId}`}
-            className="label-micro text-neutral-900"
-          >
-            Puntos
-          </Label>
-          <Input
-            id={`question-points-${questionId}`}
-            inputMode="numeric"
-            value={pointsInput}
-            onChange={(e) => handlePointsChange(e.target.value)}
-            placeholder="0"
-            aria-invalid={!!visibleErrors.points}
-            aria-describedby={
-              visibleErrors.points
-                ? `question-points-error-${questionId}`
-                : undefined
-            }
-            className={`${INPUT_CLASS} w-20 text-center font-bold`}
-          />
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-row items-center gap-2">
+            <Label
+              htmlFor={`question-points-${questionId}`}
+              className="label-micro text-neutral-900"
+            >
+              Puntos
+            </Label>
+            <Input
+              id={`question-points-${questionId}`}
+              inputMode="numeric"
+              value={pointsInput}
+              onChange={(e) => handlePointsChange(e.target.value)}
+              placeholder="0"
+              aria-invalid={!!visibleErrors.points}
+              aria-describedby={
+                visibleErrors.points
+                  ? `question-points-error-${questionId}`
+                  : undefined
+              }
+              className={`${INPUT_CLASS} w-20 text-center font-bold`}
+            />
+          </div>
           <FieldError
             id={`question-points-error-${questionId}`}
             message={visibleErrors.points}
@@ -142,7 +150,17 @@ export function QuestionEditForm({
           value={draft.title}
           onChange={(e) => updateDraft({ title: e.target.value })}
           placeholder="Título de la pregunta"
+          aria-invalid={!!visibleErrors.title}
+          aria-describedby={
+            visibleErrors.title
+              ? `question-title-error-${questionId}`
+              : undefined
+          }
           className={INPUT_CLASS}
+        />
+        <FieldError
+          id={`question-title-error-${questionId}`}
+          message={visibleErrors.title}
         />
         <Label
           htmlFor={`question-prompt-${questionId}`}
@@ -195,12 +213,20 @@ export function QuestionEditForm({
         </div>
       </div>
 
-      <AICallout
-        mode="edit"
-        value={draft.idealAnswer}
-        onChange={(idealAnswer) => updateDraft({ idealAnswer })}
-        error={visibleErrors.idealAnswer}
-      />
+      <div
+        className={
+          visibleErrors.idealAnswer
+            ? `rounded-lg ${AI_CALLOUT_ERROR_CLASS}`
+            : ""
+        }
+      >
+        <AICallout
+          mode="edit"
+          value={draft.idealAnswer}
+          onChange={(idealAnswer) => updateDraft({ idealAnswer })}
+          error={visibleErrors.idealAnswer}
+        />
+      </div>
 
       <div className="flex justify-end gap-3 pt-2">
         <Button
