@@ -14,10 +14,6 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/teacher/exams/:examId/submissions"
-          element={<ExamSubmissionsPage />}
-        />
         <Route element={<RedirectIfAuthenticated />}>
           <Route path="/" element={<LandingPage />} />
         </Route>
@@ -30,6 +26,10 @@ export default function AppRouter() {
           <Route
             path="/teacher/exams/:examId/questions"
             element={<QuestionEditorPage />}
+          />
+          <Route
+            path="/teacher/exams/:examId/submissions"
+            element={<ExamSubmissionsPage />}
           />
           <Route
             path="/teacher/submissions/:submissionId"
