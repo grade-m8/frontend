@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { ExamCard } from "@/components/data-display/ExamCard";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const MOCK_EXAMS = [
   {
@@ -45,15 +46,13 @@ function handleCreateExam() {
   );
 }
 
-// TODO: [Backend Integration] Conectar navegación al detalle/corrección de cada examen:
-function handleGoToExam(examId: string) {
-  console.log(
-    "Placeholder: Navegar a la pantalla de detalle/corrección del examen:",
-    examId,
-  );
-}
-
 export default function SubjectExamsPage() {
+  const navigate = useNavigate();
+
+  const handleGoToExam = (examId: string) => {
+    navigate(`/teacher/exams/${examId}/submissions`);
+  };
+
   return (
     <>
       <PageHeader
