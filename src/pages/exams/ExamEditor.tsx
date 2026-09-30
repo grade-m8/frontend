@@ -129,6 +129,7 @@ export function ExamConfigPage() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const formRef = useRef<HTMLDivElement>(null);
 
   const hydratedExamIdRef = useRef<string | undefined>(undefined);
 
@@ -167,6 +168,12 @@ export function ExamConfigPage() {
       hasNoCriteria ||
       hasIncompleteCriterion
     ) {
+      // Espera a que React pinte los aria-invalid antes de buscar el campo.
+      requestAnimationFrame(() => {
+        formRef.current
+          ?.querySelector<HTMLElement>('[aria-invalid="true"]')
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
       return;
     }
 
@@ -232,7 +239,7 @@ export function ExamConfigPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8 px-6 py-8">
+    <div ref={formRef} className="flex flex-col gap-8 px-6 py-8">
       <WizardStepper currentStep="config" />
       <div className="flex flex-col gap-2">
         <h1 className="text-display tracking-display font-bold text-neutral-900">
