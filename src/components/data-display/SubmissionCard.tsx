@@ -34,18 +34,25 @@ export function SubmissionCard({ submission, onOpen }: SubmissionCardProps) {
     totalPossible,
   } = submission;
 
+  const statusLabel = SUBMISSION_STATUS_LABELS[status];
+  const showScore = status === "awaiting_approval" || status === "reviewed";
+
   return (
-    <Card className="rounded-none border border-neutral-650 py-0 shadow-hard ring-0">
+    <Card className="h-full rounded-none border border-neutral-650 py-0 shadow-hard ring-0">
       <CardHeader className="flex flex-col items-stretch gap-4 px-6 pt-6 pb-4">
-        <div className="flex items-start justify-between">
-          <h3 className="text-h2 font-bold text-neutral-900">
+        <div className="flex min-w-0 items-start justify-between gap-2">
+          <h3
+            className="min-w-0 truncate text-h2 font-bold text-neutral-900"
+            title={`Alumno: ${studentId}`}
+          >
             Alumno: {studentId}
           </h3>
           <Badge
             variant="outline"
-            className={`label-micro h-auto rounded-none px-2 py-1 ${getStatusClass(status)}`}
+            title={statusLabel}
+            className={`label-micro h-auto min-w-0 shrink rounded-none px-2 py-1 ${getStatusClass(status)}`}
           >
-            {SUBMISSION_STATUS_LABELS[status]}
+            <span className="truncate">{statusLabel}</span>
           </Badge>
         </div>
       </CardHeader>
@@ -60,16 +67,16 @@ export function SubmissionCard({ submission, onOpen }: SubmissionCardProps) {
         <div className="space-y-0.5 text-right">
           <p className="label-micro text-neutral-650">NOTA</p>
           <p className="text-body font-bold text-teal-700">
-            {totalScore ?? "—"} / {totalPossible}
+            {showScore ? (totalScore ?? "—") : "—"} / {totalPossible}
           </p>
         </div>
       </CardContent>
 
-      <CardFooter className="bg-card p-4">
+      <CardFooter className="mt-auto bg-card p-4">
         <Button
           onClick={() => onOpen(submissionId)}
           disabled={status === "in_progress"}
-          className="h-13 w-full text-base font-bold hover:border-teal-700 hover:bg-card hover:text-teal-700"
+          className="h-13 w-full cursor-pointer text-base font-bold hover:border-teal-700 hover:bg-card hover:text-teal-700"
         >
           Ver evaluación
           <ArrowRight className="h-4 w-4" />
