@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WizardStepper } from "@/components/layout/WizardStepper";
@@ -105,11 +105,23 @@ function toCriteriaDto(criteria: RubricCriterion[]): ReplaceCriteriaDto {
 
 export function ExamConfigPage() {
   const { examId } = useParams<{ examId: string }>();
+  const [searchParams] = useSearchParams();
   const isEditMode = !!examId;
+  const initialSubjectId = !isEditMode
+    ? (searchParams.get("subjectId") ?? "")
+    : "";
 
   const { exam, criteria, isLoading, error } = useExam(examId);
   const [formState, setFormState] = useState<ExamConfigFormState>(() =>
-    isEditMode ? EDITION_INITIAL_STATE : CREATION_INITIAL_STATE,
+    isEditMode
+      ? EDITION_INITIAL_STATE
+      : {
+          ...CREATION_INITIAL_STATE,
+          generalInfo: {
+            ...EMPTY_GENERAL_INFO,
+            subjectId: initialSubjectId,
+          },
+        },
   );
   const [generalInfoErrors, setGeneralInfoErrors] = useState<
     Record<string, string>
