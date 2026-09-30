@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { replaceQuestions } from "@/services/examService.ts";
+import { getApiErrorMessage } from "@/services/error.ts";
 import { Plus, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -70,6 +72,7 @@ const LOAD_ERROR_MESSAGES: Record<ExamLoadError, string> = {
 export function QuestionEditorPage() {
   const { examId } = useParams<{ examId: string }>();
   const navigate = useNavigate();
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const {
     exam,
@@ -126,15 +129,35 @@ export function QuestionEditorPage() {
     navigate(`/teacher/exams/${examId}/config`);
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
+    if (isPublishing) return;
     const publishError = getPublishError(questions, editingQuestionId);
     if (publishError) {
       toast.error(publishError);
       return;
     }
+    const payload = questions.map((q, i) => ({
+      order: i + 1,
+      title: q.title,
+      prompt: q.prompt,
+      points: Number(q.points),
+      idealAnswer: q.idealAnswer,
+      type: q.type,
+    }));
 
-    // TODO: persistir vía el endpoint real antes de navegar.
-    console.log("Guardar y publicar", { exam, totalPoints });
+    if (!examId) return;
+
+    setIsPublishing(true);
+    try {
+      await replaceQuestions(examId, { questions: payload });
+      toast.success(
+        "¡Examen publicado exitosamente! Ya se encuentra disponible.",
+      );
+      navigate("/materias");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+      setIsPublishing(false);
+    }
   };
 
   useEffect(() => {
@@ -207,11 +230,16 @@ export function QuestionEditorPage() {
       </div>
 
       <div className="mt-8 flex items-center justify-between border-t border-neutral-300 pt-6">
-        <Button variant="outline" onClick={handleBack}>
+        <Button variant="outline" onClick={handleBack} disabled={isPublishing}>
           Volver a las rúbricas
         </Button>
-        <Button className="font-bold" onClick={handlePublish}>
-          Guardar y publicar
+        <Button
+          className="font-bold"
+          onClick={handlePublish}
+          disabled={isPublishing}
+        >
+          {isPublishing && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isPublishing ? "Publicando…" : "Guardar y publicar"}
         </Button>
       </div>
     </div>
