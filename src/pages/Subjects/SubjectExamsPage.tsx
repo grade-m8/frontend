@@ -32,20 +32,8 @@ const MOCK_EXAMS = [
   },
 ];
 
-// ============================================================================
-// PLACEHOLDERS PARA INTEGRACIÓN FUTURA CON EL BACKEND
-// ============================================================================
-
 // TODO: [Backend Integration] Reemplazar MOCK_EXAMS por el consumo de datos reales:
 // const { exams, loading, error } = useExams(subjectId);
-
-// TODO: [Backend Integration] Conectar navegación al detalle/corrección de cada examen:
-function handleGoToExam(examId: string) {
-  console.log(
-    "Placeholder: Navegar a la pantalla de detalle/corrección del examen:",
-    examId,
-  );
-}
 
 export default function SubjectExamsPage() {
   const { subjectId } = useParams<{ subjectId: string }>();
@@ -53,6 +41,10 @@ export default function SubjectExamsPage() {
 
   const handleCreateExam = () => {
     navigate(`/teacher/exams/new?subjectId=${subjectId}`);
+  };
+
+  const handleGoToExam = (examId: string) => {
+    navigate(`/teacher/exams/${examId}/submissions`);
   };
 
   return (
