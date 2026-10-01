@@ -1,9 +1,9 @@
+import { useNavigate, useParams } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { ExamCard } from "@/components/data-display/ExamCard";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 
 const MOCK_EXAMS = [
   {
@@ -32,22 +32,16 @@ const MOCK_EXAMS = [
   },
 ];
 
-// ============================================================================
-// PLACEHOLDERS PARA INTEGRACIÓN FUTURA CON EL BACKEND
-// ============================================================================
-
 // TODO: [Backend Integration] Reemplazar MOCK_EXAMS por el consumo de datos reales:
 // const { exams, loading, error } = useExams(subjectId);
 
-// TODO: [Backend Integration] Conectar acción para crear un nuevo examen:
-function handleCreateExam() {
-  console.log(
-    "Placeholder: Abrir modal o navegar al wizard de creación de exámenes",
-  );
-}
-
 export default function SubjectExamsPage() {
+  const { subjectId } = useParams<{ subjectId: string }>();
   const navigate = useNavigate();
+
+  const handleCreateExam = () => {
+    navigate(`/teacher/exams/new?subjectId=${subjectId}`);
+  };
 
   const handleGoToExam = (examId: string) => {
     navigate(`/teacher/exams/${examId}/submissions`);

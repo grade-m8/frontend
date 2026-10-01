@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { replaceQuestions } from "@/services/examService.ts";
+import { getApiErrorMessage } from "@/services/error.ts";
+import { Plus, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DEFAULT_QUESTION_TYPE } from "@/lib/questionTypes";
@@ -9,19 +11,7 @@ import { WizardStepper } from "@/components/layout/WizardStepper.tsx";
 import QuestionCard from "@/components/forms/QuestionCard.tsx";
 import { ExamSummaryBanner } from "@/components/data-display/ExamSummaryBanner.tsx";
 import { toast } from "@/components/handler/toastHandler.tsx";
-
-// TODO: reemplazar por el hook real que trae el examen (useExam(examId) o
-// similar). Se asume que expone al menos title/subject/semester/questions.
-function useExamDraft(examId: string | undefined) {
-  const [exam, setExam] = useState({
-    examId: examId ?? "",
-    title: "",
-    subject: "",
-    semester: "",
-    questions: [] as Question[],
-  });
-  return { exam, setExam };
-}
+import { type ExamLoadError, useExam } from "@/hooks/useExam.ts";
 
 function createDraftQuestion(): Question {
   return {
@@ -72,21 +62,31 @@ function getPublishError(
   return null;
 }
 
+const LOAD_ERROR_MESSAGES: Record<ExamLoadError, string> = {
+  "not-found": "El examen solicitado no existe.",
+  forbidden: "No tenés permisos para acceder a este examen.",
+  unauthenticated: "Tu sesión expiró. Iniciá sesión nuevamente.",
+  unknown: "No se pudo cargar el examen. Intentá nuevamente.",
+};
+
 export function QuestionEditorPage() {
   const { examId } = useParams<{ examId: string }>();
   const navigate = useNavigate();
+  const [isPublishing, setIsPublishing] = useState(false);
 
-  //TODO: reemplazar por el hook real
-  const { exam, setExam } = useExamDraft(examId);
-  const { questions } = exam;
+  const {
+    exam,
+    questions: fetchedQuestions,
+    isLoading,
+    error,
+  } = useExam(examId);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(
     null,
   );
+  const hydratedExamIdRef = useRef<string | undefined>(undefined);
 
   const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
-
-  const setQuestions = (updater: (prev: Question[]) => Question[]) =>
-    setExam((prev) => ({ ...prev, questions: updater(prev.questions) }));
 
   const handleAddQuestion = () => {
     const draft = createDraftQuestion();
@@ -129,16 +129,65 @@ export function QuestionEditorPage() {
     navigate(`/teacher/exams/${examId}/config`);
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
+    if (isPublishing) return;
     const publishError = getPublishError(questions, editingQuestionId);
     if (publishError) {
       toast.error(publishError);
       return;
     }
+    const payload = questions.map((q, i) => ({
+      order: i + 1,
+      title: q.title,
+      prompt: q.prompt,
+      points: Number(q.points),
+      idealAnswer: q.idealAnswer,
+      type: q.type,
+    }));
 
-    // TODO: persistir vía el endpoint real antes de navegar.
-    console.log("Guardar y publicar", { exam, totalPoints });
+    if (!examId) return;
+
+    setIsPublishing(true);
+    try {
+      await replaceQuestions(examId, { questions: payload });
+      toast.success(
+        "¡Examen publicado exitosamente! Ya se encuentra disponible.",
+      );
+      navigate("/materias");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+      setIsPublishing(false);
+    }
   };
+
+  useEffect(() => {
+    if (!exam || hydratedExamIdRef.current === exam.examId) {
+      return;
+    }
+    hydratedExamIdRef.current = exam.examId;
+    const sortedQuestions = [...(fetchedQuestions ?? [])].sort(
+      (a, b) => a.order - b.order,
+    );
+    setQuestions(sortedQuestions);
+  }, [exam, fetchedQuestions, setQuestions]);
+
+  useEffect(() => {
+    if (!error) return;
+    toast.error(LOAD_ERROR_MESSAGES[error]);
+    navigate("/materias", { replace: true });
+  }, [error, navigate]);
+
+  if (isLoading) {
+    return (
+      <div
+        className="flex h-screen flex-col items-center justify-center gap-4
+  text-neutral-500"
+      >
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <p>Cargando examen…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto mt-3.5 px-4 pb-12">
@@ -149,9 +198,8 @@ export function QuestionEditorPage() {
       </h1>
 
       <ExamSummaryBanner
-        title={exam.title ? exam.title : "Titulo"}
-        subtitle=""
-        totalQuestions={exam.questions.length}
+        title={exam?.title ?? ""}
+        totalQuestions={questions.length}
         totalPoints={totalPoints}
       />
 
@@ -182,11 +230,16 @@ export function QuestionEditorPage() {
       </div>
 
       <div className="mt-8 flex items-center justify-between border-t border-neutral-300 pt-6">
-        <Button variant="outline" onClick={handleBack}>
+        <Button variant="outline" onClick={handleBack} disabled={isPublishing}>
           Volver a las rúbricas
         </Button>
-        <Button className="font-bold" onClick={handlePublish}>
-          Guardar y publicar
+        <Button
+          className="font-bold"
+          onClick={handlePublish}
+          disabled={isPublishing}
+        >
+          {isPublishing && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isPublishing ? "Publicando…" : "Guardar y publicar"}
         </Button>
       </div>
     </div>

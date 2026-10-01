@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WizardStepper } from "@/components/layout/WizardStepper";
@@ -105,11 +105,23 @@ function toCriteriaDto(criteria: RubricCriterion[]): ReplaceCriteriaDto {
 
 export function ExamConfigPage() {
   const { examId } = useParams<{ examId: string }>();
+  const [searchParams] = useSearchParams();
   const isEditMode = !!examId;
+  const initialSubjectId = !isEditMode
+    ? (searchParams.get("subjectId") ?? "")
+    : "";
 
   const { exam, criteria, isLoading, error } = useExam(examId);
   const [formState, setFormState] = useState<ExamConfigFormState>(() =>
-    isEditMode ? EDITION_INITIAL_STATE : CREATION_INITIAL_STATE,
+    isEditMode
+      ? EDITION_INITIAL_STATE
+      : {
+          ...CREATION_INITIAL_STATE,
+          generalInfo: {
+            ...EMPTY_GENERAL_INFO,
+            subjectId: initialSubjectId,
+          },
+        },
   );
   const [generalInfoErrors, setGeneralInfoErrors] = useState<
     Record<string, string>
@@ -117,6 +129,7 @@ export function ExamConfigPage() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const formRef = useRef<HTMLDivElement>(null);
 
   const hydratedExamIdRef = useRef<string | undefined>(undefined);
 
@@ -155,6 +168,12 @@ export function ExamConfigPage() {
       hasNoCriteria ||
       hasIncompleteCriterion
     ) {
+      // Espera a que React pinte los aria-invalid antes de buscar el campo.
+      requestAnimationFrame(() => {
+        formRef.current
+          ?.querySelector<HTMLElement>('[aria-invalid="true"]')
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
       return;
     }
 
@@ -220,7 +239,7 @@ export function ExamConfigPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8 px-6 py-8">
+    <div ref={formRef} className="flex flex-col gap-8 px-6 py-8">
       <WizardStepper currentStep="config" />
       <div className="flex flex-col gap-2">
         <h1 className="text-display tracking-display font-bold text-neutral-900">

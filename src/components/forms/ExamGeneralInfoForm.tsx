@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ExamGeneralInfo } from "@/types/exam";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth.ts";
 import { useSubject } from "@/hooks/useSubject.ts";
 
@@ -69,6 +69,27 @@ export function ExamGeneralInfoForm({
   const { user, role } = useAuth();
 
   const { subjects, isLoading: isLoadingSubjects } = useSubject(user, role);
+
+  // Ref estable para poder llamar a onChange desde el efecto sin que su
+  // identidad (inline arrow en ExamConfigPage) lo re-dispare.
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  });
+
+  // Cuando las materias terminan de cargar, descarta un subjectId que no esté
+  // en la lista del docente (por ej. un query-param inválido o manipulado).
+  // También cubre S09: si la carga falla, useSubject devuelve [] y el id se
+  // resetea igualmente.
+  useEffect(() => {
+    if (isLoadingSubjects || isEditMode) return;
+    if (values.subjectId === "") return;
+
+    const match = subjects.find((s) => s.subjectId === values.subjectId);
+    if (!match) {
+      onChangeRef.current({ subjectId: "", subjectName: undefined });
+    }
+  }, [isLoadingSubjects, isEditMode, subjects, values.subjectId]);
 
   const [touched, setTouched] = useState<Partial<Record<FieldName, boolean>>>(
     {},
