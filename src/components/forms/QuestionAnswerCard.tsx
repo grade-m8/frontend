@@ -29,11 +29,11 @@ export function QuestionAnswerCard({
       {/* 1. Contenedor exterior de la tarjeta (padding-bottom: 24px) */}
       <div className="w-full pb-6">
         {/* 2. Tarjeta de la pregunta */}
-        <Card className="relative flex w-full flex-col gap-6 overflow-hidden rounded-none border border-[#E0E0E0] bg-[#FAF9F8] p-6 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] ring-0">
+        <Card className="relative flex w-full flex-col gap-6 overflow-hidden rounded-none border border-neutral-200 bg-neutral-50 p-6 shadow-soft ring-0">
           {/* 2.1 Indicador en la esquina superior derecha */}
           <Badge
             variant="outline"
-            className="absolute top-0 right-0 h-auto rounded-none border-t-0 border-r-0 border-b border-l border-[#707978] bg-[#E2DFDE] px-3 py-1 font-label text-[12px] font-medium leading-[12px] tracking-[0.6px] text-[#636262]"
+            className="absolute top-0 right-0 h-auto rounded-none border-t-0 border-r-0 border-b border-l border-neutral-500 bg-neutral-200 px-3 py-1 font-label text-label font-medium tracking-label text-neutral-600"
           >
             Pregunta {position} de {total}
           </Badge>
@@ -42,14 +42,14 @@ export function QuestionAnswerCard({
           <div className="flex flex-col gap-4">
             {/* 1. Header / Título */}
             <div className="w-full pr-32">
-              <h2 className="font-sans text-[24px] font-semibold leading-[31.2px] tracking-normal text-[#1A1C1C]">
+              <h2 className="font-sans text-h2 font-semibold text-neutral-900">
                 {position}. {question.title}
               </h2>
             </div>
 
             {/* 2. Description / Consigna */}
-            <div className="w-full max-w-[896px] pb-[0.6px]">
-              <p className="font-sans text-[18px] font-normal leading-[28.8px] tracking-normal text-[#5F5E5E] whitespace-pre-wrap">
+            <div className="w-full max-w-4xl">
+              <p className="font-sans text-h3 font-normal text-neutral-600 whitespace-pre-wrap">
                 {question.prompt}
               </p>
             </div>
@@ -58,7 +58,7 @@ export function QuestionAnswerCard({
             <div className="w-full pt-2">
               <Badge
                 variant="outline"
-                className="inline-flex h-[22px] w-fit items-center rounded-none border border-[#BFC8C8] bg-[#E3E2E1] px-2 py-1 font-label text-[12px] font-medium leading-[12px] tracking-[0.6px] text-[#404848]"
+                className="inline-flex h-5.5 w-fit items-center rounded-none border border-neutral-300 bg-neutral-200 px-2 py-1 font-label text-label font-medium tracking-label text-neutral-700"
               >
                 Valor: {question.points} pts
               </Badge>
@@ -82,15 +82,15 @@ export function QuestionAnswerCard({
           placeholder="Ingrese su análisis detallado aquí…"
           aria-invalid={error ? "true" : undefined}
           aria-describedby={error ? errorId : undefined}
-          className={`h-[434px] min-h-[434px] w-full resize-y rounded-md border p-6 font-sans text-body text-neutral-900 outline-none transition-colors placeholder:text-neutral-500 focus:ring-2 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500 ${
+          className={`min-h-72 w-full resize-y rounded-md border p-6 font-sans text-body text-neutral-900 outline-none transition-colors placeholder:text-neutral-500 focus:ring-2 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500 ${
             error
-              ? "border-danger-500 bg-[#FAF9F8] focus:border-danger-500 focus:ring-danger-200"
-              : "border-[#0A0A0A] bg-[#FAF9F8] focus:border-teal-700 focus:ring-teal-700/20"
+              ? "border-danger-500 bg-neutral-50 focus:border-danger-500 focus:ring-danger-200"
+              : "border-neutral-900 bg-neutral-50 focus:border-teal-700 focus:ring-teal-700/20"
           }`}
         />
 
         {error && (
-          <p id={errorId} className="text-xs font-medium text-danger-600">
+          <p id={errorId} className="text-sm font-medium text-danger-500">
             {error}
           </p>
         )}
