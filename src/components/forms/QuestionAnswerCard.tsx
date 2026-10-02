@@ -31,9 +31,12 @@ export function QuestionAnswerCard({
         {/* 2. Tarjeta de la pregunta */}
         <Card className="relative flex w-full flex-col gap-6 overflow-hidden rounded-none border border-[#E0E0E0] bg-[#FAF9F8] p-6 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] ring-0">
           {/* 2.1 Indicador en la esquina superior derecha */}
-          <div className="absolute top-0 right-0 border-b border-l border-[#707978] bg-[#E2DFDE] px-3 py-1 font-label text-[12px] font-medium leading-[12px] tracking-[0.6px] text-[#636262]">
+          <Badge
+            variant="outline"
+            className="absolute top-0 right-0 h-auto rounded-none border-t-0 border-r-0 border-b border-l border-[#707978] bg-[#E2DFDE] px-3 py-1 font-label text-[12px] font-medium leading-[12px] tracking-[0.6px] text-[#636262]"
+          >
             Pregunta {position} de {total}
-          </div>
+          </Badge>
 
           {/* 2.2 Contenedor del contenido */}
           <div className="flex flex-col gap-4">
@@ -72,11 +75,12 @@ export function QuestionAnswerCard({
 
         <textarea
           id={textareaId}
+          rows={12}
           value={answer}
           disabled={disabled}
           onChange={(e) => onAnswerChange(e.target.value)}
           placeholder="Ingrese su análisis detallado aquí…"
-          aria-invalid={!!error}
+          aria-invalid={error ? "true" : undefined}
           aria-describedby={error ? errorId : undefined}
           className={`h-[434px] min-h-[434px] w-full resize-y rounded-md border p-6 font-sans text-body text-neutral-900 outline-none transition-colors placeholder:text-neutral-500 focus:ring-2 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500 ${
             error
