@@ -13,7 +13,11 @@ import { toast } from "@/components/handler/toastHandler.tsx";
 import { formatDate } from "@/lib/date.ts";
 import type { Exam, ExamStatus } from "@/types/exam.ts";
 import { listMyStatusForSubject } from "@/services/studentStatusService.ts";
-import type { MyExamSubmissionStatus } from "@/types/studentSubmission.ts";
+import { getStudentExamCta } from "@/lib/studentExamCta.ts";
+import type {
+  MyExamSubmissionStatus,
+  StudentExamCta,
+} from "@/types/studentSubmission.ts";
 
 const EXAM_STATUS_LABELS: Record<ExamStatus, string> = {
   draft: "BORRADOR",
@@ -45,6 +49,8 @@ export default function SubjectExamsPage() {
   const subjectName =
     current?.status === "success" ? current.subjectName : undefined;
   const exams = current?.status === "success" ? current.exams : undefined;
+  const myStatuses =
+    current?.status === "success" ? current.myStatuses : undefined;
 
   useEffect(() => {
     if (!role) return;
@@ -85,6 +91,21 @@ export default function SubjectExamsPage() {
     navigate(`/teacher/exams/${examId}/submissions`);
   };
 
+  const handleStudentAction = (examId: string, cta: StudentExamCta) => {
+    switch (cta.kind) {
+      case "take":
+        navigate(`/student/exams/${examId}/take`);
+        break;
+      case "review":
+        if (cta.submissionId) {
+          navigate(`/student/submissions/${cta.submissionId}`);
+        }
+        break;
+      case "waiting":
+        break;
+    }
+  };
+
   const isStudent = role === "Student";
 
   return (
@@ -122,19 +143,29 @@ export default function SubjectExamsPage() {
           </div>
         ) : (
           <div className="mt-4 grid grid-cols-1 gap-4 pb-12 md:grid-cols-2 lg:grid-cols-3">
-            {exams.map((exam) => (
-              <ExamCard
-                key={exam.examId}
-                title={exam.title}
-                studentCount="—"
-                date={formatDate(exam.scheduledAt)}
-                durationMinutes={exam.durationMinutes}
-                status={EXAM_STATUS_LABELS[exam.status]}
-                onActionClick={
-                  isStudent ? undefined : () => handleGoToExam(exam.examId)
-                }
-              />
-            ))}
+            {exams.map((exam) => {
+              const cta = isStudent
+                ? getStudentExamCta(myStatuses?.get(exam.examId))
+                : undefined;
+
+              return (
+                <ExamCard
+                  key={exam.examId}
+                  title={exam.title}
+                  studentCount="—"
+                  date={formatDate(exam.scheduledAt)}
+                  durationMinutes={exam.durationMinutes}
+                  status={cta?.statusLabel ?? EXAM_STATUS_LABELS[exam.status]}
+                  actionLabel={cta?.label}
+                  actionDisabled={cta?.kind === "waiting"}
+                  onActionClick={
+                    cta
+                      ? () => handleStudentAction(exam.examId, cta)
+                      : () => handleGoToExam(exam.examId)
+                  }
+                />
+              );
+            })}
           </div>
         )}
       </div>
