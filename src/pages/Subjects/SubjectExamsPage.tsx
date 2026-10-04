@@ -43,6 +43,8 @@ export default function SubjectExamsPage() {
 
   const [loaded, setLoaded] = useState<LoadResult | null>(null);
 
+  const [reloadKey, setReloadKey] = useState(0);
+
   const current = loaded && loaded.subjectId === subjectId ? loaded : null;
   const isLoading = current === null;
   const hasError = current?.status === "error";
@@ -81,7 +83,7 @@ export default function SubjectExamsPage() {
         setLoaded({ status: "error", subjectId });
         toast.error(getApiErrorMessage(err));
       });
-  }, [subjectId, role]);
+  }, [subjectId, role, reloadKey]);
 
   const handleCreateExam = () => {
     navigate(`/teacher/exams/new?subjectId=${subjectId}`);
@@ -104,6 +106,11 @@ export default function SubjectExamsPage() {
       case "waiting":
         break;
     }
+  };
+
+  const handleRetry = () => {
+    setLoaded(null);
+    setReloadKey((k) => k + 1);
   };
 
   const isStudent = role === "Student";
@@ -134,6 +141,9 @@ export default function SubjectExamsPage() {
             <p className="text-body font-bold text-neutral-900">
               No se pudieron cargar los exámenes.
             </p>
+            <Button className="mt-4" onClick={handleRetry}>
+              Reintentar
+            </Button>
           </div>
         ) : !exams || exams.length === 0 ? (
           <div className="mt-4 border border-dashed border-neutral-300 py-16 text-center">
