@@ -22,11 +22,14 @@ interface ExamCardProps {
 }
 
 function getStatusClass(status: string) {
-  if (status === "CORREGIDO") return "border-teal-700 bg-teal-50 text-teal-700";
-  if (status === "PENDIENTE")
+  if (status === "CORREGIDO" || status === "PUBLICADO")
+    return "border-teal-700 bg-teal-50 text-teal-700";
+  if (status === "PENDIENTE" || status === "CERRADO")
     return "border-danger-500 bg-danger-50 text-danger-500";
   if (status === "REVISIÓN IA")
     return "border-blue-600 bg-blue-50 text-blue-600";
+  if (status === "BORRADOR")
+    return "border-neutral-500 bg-neutral-100 text-neutral-700";
   return "border-danger-500 bg-danger-50 text-danger-500";
 }
 
