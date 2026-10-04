@@ -12,6 +12,8 @@ import { getApiErrorMessage } from "@/services/error.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import { formatDate } from "@/lib/date.ts";
 import type { Exam, ExamStatus } from "@/types/exam.ts";
+import { listMyStatusForSubject } from "@/services/studentStatusService.ts";
+import type { MyExamSubmissionStatus } from "@/types/studentSubmission.ts";
 
 const EXAM_STATUS_LABELS: Record<ExamStatus, string> = {
   draft: "BORRADOR",
@@ -31,6 +33,7 @@ export default function SubjectExamsPage() {
         subjectId: string | undefined;
         subjectName: string;
         exams: Exam[];
+        myStatuses: Map<string, MyExamSubmissionStatus>;
       }
     | { status: "error"; subjectId: string | undefined };
 
@@ -47,17 +50,25 @@ export default function SubjectExamsPage() {
     if (!role) return;
 
     const listExams = role === "Student" ? listActiveExams : listOwnedExams;
+    const statusPromise =
+      role === "Student"
+        ? listMyStatusForSubject(subjectId as string)
+        : Promise.resolve<MyExamSubmissionStatus[]>([]);
 
     Promise.all([
       getSubject(subjectId as string),
       listExams(subjectId as string),
+      statusPromise,
     ])
-      .then(([subject, examList]) => {
+      .then(([subject, examList, statusList]) => {
         setLoaded({
           status: "success",
           subjectId,
           subjectName: subject.name,
           exams: examList,
+          myStatuses: new Map<string, MyExamSubmissionStatus>(
+            statusList.map((s) => [s.examId, s]),
+          ),
         });
       })
       .catch((err: unknown) => {
