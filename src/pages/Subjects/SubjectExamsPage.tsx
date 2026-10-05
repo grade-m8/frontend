@@ -12,6 +12,12 @@ import { getApiErrorMessage } from "@/services/error.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import { formatDate } from "@/lib/date.ts";
 import type { Exam, ExamStatus } from "@/types/exam.ts";
+import { listMyStatusForSubject } from "@/services/studentStatusService.ts";
+import { getStudentExamCta } from "@/lib/studentExamCta.ts";
+import type {
+  MyExamSubmissionStatus,
+  StudentExamCta,
+} from "@/types/studentSubmission.ts";
 
 const EXAM_STATUS_LABELS: Record<ExamStatus, string> = {
   draft: "BORRADOR",
@@ -31,10 +37,13 @@ export default function SubjectExamsPage() {
         subjectId: string | undefined;
         subjectName: string;
         exams: Exam[];
+        myStatuses: Map<string, MyExamSubmissionStatus>;
       }
     | { status: "error"; subjectId: string | undefined };
 
   const [loaded, setLoaded] = useState<LoadResult | null>(null);
+
+  const [reloadKey, setReloadKey] = useState(0);
 
   const current = loaded && loaded.subjectId === subjectId ? loaded : null;
   const isLoading = current === null;
@@ -42,29 +51,47 @@ export default function SubjectExamsPage() {
   const subjectName =
     current?.status === "success" ? current.subjectName : undefined;
   const exams = current?.status === "success" ? current.exams : undefined;
+  const myStatuses =
+    current?.status === "success" ? current.myStatuses : undefined;
 
   useEffect(() => {
     if (!role) return;
 
+    let cancelled = false;
+
     const listExams = role === "Student" ? listActiveExams : listOwnedExams;
+    const statusPromise =
+      role === "Student"
+        ? listMyStatusForSubject(subjectId as string)
+        : Promise.resolve<MyExamSubmissionStatus[]>([]);
 
     Promise.all([
       getSubject(subjectId as string),
       listExams(subjectId as string),
+      statusPromise,
     ])
-      .then(([subject, examList]) => {
+      .then(([subject, examList, statusList]) => {
+        if (cancelled) return;
         setLoaded({
           status: "success",
           subjectId,
           subjectName: subject.name,
           exams: examList,
+          myStatuses: new Map<string, MyExamSubmissionStatus>(
+            statusList.map((s) => [s.examId, s]),
+          ),
         });
       })
       .catch((err: unknown) => {
+        if (cancelled) return;
         setLoaded({ status: "error", subjectId });
         toast.error(getApiErrorMessage(err));
       });
-  }, [subjectId, role]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [subjectId, role, reloadKey]);
 
   const handleCreateExam = () => {
     navigate(`/teacher/exams/new?subjectId=${subjectId}`);
@@ -72,6 +99,26 @@ export default function SubjectExamsPage() {
 
   const handleGoToExam = (examId: string) => {
     navigate(`/teacher/exams/${examId}/submissions`);
+  };
+
+  const handleStudentAction = (examId: string, cta: StudentExamCta) => {
+    switch (cta.kind) {
+      case "take":
+        navigate(`/student/exams/${examId}/take`);
+        break;
+      case "review":
+        if (cta.submissionId) {
+          navigate(`/student/submissions/${cta.submissionId}`);
+        }
+        break;
+      case "waiting":
+        break;
+    }
+  };
+
+  const handleRetry = () => {
+    setLoaded(null);
+    setReloadKey((k) => k + 1);
   };
 
   const isStudent = role === "Student";
@@ -102,6 +149,9 @@ export default function SubjectExamsPage() {
             <p className="text-body font-bold text-neutral-900">
               No se pudieron cargar los exámenes.
             </p>
+            <Button className="mt-4" onClick={handleRetry}>
+              Reintentar
+            </Button>
           </div>
         ) : !exams || exams.length === 0 ? (
           <div className="mt-4 border border-dashed border-neutral-300 py-16 text-center">
@@ -111,19 +161,29 @@ export default function SubjectExamsPage() {
           </div>
         ) : (
           <div className="mt-4 grid grid-cols-1 gap-4 pb-12 md:grid-cols-2 lg:grid-cols-3">
-            {exams.map((exam) => (
-              <ExamCard
-                key={exam.examId}
-                title={exam.title}
-                studentCount="—"
-                date={formatDate(exam.scheduledAt)}
-                durationMinutes={exam.durationMinutes}
-                status={EXAM_STATUS_LABELS[exam.status]}
-                onActionClick={
-                  isStudent ? undefined : () => handleGoToExam(exam.examId)
-                }
-              />
-            ))}
+            {exams.map((exam) => {
+              const cta = isStudent
+                ? getStudentExamCta(myStatuses?.get(exam.examId))
+                : undefined;
+
+              return (
+                <ExamCard
+                  key={exam.examId}
+                  title={exam.title}
+                  studentCount="—"
+                  date={formatDate(exam.scheduledAt)}
+                  durationMinutes={exam.durationMinutes}
+                  status={cta?.statusLabel ?? EXAM_STATUS_LABELS[exam.status]}
+                  actionLabel={cta?.label}
+                  actionDisabled={cta?.kind === "waiting"}
+                  onActionClick={
+                    cta
+                      ? () => handleStudentAction(exam.examId, cta)
+                      : () => handleGoToExam(exam.examId)
+                  }
+                />
+              );
+            })}
           </div>
         )}
       </div>
