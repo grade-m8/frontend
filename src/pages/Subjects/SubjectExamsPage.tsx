@@ -57,6 +57,8 @@ export default function SubjectExamsPage() {
   useEffect(() => {
     if (!role) return;
 
+    let cancelled = false;
+
     const listExams = role === "Student" ? listActiveExams : listOwnedExams;
     const statusPromise =
       role === "Student"
@@ -69,6 +71,7 @@ export default function SubjectExamsPage() {
       statusPromise,
     ])
       .then(([subject, examList, statusList]) => {
+        if (cancelled) return;
         setLoaded({
           status: "success",
           subjectId,
@@ -80,9 +83,14 @@ export default function SubjectExamsPage() {
         });
       })
       .catch((err: unknown) => {
+        if (cancelled) return;
         setLoaded({ status: "error", subjectId });
         toast.error(getApiErrorMessage(err));
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [subjectId, role, reloadKey]);
 
   const handleCreateExam = () => {
