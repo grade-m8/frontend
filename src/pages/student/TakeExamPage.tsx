@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader.tsx";
@@ -116,25 +116,35 @@ export function TakeExamPage() {
     }).length;
   }, [questions, answers]);
 
-  const handleAnswerChange = (text: string) => {
-    if (!currentQuestion) return;
-    setAnswers((prev) => ({
-      ...prev,
-      [currentQuestion.questionId]: text,
-    }));
-    if (submitError) {
-      setSubmitError(null);
-    }
-  };
+  const handleAnswerChange = useCallback(
+    (text: string) => {
+      if (!currentQuestion) return;
+      setAnswers((prev) => ({
+        ...prev,
+        [currentQuestion.questionId]: text,
+      }));
+      if (submitError) {
+        setSubmitError(null);
+      }
+    },
+    [currentQuestion, submitError],
+  );
 
   // Guarda la respuesta actual si difiere de savedAnswers
-  const saveCurrentAnswerIfNeeded = async (): Promise<boolean> => {
+  const saveCurrentAnswerIfNeeded = useCallback(async (): Promise<boolean> => {
     if (!currentQuestion || !submission) return true;
     const currentText = answers[currentQuestion.questionId] ?? "";
     const lastSavedText = savedAnswers[currentQuestion.questionId] ?? "";
 
     if (currentText === lastSavedText) {
       return true;
+    }
+
+    // Si el usuario borró todo el contenido previamente guardado, evitamos el 400 del backend
+    // y notificamos explícitamente en la UI.
+    if (currentText.trim() === "") {
+      toast.error("La respuesta no puede quedar vacía.");
+      return false;
     }
 
     setIsSaving(true);
@@ -155,30 +165,30 @@ export function TakeExamPage() {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [currentQuestion, submission, answers, savedAnswers]);
 
   const canGoPrevious = currentIndex > 0;
   const canGoNext = currentIndex < questions.length - 1;
 
-  const handlePrevious = async () => {
+  const handlePrevious = useCallback(async () => {
     if (!canGoPrevious || isSaving || isSubmitting) return;
     const ok = await saveCurrentAnswerIfNeeded();
     if (ok) {
       setSubmitError(null);
       setCurrentIndex((prev) => prev - 1);
     }
-  };
+  }, [canGoPrevious, isSaving, isSubmitting, saveCurrentAnswerIfNeeded]);
 
-  const handleNext = async () => {
+  const handleNext = useCallback(async () => {
     if (!canGoNext || isSaving || isSubmitting) return;
     const ok = await saveCurrentAnswerIfNeeded();
     if (ok) {
       setSubmitError(null);
       setCurrentIndex((prev) => prev + 1);
     }
-  };
+  }, [canGoNext, isSaving, isSubmitting, saveCurrentAnswerIfNeeded]);
 
-  const handleConfirmSubmit = async () => {
+  const handleConfirmSubmit = useCallback(async () => {
     if (isSubmitting || !submission || !detail) return;
 
     // Validación: si hay respuestas vacías, se bloquea la entrega
@@ -198,12 +208,16 @@ export function TakeExamPage() {
       return;
     }
 
-    // Guarda la respuesta de la pregunta actual si cambió
-    const ok = await saveCurrentAnswerIfNeeded();
-    if (!ok) return;
-
+    // Asignamos isSubmitting defensivamente al inicio de la confirmación
     setIsSubmitting(true);
     try {
+      // Guarda la respuesta de la pregunta actual si cambió
+      const ok = await saveCurrentAnswerIfNeeded();
+      if (!ok) {
+        setIsSubmitting(false);
+        return;
+      }
+
       const updatedSub = await submitExam(submission.submissionId);
       setSubmission(updatedSub);
       toast.success("Examen entregado. La IA lo está corrigiendo.");
@@ -219,7 +233,16 @@ export function TakeExamPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [
+    isSubmitting,
+    submission,
+    detail,
+    pendingCount,
+    answers,
+    currentQuestion?.questionId,
+    saveCurrentAnswerIfNeeded,
+    navigate,
+  ]);
 
   // 1. Estado de carga
   if (isLoading) {
