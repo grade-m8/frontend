@@ -10,7 +10,9 @@ import { getApiErrorMessage } from "@/services/error.ts";
 import {
   getMySubmission,
   getStudentExam,
+  saveAnswer,
   startOrResumeSubmission,
+  submitExam,
 } from "@/services/studentExamService.ts";
 import type { StudentExamDetail } from "@/types/studentExam.ts";
 import type { Submission } from "@/types/submission.ts";
@@ -125,29 +127,99 @@ export function TakeExamPage() {
     }
   };
 
+  // Guarda la respuesta actual si difiere de savedAnswers
+  const saveCurrentAnswerIfNeeded = async (): Promise<boolean> => {
+    if (!currentQuestion || !submission) return true;
+    const currentText = answers[currentQuestion.questionId] ?? "";
+    const lastSavedText = savedAnswers[currentQuestion.questionId] ?? "";
+
+    if (currentText === lastSavedText) {
+      return true;
+    }
+
+    setIsSaving(true);
+    try {
+      await saveAnswer(
+        submission.submissionId,
+        currentQuestion.questionId,
+        currentText,
+      );
+      setSavedAnswers((prev) => ({
+        ...prev,
+        [currentQuestion.questionId]: currentText,
+      }));
+      return true;
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err));
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const canGoPrevious = currentIndex > 0;
   const canGoNext = currentIndex < questions.length - 1;
 
-  const handlePrevious = () => {
-    if (canGoPrevious) {
+  const handlePrevious = async () => {
+    if (!canGoPrevious || isSaving || isSubmitting) return;
+    const ok = await saveCurrentAnswerIfNeeded();
+    if (ok) {
+      setSubmitError(null);
       setCurrentIndex((prev) => prev - 1);
     }
   };
 
-  const handleNext = () => {
-    if (canGoNext) {
+  const handleNext = async () => {
+    if (!canGoNext || isSaving || isSubmitting) return;
+    const ok = await saveCurrentAnswerIfNeeded();
+    if (ok) {
+      setSubmitError(null);
       setCurrentIndex((prev) => prev + 1);
     }
   };
 
-  const handleConfirmSubmit = () => {
-    // Se completará en los pasos 4 y 5
-  };
+  const handleConfirmSubmit = async () => {
+    if (isSubmitting || !submission || !detail) return;
 
-  // Referencias para que el linter no reporte variables sin usar antes de los pasos 4 y 5
-  void savedAnswers;
-  void setIsSaving;
-  void setIsSubmitting;
+    // Validación: si hay respuestas vacías, se bloquea la entrega
+    if (pendingCount > 0) {
+      const currentText = (
+        answers[currentQuestion?.questionId ?? ""] ?? ""
+      ).trim();
+      if (!currentText) {
+        setSubmitError("Respuesta obligatoria");
+      }
+      toast.error(
+        getApiErrorMessage(
+          new Error("QUESTIONS_UNANSWERED"),
+          "Tenés que responder todas las preguntas antes de entregar.",
+        ),
+      );
+      return;
+    }
+
+    // Guarda la respuesta de la pregunta actual si cambió
+    const ok = await saveCurrentAnswerIfNeeded();
+    if (!ok) return;
+
+    setIsSubmitting(true);
+    try {
+      const updatedSub = await submitExam(submission.submissionId);
+      setSubmission(updatedSub);
+      toast.success("Examen entregado. La IA lo está corrigiendo.");
+      navigate(`/materias/${detail.exam.subjectId}/examenes`);
+    } catch (err: unknown) {
+      const errorCode = err instanceof Error ? err.message : "";
+      if (errorCode === "SUBMISSION_ALREADY_SUBMITTED") {
+        setSubmission((prev) =>
+          prev ? { ...prev, status: "submitted" } : null,
+        );
+      }
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // 1. Estado de carga
   if (isLoading) {
