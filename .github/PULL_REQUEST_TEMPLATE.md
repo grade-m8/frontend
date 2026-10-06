@@ -16,3 +16,9 @@
 - [ ] Mi código sigue las guías de estilo del proyecto
 - [ ] Realicé una autorevisión de mi código
 - [ ] Se actualizó la documentación relevante
+
+### 🧠 Decisiones Técnicas y Desvíos
+- [ ] ¿Esta implementación difiere del alcance o enfoque original del ticket? (Sí / No)
+
+> **Justificación:**  
+> *(Si marcaste Sí, explicá brevemente qué decisión tomaste, por qué fue necesaria y cómo impacta en la solución).*
