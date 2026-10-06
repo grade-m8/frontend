@@ -39,6 +39,10 @@ const API_ERROR_MESSAGES: Record<string, string> = {
   "missing-fields": "Faltan campos obligatorios.",
   "invalid-argument": "Hay datos inválidos en el formulario.",
   unauthenticated: "Tu sesión expiró. Iniciá sesión nuevamente.",
+  EXAM_NOT_PUBLISHED: "El examen todavía no está disponible.",
+  SUBMISSION_ALREADY_SUBMITTED: "Este examen ya fue entregado.",
+  QUESTIONS_UNANSWERED:
+    "Tenés que responder todas las preguntas antes de entregar.",
 };
 
 export function getApiErrorMessage(
