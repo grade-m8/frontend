@@ -38,6 +38,7 @@ export function SubmissionAuditPage() {
   const {
     detail,
     isLoading: isLoadingAnswer,
+    error: answerError,
     reload,
   } = useAnswerDetail(submissionId, selectedQuestionId);
 
@@ -244,29 +245,26 @@ export function SubmissionAuditPage() {
           aria-label="Preguntas del examen"
           className="flex items-center gap-2 flex-wrap"
         >
-          {questions
-            .slice()
-            .sort((a, b) => a.order - b.order)
-            .map((q) => {
-              const isSelected = q.questionId === selectedQuestionId;
-              return (
-                <button
-                  key={q.questionId}
-                  role="tab"
-                  aria-selected={isSelected}
-                  type="button"
-                  onClick={() => handleSelectQuestion(q.questionId)}
-                  className={cn(
-                    "px-4 py-2 text-xs font-label uppercase tracking-label border transition-all cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-teal-700",
-                    isSelected
-                      ? "bg-teal-700 text-white border-teal-800 font-bold shadow-sm"
-                      : "bg-card text-neutral-650 hover:text-neutral-900 hover:bg-neutral-100 border-neutral-300 font-medium",
-                  )}
-                >
-                  P{q.order}
-                </button>
-              );
-            })}
+          {questions.map((q) => {
+            const isSelected = q.questionId === selectedQuestionId;
+            return (
+              <button
+                key={q.questionId}
+                role="tab"
+                aria-selected={isSelected}
+                type="button"
+                onClick={() => handleSelectQuestion(q.questionId)}
+                className={cn(
+                  "px-4 py-2 text-xs font-label uppercase tracking-label border transition-all cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-teal-700",
+                  isSelected
+                    ? "bg-teal-700 text-white border-teal-800 font-bold shadow-sm"
+                    : "bg-card text-neutral-650 hover:text-neutral-900 hover:bg-neutral-100 border-neutral-300 font-medium",
+                )}
+              >
+                P{q.order}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -289,6 +287,20 @@ export function SubmissionAuditPage() {
             {isLoadingAnswer ? (
               <div className="flex items-center justify-center py-16">
                 <Loader2 className="w-6 h-6 text-neutral-500 animate-spin" />
+              </div>
+            ) : answerError ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+                <AlertCircle className="w-8 h-8 text-danger-600" />
+                <p className="text-sm font-medium text-neutral-800">
+                  {answerError}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void reload()}
+                  className="px-4 py-2 bg-neutral-900 text-white text-xs font-label uppercase tracking-label font-bold hover:bg-neutral-800 transition-colors cursor-pointer"
+                >
+                  Reintentar
+                </button>
               </div>
             ) : (
               <p className="font-sans font-normal text-body leading-[26px] text-neutral-900 whitespace-pre-wrap break-words">
@@ -318,6 +330,12 @@ export function SubmissionAuditPage() {
             {isLoadingAnswer ? (
               <div className="flex items-center justify-center py-16">
                 <Loader2 className="w-6 h-6 text-teal-700 animate-spin" />
+              </div>
+            ) : answerError ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center gap-2">
+                <p className="text-sm text-neutral-650 italic">
+                  No se pudo cargar la evaluación de esta pregunta.
+                </p>
               </div>
             ) : isGrading ? (
               pollAttempts >= MAX_POLL_ATTEMPTS ? (
