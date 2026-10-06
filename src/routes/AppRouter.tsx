@@ -9,6 +9,7 @@ import { ExamConfigPage } from "@/pages/exams/ExamEditor";
 import { QuestionEditorPage } from "@/pages/exams/QuestionEditorPage.tsx";
 import { SubmissionAuditPage } from "@/pages/exams/SubmissionAuditPage.tsx";
 import { ExamSubmissionsPage } from "@/pages/exams/ExamSubmissionsPage.tsx";
+import { TakeExamPage } from "@/pages/student/TakeExamPage.tsx";
 
 export default function AppRouter() {
   return (
@@ -34,6 +35,12 @@ export default function AppRouter() {
           <Route
             path="/teacher/submissions/:submissionId"
             element={<SubmissionAuditPage />}
+          />
+        </Route>
+        <Route element={<ProtectedRoutes allowedRoles={["Student"]} />}>
+          <Route
+            path="/student/exams/:examId/take"
+            element={<TakeExamPage />}
           />
         </Route>
         <Route path="/403" element={<ErrorPage />} />

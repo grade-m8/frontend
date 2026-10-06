@@ -42,6 +42,10 @@ const API_ERROR_MESSAGES: Record<string, string> = {
   SUBMISSION_NOT_FOUND: "La entrega no existe.",
   ANSWER_NOT_FOUND: "La respuesta no existe.",
   NOT_SUBMISSION_OWNER: "No tenés permisos sobre esta entrega.",
+  EXAM_NOT_PUBLISHED: "El examen todavía no está disponible.",
+  SUBMISSION_ALREADY_SUBMITTED: "Este examen ya fue entregado.",
+  QUESTIONS_UNANSWERED:
+    "Tenés que responder todas las preguntas antes de entregar.",
 };
 
 export function getApiErrorMessage(
