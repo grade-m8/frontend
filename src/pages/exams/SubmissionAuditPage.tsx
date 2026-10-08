@@ -70,6 +70,7 @@ export function SubmissionAuditPage() {
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : "";
       if (
+        errorMsg === "NOT_PROFESSOR_EXAM" ||
         errorMsg === "NOT_SUBMISSION_OWNER" ||
         errorMsg === "permission-denied" ||
         errorMsg === "forbidden" ||
