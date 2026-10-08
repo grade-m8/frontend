@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -10,167 +10,101 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import { AnalysisItemCard } from "@/components/data-display/AnalysisItemCard.tsx";
-import type { AnswerDetail } from "@/types/audit.ts";
 import type { Question } from "@/types/exam.ts";
+import { getSubmission } from "@/services/auditService.ts";
+import { getExam } from "@/services/examService.ts";
+import { useAnswerDetail } from "@/hooks/useAnswerDetail.ts";
+import { toast } from "@/components/handler/toastHandler.tsx";
+import { getApiErrorMessage } from "@/services/error.ts";
 
-// TODO: [Integración 4.1.3] reemplazar mocks por submissionService.
-const MOCK_EXAM_TITLE = "Primer Parcial - Análisis Estructural";
-const MOCK_STUDENT_ID = "88492";
-
-const MOCK_QUESTIONS: Pick<
-  Question,
-  "questionId" | "title" | "order" | "points"
->[] = [
-  {
-    questionId: "q1",
-    title: "Pregunta 1: Método de las Fuerzas",
-    order: 1,
-    points: 100,
-  },
-  {
-    questionId: "q2",
-    title: "Pregunta 2: Deformaciones y Flechas",
-    order: 2,
-    points: 100,
-  },
-  {
-    questionId: "q3",
-    title: "Pregunta 3: Teorema de Castigliano",
-    order: 3,
-    points: 100,
-  },
-];
-
-const MOCK_ANSWER_DETAILS_MAP: Record<string, AnswerDetail> = {
-  q1: {
-    question: {
-      questionId: "q1",
-      order: 1,
-      title: "Pregunta 1: Método de las Fuerzas",
-      prompt:
-        "Dado el pórtico hiperestático con carga puntual y distribuida, determine las reacciones de vínculo y diagramas de solicitaciones mediante el método de las fuerzas.",
-      points: 100,
-      idealAnswer:
-        "El estudiante debe seleccionar el sistema fundamental eliminando la redundante estática en el apoyo central, plantear la ecuación de compatibilidad geométrica delta_10 + X1 * delta_11 = 0, y calcular los diagramas finales por superposición de efectos.",
-    },
-    answer: {
-      questionId: "q1",
-      text: "Selecciono como redundante la reacción vertical en B. Planteo el sistema fundamental isostático con la carga distribuida q. Para el estado '0', calculo momentos flectores M0. Para el estado '1', aplico carga unitaria virtual en B. Calculo desplazamientos por el método de trabajo virtual...",
-      submittedAt: "2026-09-26T10:30:00.000Z",
-      gradingStatus: "graded",
-      gradingAttempts: 1,
-      aiScore: 85,
-      finalScore: 85,
-      aiFeedback:
-        "Buen planteo conceptual. Hubo un error de cálculo menor en la integral de desplazamiento delta_10, pero el procedimiento posterior de equilibrio estático es coherente.",
-      teacherEdited: false,
-      gradedAt: "2026-09-26T10:35:00.000Z",
-    },
-    analysisItems: [
-      {
-        itemId: "item-1",
-        criterionId: "c1",
-        title: "Metodología y Sistema Fundamental",
-        description:
-          "El estudiante identifica correctamente la hiperestaticidad del sistema y aplica el método de las fuerzas de manera adecuada para encontrar la reacción redundante.",
-        points: 50,
-        source: "ai",
-        order: 1,
-        createdAt: "2026-09-26T10:35:00.000Z",
-      },
-      {
-        itemId: "item-2",
-        criterionId: "c2",
-        title: "Error de Cálculo en Desplazamiento",
-        description:
-          "En el cálculo del desplazamiento Δ10, hay un error en el término de la carga puntual P. La fórmula utilizada asume la carga en el centro del vano, pero según el enunciado x_p = L/3.",
-        points: 0,
-        source: "ai",
-        order: 2,
-        createdAt: "2026-09-26T10:35:00.000Z",
-      },
-      {
-        itemId: "item-3",
-        criterionId: "c3",
-        title: "Procedimiento y Equilibrio Final",
-        description:
-          "A pesar del error en el valor numérico de la redundante, la sustitución en las ecuaciones de equilibrio estático para encontrar las restantes reacciones es coherente con su resultado intermedio.",
-        points: 35,
-        source: "ai",
-        order: 3,
-        createdAt: "2026-09-26T10:35:00.000Z",
-      },
-    ],
-  },
-  q2: {
-    question: {
-      questionId: "q2",
-      order: 2,
-      title: "Pregunta 2: Deformaciones y Flechas",
-      prompt:
-        "Calcule la flecha máxima en una viga simplemente apoyada sometida a una carga uniforme q mediante integración directa de la elástica.",
-      points: 100,
-      idealAnswer:
-        "Plantear EI * y'' = -M(x). Integrar dos veces e imponer las condiciones de contorno y(0) = 0 e y(L) = 0 para obtener la flecha máxima f_max = (5*q*L^4)/(384*E*I) en x = L/2.",
-    },
-    answer: {
-      questionId: "q2",
-      text: "Planteo la ecuación diferencial de la elástica EI y''(x) = - (q*x/2)*(L - x). Integro una vez para obtener la pendiente y dos veces para la flecha. Evaluando en los apoyos x=0 y x=L obtengo las constantes C1 y C2. El punto medio x=L/2 da la flecha máxima...",
-      submittedAt: "2026-09-26T10:30:00.000Z",
-      gradingStatus: "grading",
-      gradingAttempts: 1,
-      teacherEdited: false,
-    },
-    analysisItems: [],
-  },
-  q3: {
-    question: {
-      questionId: "q3",
-      order: 3,
-      title: "Pregunta 3: Teorema de Castigliano",
-      prompt:
-        "Explique los fundamentos del segundo teorema de Castigliano y aplíquelo para determinar el desplazamiento vertical en el extremo libre de una ménsula con carga puntual P.",
-      points: 100,
-      idealAnswer:
-        "Definir la energía de deformación U = integral(M^2/(2EI) dx). Derivar respecto a P: delta = dU/dP = integral(M/EI * dM/dP dx). Para ménsula M = -P(L-x), dM/dP = -(L-x), integrando resulta delta = P*L^3/(3EI).",
-    },
-    answer: {
-      questionId: "q3",
-      text: "La energía de deformación total por flexión es U = 1/2 * integral(M^2/EI dx). Al derivar respecto a la fuerza puntual en el punto de aplicación obtenemos el desplazamiento...",
-      submittedAt: "2026-09-26T10:30:00.000Z",
-      gradingStatus: "failed",
-      gradingAttempts: 3,
-      lastGradingError:
-        "Tiempo de espera agotado al conectar con el servicio del modelo de IA.",
-      teacherEdited: false,
-    },
-    analysisItems: [],
-  },
-};
+const POLL_INTERVAL_MS = 5000;
+const MAX_POLL_ATTEMPTS = 60;
 
 export function SubmissionAuditPage() {
   const { submissionId } = useParams<{ submissionId: string }>();
   const navigate = useNavigate();
-  void submissionId;
 
-  // TODO: [Integración 4.1.3] reemplazar mocks por submissionService.
-  const [examTitle] = useState<string>(MOCK_EXAM_TITLE);
-  const [studentId] = useState<string>(MOCK_STUDENT_ID);
-  const [questions] =
-    useState<Pick<Question, "questionId" | "title" | "order" | "points">[]>(
-      MOCK_QUESTIONS,
-    );
-  const [selectedQuestionId, setSelectedQuestionId] = useState<string>(
-    MOCK_QUESTIONS[0]?.questionId ?? "",
-  );
-  const [detail, setDetail] = useState<AnswerDetail | null>(
-    MOCK_ANSWER_DETAILS_MAP[MOCK_QUESTIONS[0]?.questionId] ?? null,
-  );
+  const [examTitle, setExamTitle] = useState<string>("");
+  const [studentId, setStudentId] = useState<string>("");
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string>("");
+  const [pollAttempts, setPollAttempts] = useState<number>(0);
+
+  const [isLoadingInitial, setIsLoadingInitial] = useState<boolean>(true);
+  const [initialError, setInitialError] = useState<
+    "not-found" | "generic" | null
+  >(null);
+
+  const {
+    detail,
+    isLoading: isLoadingAnswer,
+    error: answerError,
+    reload,
+  } = useAnswerDetail(submissionId, selectedQuestionId);
+
+  const loadInitialData = useCallback(async () => {
+    if (!submissionId) {
+      setInitialError("not-found");
+      setIsLoadingInitial(false);
+      return;
+    }
+
+    setIsLoadingInitial(true);
+    setInitialError(null);
+
+    try {
+      const submissionData = await getSubmission(submissionId);
+      setStudentId(submissionData.submission.studentId);
+
+      const examData = await getExam(submissionData.submission.examId);
+      setExamTitle(examData.exam.title);
+
+      const sortedQuestions = (examData.questions ?? [])
+        .slice()
+        .sort((a, b) => a.order - b.order);
+      setQuestions(sortedQuestions);
+
+      if (sortedQuestions.length > 0) {
+        setSelectedQuestionId(sortedQuestions[0].questionId);
+      }
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "";
+      if (
+        errorMsg === "NOT_PROFESSOR_EXAM" ||
+        errorMsg === "NOT_SUBMISSION_OWNER" ||
+        errorMsg === "permission-denied" ||
+        errorMsg === "forbidden" ||
+        errorMsg.includes("403")
+      ) {
+        navigate("/403");
+        return;
+      }
+
+      if (
+        errorMsg === "SUBMISSION_NOT_FOUND" ||
+        errorMsg === "EXAM_NOT_FOUND" ||
+        errorMsg === "not-found" ||
+        errorMsg.includes("404")
+      ) {
+        setInitialError("not-found");
+        return;
+      }
+
+      toast.error(getApiErrorMessage(err));
+      setInitialError("generic");
+    } finally {
+      setIsLoadingInitial(false);
+    }
+  }, [submissionId, navigate]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadInitialData();
+  }, [loadInitialData]);
 
   function handleSelectQuestion(questionId: string): void {
     setSelectedQuestionId(questionId);
-    setDetail(MOCK_ANSWER_DETAILS_MAP[questionId] ?? null);
-    // TODO: [Integración 4.1.3] fetchAnswerDetail(submissionId, questionId)
+    setPollAttempts(0);
   }
 
   const isGrading =
@@ -179,6 +113,76 @@ export function SubmissionAuditPage() {
     detail?.answer.gradingStatus === "grading";
   const isFailed = detail?.answer.gradingStatus === "failed";
   const isGraded = detail?.answer.gradingStatus === "graded";
+
+  useEffect(() => {
+    if (!isGrading || pollAttempts >= MAX_POLL_ATTEMPTS) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      setPollAttempts((prev) => prev + 1);
+      void reload();
+    }, POLL_INTERVAL_MS);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [isGrading, pollAttempts, reload]);
+
+  if (isLoadingInitial) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
+        <Loader2 className="w-10 h-10 text-teal-700 animate-spin mb-4" />
+        <p className="text-sm font-medium text-neutral-800">
+          Cargando entrega y evaluación...
+        </p>
+      </div>
+    );
+  }
+
+  if (initialError === "not-found") {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
+        <AlertCircle className="w-12 h-12 text-neutral-400 mb-4" />
+        <h2 className="text-h2 font-bold text-neutral-900 mb-2">
+          La entrega no existe.
+        </h2>
+        <p className="text-body text-neutral-600 mb-6">
+          No se encontró la entrega solicitada o fue eliminada.
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white text-xs font-label uppercase tracking-label font-bold hover:bg-neutral-800 transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Volver
+        </button>
+      </div>
+    );
+  }
+
+  if (initialError === "generic") {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
+        <AlertCircle className="w-12 h-12 text-danger-600 mb-4" />
+        <h2 className="text-h2 font-bold text-neutral-900 mb-2">
+          Error al cargar la entrega
+        </h2>
+        <p className="text-body text-neutral-600 mb-6">
+          Ocurrió un problema al obtener los datos. Por favor, intentá
+          nuevamente.
+        </p>
+        <button
+          type="button"
+          onClick={() => loadInitialData()}
+          className="px-4 py-2 bg-teal-700 text-white text-xs font-label uppercase tracking-label font-bold hover:bg-teal-800 transition-colors cursor-pointer"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
 
   const currentQuestion = questions.find(
     (q) => q.questionId === selectedQuestionId,
@@ -209,7 +213,7 @@ export function SubmissionAuditPage() {
             title={examTitle}
             className="pt-1 text-h2 font-bold text-neutral-900 truncate"
           >
-            {examTitle}
+            {examTitle || "Examen"}
           </h2>
           <p className="text-body text-neutral-650 font-normal">
             Alumno: {studentId}
@@ -242,29 +246,26 @@ export function SubmissionAuditPage() {
           aria-label="Preguntas del examen"
           className="flex items-center gap-2 flex-wrap"
         >
-          {questions
-            .slice()
-            .sort((a, b) => a.order - b.order)
-            .map((q) => {
-              const isSelected = q.questionId === selectedQuestionId;
-              return (
-                <button
-                  key={q.questionId}
-                  role="tab"
-                  aria-selected={isSelected}
-                  type="button"
-                  onClick={() => handleSelectQuestion(q.questionId)}
-                  className={cn(
-                    "px-4 py-2 text-xs font-label uppercase tracking-label border transition-all cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-teal-700",
-                    isSelected
-                      ? "bg-teal-700 text-white border-teal-800 font-bold shadow-sm"
-                      : "bg-card text-neutral-650 hover:text-neutral-900 hover:bg-neutral-100 border-neutral-300 font-medium",
-                  )}
-                >
-                  P{q.order}
-                </button>
-              );
-            })}
+          {questions.map((q) => {
+            const isSelected = q.questionId === selectedQuestionId;
+            return (
+              <button
+                key={q.questionId}
+                role="tab"
+                aria-selected={isSelected}
+                type="button"
+                onClick={() => handleSelectQuestion(q.questionId)}
+                className={cn(
+                  "px-4 py-2 text-xs font-label uppercase tracking-label border transition-all cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-teal-700",
+                  isSelected
+                    ? "bg-teal-700 text-white border-teal-800 font-bold shadow-sm"
+                    : "bg-card text-neutral-650 hover:text-neutral-900 hover:bg-neutral-100 border-neutral-300 font-medium",
+                )}
+              >
+                P{q.order}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -282,11 +283,31 @@ export function SubmissionAuditPage() {
             </div>
           </div>
 
-          {/* Contenido de Student Submission (w-full flex flex-col gap-4 pr-2) */}
+          {/* Contenido de Student Submission */}
           <div className="w-full flex flex-col gap-4 pr-2 overflow-y-auto max-h-[434px]">
-            <p className="font-sans font-normal text-body leading-[26px] text-neutral-900 whitespace-pre-wrap break-words">
-              {detail?.answer.text ?? "Sin respuesta registrada."}
-            </p>
+            {isLoadingAnswer ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-6 h-6 text-neutral-500 animate-spin" />
+              </div>
+            ) : answerError ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+                <AlertCircle className="w-8 h-8 text-danger-600" />
+                <p className="text-sm font-medium text-neutral-800">
+                  {answerError}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void reload()}
+                  className="px-4 py-2 bg-neutral-900 text-white text-xs font-label uppercase tracking-label font-bold hover:bg-neutral-800 transition-colors cursor-pointer"
+                >
+                  Reintentar
+                </button>
+              </div>
+            ) : (
+              <p className="font-sans font-normal text-body leading-[26px] text-neutral-900 whitespace-pre-wrap break-words">
+                {detail?.answer.text ?? "Sin respuesta registrada."}
+              </p>
+            )}
           </div>
         </section>
 
@@ -307,19 +328,46 @@ export function SubmissionAuditPage() {
             aria-live="polite"
             className="w-full flex flex-col gap-4 overflow-y-auto max-h-[434px] pr-2"
           >
-            {isGrading && (
-              <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-                <Loader2 className="w-8 h-8 text-teal-700 animate-spin" />
-                <p className="text-sm font-medium text-neutral-800">
-                  La IA está corrigiendo esta respuesta…
-                </p>
-                <span className="font-label text-xs text-neutral-650">
-                  Esto puede tomar unos segundos
-                </span>
+            {isLoadingAnswer ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-6 h-6 text-teal-700 animate-spin" />
               </div>
-            )}
-
-            {isFailed && (
+            ) : answerError ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center gap-2">
+                <p className="text-sm text-neutral-650 italic">
+                  No se pudo cargar la evaluación de esta pregunta.
+                </p>
+              </div>
+            ) : isGrading ? (
+              pollAttempts >= MAX_POLL_ATTEMPTS ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
+                  <AlertCircle className="w-8 h-8 text-neutral-500" />
+                  <p className="text-sm font-medium text-neutral-800 max-w-xs">
+                    La corrección está tardando más de lo esperado.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPollAttempts(0);
+                      void reload();
+                    }}
+                    className="px-4 py-2 bg-teal-700 text-white text-xs font-label uppercase tracking-label font-bold hover:bg-teal-800 transition-colors cursor-pointer"
+                  >
+                    Actualizar
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
+                  <Loader2 className="w-8 h-8 text-teal-700 animate-spin" />
+                  <p className="text-sm font-medium text-neutral-800">
+                    La IA está corrigiendo esta respuesta…
+                  </p>
+                  <span className="font-label text-xs text-neutral-650">
+                    Esto puede tomar unos segundos
+                  </span>
+                </div>
+              )
+            ) : isFailed ? (
               <div className="flex flex-col items-center justify-center py-12 text-center gap-3 p-4 bg-danger-50 border border-danger-200">
                 <AlertCircle className="w-8 h-8 text-danger-600 shrink-0" />
                 <div className="flex flex-col gap-1">
@@ -333,9 +381,7 @@ export function SubmissionAuditPage() {
                   )}
                 </div>
               </div>
-            )}
-
-            {isGraded && (
+            ) : isGraded ? (
               <>
                 {/* aiFeedback en bloque destacado */}
                 {detail?.answer.aiFeedback && (
@@ -365,6 +411,10 @@ export function SubmissionAuditPage() {
                   </p>
                 )}
               </>
+            ) : (
+              <p className="text-sm text-neutral-650 italic">
+                No hay información de evaluación disponible.
+              </p>
             )}
           </div>
         </section>
