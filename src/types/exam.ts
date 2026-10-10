@@ -42,3 +42,35 @@ export interface ExamConfigFormState {
   isValid: boolean;
   isDirty: boolean;
 }
+
+export type Question = {
+  questionId: string;
+  order: number;
+  title: string;
+  prompt: string;
+  points: number;
+  idealAnswer: string;
+  createdAt?: string;
+  type?: QuestionType;
+};
+
+export type QuestionType = "essay";
+
+export type StudentQuestion = Omit<Question, "idealAnswer">;
+
+export interface ExamSummaryMetadata {
+  title: string;
+  subjectName: string;
+  totalQuestions: number;
+  totalPoints: number;
+}
+
+// TODO: Vincular con ReplaceQuestionsDto y getExam({ examId }) del backend al integrar Firebase Callable Functions.
+export type { ExamDetail } from "./examDto";
+
+export interface QuestionEditorState {
+  questions: Question[];
+  editingQuestionId: string | null;
+  isCreating: boolean;
+  errors: Record<string, Record<string, string>>;
+}

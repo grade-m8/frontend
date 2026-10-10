@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import { useAuth } from "@/hooks/useAuth.ts";
-import { mapErrorMessage } from "@/services/error.ts";
+import { mapAuthErrorMessage } from "@/services/error.ts";
 import firebase from "firebase/compat/app";
 
 export default function LandingPage() {
@@ -28,7 +28,7 @@ export default function LandingPage() {
         navigate("/materias");
       })
       .catch(function (error: firebase.FirebaseError) {
-        const message = mapErrorMessage(error.code);
+        const message = mapAuthErrorMessage(error.code);
         toast.error(message);
       });
   }

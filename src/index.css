@@ -150,6 +150,10 @@
   --color-destructive: var(--color-action-danger);
   --color-destructive-foreground: #ffffff;
 
+  --color-action-danger: var(--color-danger-400);
+  --color-action-danger-hover: var(--color-danger-600);
+  --color-action-danger-press: var(--color-danger-800);
+
   --color-border: var(--color-border-default);
   --color-input: var(--color-border-default);
   --color-ring: var(--color-focus-ring);

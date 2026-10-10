@@ -5,6 +5,11 @@ import ProtectedRoutes from "@/routes/ProtectedRoutes.tsx";
 import RedirectIfAuthenticated from "@/routes/RedirectIfAuthenticated.tsx";
 import SubjectExamsPage from "@/pages/Subjects/SubjectExamsPage";
 import ErrorPage from "@/pages/ErrorPage.tsx";
+import { ExamConfigPage } from "@/pages/exams/ExamEditor";
+import { QuestionEditorPage } from "@/pages/exams/QuestionEditorPage.tsx";
+import { SubmissionAuditPage } from "@/pages/exams/SubmissionAuditPage.tsx";
+import { ExamSubmissionsPage } from "@/pages/exams/ExamSubmissionsPage.tsx";
+import { TakeExamPage } from "@/pages/student/TakeExamPage.tsx";
 
 export default function AppRouter() {
   return (
@@ -13,9 +18,32 @@ export default function AppRouter() {
         <Route element={<RedirectIfAuthenticated />}>
           <Route path="/" element={<LandingPage />} />
         </Route>
-
+        <Route element={<ProtectedRoutes allowedRoles={["Professor"]} />}>
+          <Route path="/teacher/exams/new" element={<ExamConfigPage />} />
+          <Route
+            path="/teacher/exams/:examId/config"
+            element={<ExamConfigPage />}
+          />
+          <Route
+            path="/teacher/exams/:examId/questions"
+            element={<QuestionEditorPage />}
+          />
+          <Route
+            path="/teacher/exams/:examId/submissions"
+            element={<ExamSubmissionsPage />}
+          />
+          <Route
+            path="/teacher/submissions/:submissionId"
+            element={<SubmissionAuditPage />}
+          />
+        </Route>
+        <Route element={<ProtectedRoutes allowedRoles={["Student"]} />}>
+          <Route
+            path="/student/exams/:examId/take"
+            element={<TakeExamPage />}
+          />
+        </Route>
         <Route path="/403" element={<ErrorPage />} />
-
         <Route
           element={
             <ProtectedRoutes allowedRoles={["Student", "Admin", "Professor"]} />

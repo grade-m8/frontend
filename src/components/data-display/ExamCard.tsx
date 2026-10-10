@@ -19,14 +19,24 @@ interface ExamCardProps {
   actionLabel?: string;
   iconSrc?: string;
   onActionClick?: () => void; // conexión al detalle del examen
+  actionDisabled?: boolean; // deshabilita el botón
 }
 
 function getStatusClass(status: string) {
-  if (status === "CORREGIDO") return "border-teal-700 bg-teal-50 text-teal-700";
-  if (status === "PENDIENTE")
+  if (status === "CORREGIDO" || status === "PUBLICADO" || status === "EN CURSO")
+    return "border-teal-700 bg-teal-50 text-teal-700";
+  if (status === "EN REVISIÓN" || status === "PENDIENTE DE APROBACIÓN")
+    return "border-neutral-650 bg-neutral-50 text-neutral-650";
+  if (
+    status === "PENDIENTE" ||
+    status === "IA NO DISPONIBLE" ||
+    status === "CERRADO"
+  )
     return "border-danger-500 bg-danger-50 text-danger-500";
   if (status === "REVISIÓN IA")
     return "border-blue-600 bg-blue-50 text-blue-600";
+  if (status === "BORRADOR")
+    return "border-neutral-500 bg-neutral-100 text-neutral-700";
   return "border-danger-500 bg-danger-50 text-danger-500";
 }
 
@@ -39,6 +49,7 @@ export function ExamCard({
   actionLabel = "Ir Al Examen",
   iconSrc = fx,
   onActionClick,
+  actionDisabled = false,
 }: ExamCardProps) {
   const statusClass = getStatusClass(status);
   const showBadgeIcon = status === "REVISIÓN IA";
@@ -81,6 +92,7 @@ export function ExamCard({
       <CardFooter className="bg-card p-4">
         <Button
           onClick={onActionClick}
+          disabled={actionDisabled}
           className="h-13 w-full text-base font-bold hover:border-teal-700 hover:bg-card hover:text-teal-700"
         >
           {actionLabel}
