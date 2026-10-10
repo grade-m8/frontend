@@ -16,6 +16,7 @@ import { getExam } from "@/services/examService.ts";
 import { useAnswerDetail } from "@/hooks/useAnswerDetail.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import { getApiErrorMessage } from "@/services/error.ts";
+import { useAuth } from "@/hooks/useAuth";
 
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLL_ATTEMPTS = 60;
@@ -23,6 +24,9 @@ const MAX_POLL_ATTEMPTS = 60;
 export function SubmissionAuditPage() {
   const { submissionId } = useParams<{ submissionId: string }>();
   const navigate = useNavigate();
+
+  const { role } = useAuth();
+  const isStudent = role === "Student";
 
   const [examTitle, setExamTitle] = useState<string>("");
   const [studentId, setStudentId] = useState<string>("");
@@ -32,7 +36,7 @@ export function SubmissionAuditPage() {
 
   const [isLoadingInitial, setIsLoadingInitial] = useState<boolean>(true);
   const [initialError, setInitialError] = useState<
-    "not-found" | "generic" | null
+    "not-found" | "not-approved" | "generic" | null
   >(null);
 
   const {
@@ -56,6 +60,18 @@ export function SubmissionAuditPage() {
       const submissionData = await getSubmission(submissionId);
       setStudentId(submissionData.submission.studentId);
 
+      // Modo alumno: solo se muestra el resultado si el docente ya aprobó.
+      // Se corta antes de seleccionar una pregunta para que useAnswerDetail
+      // no pida el detalle (ni se active el sondeo).
+      if (
+        isStudent &&
+        submissionData.submission.status !== "reviewed" &&
+        submissionData.submission.status !== "error"
+      ) {
+        setInitialError("not-approved");
+        return;
+      }
+
       const examData = await getExam(submissionData.submission.examId);
       setExamTitle(examData.exam.title);
 
@@ -69,6 +85,12 @@ export function SubmissionAuditPage() {
       }
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : "";
+
+      if (isStudent && errorMsg === "GRADING_NOT_APPROVED") {
+        setInitialError("not-approved");
+        return;
+      }
+
       if (
         errorMsg === "NOT_PROFESSOR_EXAM" ||
         errorMsg === "NOT_SUBMISSION_OWNER" ||
@@ -95,7 +117,7 @@ export function SubmissionAuditPage() {
     } finally {
       setIsLoadingInitial(false);
     }
-  }, [submissionId, navigate]);
+  }, [submissionId, navigate, isStudent]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -150,6 +172,25 @@ export function SubmissionAuditPage() {
         <p className="text-body text-neutral-600 mb-6">
           No se encontró la entrega solicitada o fue eliminada.
         </p>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white text-xs font-label uppercase tracking-label font-bold hover:bg-neutral-800 transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Volver
+        </button>
+      </div>
+    );
+  }
+
+  if (initialError === "not-approved") {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
+        <AlertCircle className="w-12 h-12 text-neutral-400 mb-4" />
+        <h2 className="text-h2 font-bold text-neutral-900 mb-2">
+          Tu docente todavía no aprobó la corrección de este examen.
+        </h2>
         <button
           type="button"
           onClick={() => navigate(-1)}
