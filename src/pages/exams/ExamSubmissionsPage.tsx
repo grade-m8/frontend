@@ -6,16 +6,13 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { SubmissionCard } from "@/components/data-display/SubmissionCard";
 import { Button } from "@/components/ui/button";
 import { getExam } from "@/services/examService.ts";
-import { listSubmissionsForExam } from "@/services/submissionService.ts";
+import {
+  approveAllForExam,
+  listSubmissionsForExam,
+} from "@/services/submissionService.ts";
 import { getApiErrorMessage } from "@/services/error.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import type { Submission } from "@/types/submission";
-
-const MOCK_APPROVE_DELAY_MS = 600;
-
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 type LoadResult =
   | {
@@ -86,21 +83,29 @@ export function ExamSubmissionsPage() {
   ).length;
 
   const handleApproveAll = async () => {
+    if (isApproving) return;
+    if (isApproving) return;
     setIsApproving(true);
     try {
-      await wait(MOCK_APPROVE_DELAY_MS);
+      const { approved } = await approveAllForExam(examId as string);
+      toast.success(
+        approved === 0
+          ? "No había entregas para aprobar."
+          : `Se aprobaron ${approved} entregas`,
+      );
+      const submissionList = await listSubmissionsForExam(examId as string);
       setLoaded((prev) =>
         prev && prev.status === "success"
-          ? {
-              ...prev,
-              submissions: prev.submissions.map((s) =>
-                s.status === "awaiting_approval"
-                  ? { ...s, status: "reviewed" }
-                  : s,
-              ),
-            }
+          ? { ...prev, submissions: submissionList }
           : prev,
       );
+    } catch (err: unknown) {
+      const code = err instanceof Error ? err.message : "";
+      if (code === "NOT_PROFESSOR_EXAM") {
+        navigate("/403");
+        return;
+      }
+      toast.error(getApiErrorMessage(err));
     } finally {
       setIsApproving(false);
     }
