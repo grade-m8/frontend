@@ -17,6 +17,7 @@ import { useAnswerDetail } from "@/hooks/useAnswerDetail.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import { getApiErrorMessage } from "@/services/error.ts";
 import { useAuth } from "@/hooks/useAuth.ts";
+import ErrorPage from "@/pages/ErrorPage.tsx";
 
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLL_ATTEMPTS = 60;
@@ -183,20 +184,10 @@ export function SubmissionAuditPage() {
 
   if (initialError === "not-approved") {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
-        <AlertCircle className="w-12 h-12 text-neutral-400 mb-4" />
-        <h2 className="text-h2 font-bold text-neutral-900 mb-2">
-          Tu docente todavía no aprobó la corrección de este examen.
-        </h2>
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white text-xs font-label uppercase tracking-label font-bold hover:bg-neutral-800 transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Volver
-        </button>
-      </div>
+      <ErrorPage
+        title="Corrección no disponible"
+        message="Tu docente todavía no aprobó la corrección de este examen. Cuando la apruebe vas a poder ver tu resultado."
+      />
     );
   }
 
