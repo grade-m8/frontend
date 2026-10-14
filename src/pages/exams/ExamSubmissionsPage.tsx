@@ -12,14 +12,14 @@ import {
 } from "@/services/submissionService.ts";
 import { getApiErrorMessage } from "@/services/error.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
-import type { Submission } from "@/types/submission";
+import type { SubmissionWithStudent } from "@/types/submission";
 
 type LoadResult =
   | {
       status: "success";
       examId: string | undefined;
       examTitle: string;
-      submissions: Submission[];
+      submissions: SubmissionWithStudent[];
     }
   | { status: "not-found"; examId: string | undefined }
   | { status: "error"; examId: string | undefined };
