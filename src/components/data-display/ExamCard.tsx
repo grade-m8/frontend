@@ -74,8 +74,15 @@ export function ExamCard({
             {status}
           </Badge>
         </div>
-        <h3 className="text-h2 font-bold text-neutral-900">{title}</h3>
-        <p className="text-body text-neutral-650">{studentLabel}</p>
+        <h3
+          className="truncate text-h2 font-bold text-neutral-900"
+          title={title}
+        >
+          {title}
+        </h3>
+        <p className="truncate text-body text-neutral-650" title={studentLabel}>
+          {studentLabel}
+        </p>
       </CardHeader>
 
       <CardContent className="flex items-end justify-between border-t border-b border-neutral-650 mx-6 px-0 py-6">

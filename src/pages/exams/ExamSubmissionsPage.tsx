@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { SubmissionCard } from "@/components/data-display/SubmissionCard";
@@ -19,6 +19,7 @@ type LoadResult =
       status: "success";
       examId: string | undefined;
       examTitle: string;
+      subjectId: string;
       submissions: Submission[];
     }
   | { status: "not-found"; examId: string | undefined }
@@ -38,6 +39,8 @@ export function ExamSubmissionsPage() {
   const hasError = current?.status === "error";
   const examTitle =
     current?.status === "success" ? current.examTitle : undefined;
+  const subjectId =
+    current?.status === "success" ? current.subjectId : undefined;
   const submissions = current?.status === "success" ? current.submissions : [];
 
   const loadData = useCallback(() => {
@@ -51,6 +54,7 @@ export function ExamSubmissionsPage() {
           status: "success",
           examId,
           examTitle: examDetail.exam.title,
+          subjectId: examDetail.exam.subjectId,
           submissions: submissionList,
         });
       })
@@ -111,12 +115,26 @@ export function ExamSubmissionsPage() {
     }
   };
 
+  const handleBack = () => {
+    navigate(subjectId ? `/materias/${subjectId}/examenes` : "/materias");
+  };
+
   const handleOpenSubmission = (submissionId: string) => {
     navigate(`/teacher/submissions/${submissionId}`);
   };
 
   return (
     <>
+      <div className="px-6 pt-6">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="flex items-center gap-1.5 text-xs font-medium text-neutral-650 hover:text-neutral-900 transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Volver a la materia
+        </button>
+      </div>
       <PageHeader
         title={examTitle ?? ""}
         subtitle="Entregas y corrección con IA"
