@@ -1,14 +1,10 @@
 import { useState } from "react";
-import { ChevronDown, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { AICallout } from "@/components/data-display/AICallout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  DEFAULT_QUESTION_TYPE,
-  QUESTION_TYPE_OPTIONS,
-} from "@/lib/questionTypes";
-import type { Question, QuestionType } from "@/types/exam.ts";
+import type { Question } from "@/types/exam.ts";
 import type { QuestionCardProps } from "@/components/forms/QuestionCard";
 import { Badge } from "@/components/ui/badge.tsx";
 
@@ -20,8 +16,6 @@ type QuestionEditFormProps = Pick<
 const ERROR_CLASS =
   "aria-invalid:border-danger-500 aria-invalid:ring-3 aria-invalid:ring-danger-500/20 dark:aria-invalid:border-danger-500 dark:aria-invalid:ring-danger-500/20";
 const INPUT_CLASS = `h-10 rounded-md border border-b-2 border-neutral-900 bg-card px-3 text-body text-neutral-900 outline-none focus-visible:border-teal-600 ${ERROR_CLASS}`;
-const SELECT_CLASS =
-  "h-11 w-full cursor-pointer appearance-none rounded-md border border-b-2 border-neutral-900 bg-card px-3 pr-10 text-body text-neutral-900 outline-none";
 const TEXTAREA_CLASS = `min-h-[90px] w-full resize-y rounded-md border border-neutral-300 bg-card p-3 text-body text-neutral-900 outline-none placeholder:text-neutral-650 focus-visible:ring-3 focus-visible:ring-ring/50 ${ERROR_CLASS}`;
 // AICallout no expone clases, así que el estado de error se pinta desde este
 // wrapper apuntando a su contenedor y a su textarea.
@@ -92,7 +86,6 @@ export function QuestionEditForm({
     if (Object.keys(errors).length > 0) return;
     onSave({
       ...draft,
-      type: draft.type ?? DEFAULT_QUESTION_TYPE,
       title: draft.title.trim(),
     });
   };
@@ -185,32 +178,6 @@ export function QuestionEditForm({
           id={`question-prompt-error-${questionId}`}
           message={visibleErrors.prompt}
         />
-      </div>
-
-      <div className="flex items-center gap-3">
-        <Label
-          htmlFor={`question-type-${questionId}`}
-          className="label-micro text-neutral-900"
-        >
-          Tipo:
-        </Label>
-        <div className="relative w-56">
-          <select
-            id={`question-type-${questionId}`}
-            value={draft.type ?? DEFAULT_QUESTION_TYPE}
-            onChange={(e) =>
-              updateDraft({ type: e.target.value as QuestionType })
-            }
-            className={SELECT_CLASS}
-          >
-            {QUESTION_TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-5 w-5 -translate-y-1/2 text-neutral-650" />
-        </div>
       </div>
 
       <div

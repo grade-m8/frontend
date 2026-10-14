@@ -51,10 +51,7 @@ export type Question = {
   points: number;
   idealAnswer: string;
   createdAt?: string;
-  type?: QuestionType;
 };
-
-export type QuestionType = "essay";
 
 export type StudentQuestion = Omit<Question, "idealAnswer">;
 
