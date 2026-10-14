@@ -1,4 +1,5 @@
 import type { Question, StudentQuestion } from "@/types/exam.ts";
+import type { SubmissionStudent } from "@/types/submission.ts";
 
 export type AnswerGradingStatus =
   "pending" | "queued" | "grading" | "graded" | "failed";
@@ -49,6 +50,7 @@ export type AuditSubmissionDetail = {
     submissionId: string;
     examId: string;
     studentId: string;
+    student: SubmissionStudent | null;
     status:
       | "in_progress"
       | "submitted"
