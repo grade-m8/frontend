@@ -118,7 +118,7 @@ export default function SubjectsPage() {
             </p>
           </div>
         ) : (
-          <div className="mt-4 grid grid-cols-1 gap-4 pb-12 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-4 grid grid-cols-1 gap-4 pb-12 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
             {filteredSubjects.map((s) => (
               <SubjectCard
                 key={s.subjectId}
