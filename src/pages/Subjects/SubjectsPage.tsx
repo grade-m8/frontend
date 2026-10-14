@@ -1,5 +1,5 @@
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Plus, LayoutGrid, Search, Loader2, LogOut } from "lucide-react";
+import { LayoutGrid, Search, Loader2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Input } from "@/components/ui/input";
@@ -75,19 +75,6 @@ export default function SubjectsPage() {
             >
               <LogOut className="h-4 w-4" />
               Cerrar Sesión
-            </Button>
-            <Button
-              className="gap-2 h-12 font-bold"
-              onClick={() => {
-                if (authContext.role === "Student") {
-                  setIsModalOpen(true);
-                }
-              }}
-            >
-              <Plus className="h-4 w-4" />
-              {authContext.role === "Student"
-                ? "Inscribir nueva materia"
-                : "Crear nueva materia"}
             </Button>
           </div>
         }
