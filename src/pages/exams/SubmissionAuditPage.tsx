@@ -255,12 +255,7 @@ export function SubmissionAuditPage() {
         </div>
         {/*Points*/}
         <div className="flex flex-col sm:items-end gap-1 shrink-0">
-          <span
-            className={cn(
-              "font-label text-xs font-medium uppercase tracking-label-wide leading-none sm:text-right",
-              isStudent ? "text-blue-600" : "text-neutral-650",
-            )}
-          >
+          <span className="font-label text-xs font-medium uppercase tracking-label-wide leading-none sm:text-right text-neutral-650">
             {isStudent ? "CALIFICACIÓN" : "CALIFICACIÓN SUGERIDA (IA)"}
           </span>
 
