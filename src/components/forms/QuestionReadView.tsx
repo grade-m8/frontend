@@ -2,7 +2,6 @@ import { Pencil, Trash2 } from "lucide-react";
 import { AICallout } from "@/components/data-display/AICallout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getQuestionTypeOption } from "@/lib/questionTypes";
 import type { Question } from "@/types/exam.ts";
 
 interface QuestionReadViewProps {
@@ -18,8 +17,6 @@ export function QuestionReadView({
   onEdit,
   onDelete,
 }: QuestionReadViewProps) {
-  const typeOption = getQuestionTypeOption(question);
-
   return (
     <div className="border border-neutral-300 rounded-lg p-6 bg-surface-card shadow-soft space-y-4">
       <div className="flex items-start justify-between gap-4 border-b border-neutral-200 pb-4">
@@ -35,12 +32,6 @@ export function QuestionReadView({
               ? "Pregunta sin título"
               : question.title}
           </h3>
-          <Badge
-            variant="outline"
-            className="h-5.5 rounded-sm border-neutral-200 bg-card px-2 py-0.5 font-sans text-micro tracking-label text-neutral-650 uppercase"
-          >
-            {typeOption.badge}
-          </Badge>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <span className="text-sm font-semibold text-neutral-700">

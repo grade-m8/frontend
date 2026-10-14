@@ -5,7 +5,6 @@ import { getApiErrorMessage } from "@/services/error.ts";
 import { Plus, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { DEFAULT_QUESTION_TYPE } from "@/lib/questionTypes";
 import type { Question } from "@/types/exam.ts";
 import { WizardStepper } from "@/components/layout/WizardStepper.tsx";
 import QuestionCard from "@/components/forms/QuestionCard.tsx";
@@ -20,7 +19,6 @@ function createDraftQuestion(): Question {
     prompt: "",
     order: 1,
     points: 0,
-    type: DEFAULT_QUESTION_TYPE,
     idealAnswer: "",
   };
 }
@@ -142,7 +140,6 @@ export function QuestionEditorPage() {
       prompt: q.prompt,
       points: Number(q.points),
       idealAnswer: q.idealAnswer,
-      type: q.type,
     }));
 
     if (!examId) return;
