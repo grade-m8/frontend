@@ -1,10 +1,12 @@
 import { apiClient } from "@/services/apiClient.ts";
-import type { Submission } from "@/types/submission";
+import type { SubmissionWithStudent } from "@/types/submission";
 
 export async function listSubmissionsForExam(
   examId: string,
-): Promise<Submission[]> {
-  return apiClient.get<Submission[]>(`/submissions/by-exam/${examId}`);
+): Promise<SubmissionWithStudent[]> {
+  return apiClient.get<SubmissionWithStudent[]>(
+    `/submissions/by-exam/${examId}`,
+  );
 }
 
 export async function approveAllForExam(
