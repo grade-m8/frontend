@@ -7,14 +7,18 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
-import { SUBMISSION_STATUS_LABELS, type Submission } from "@/types/submission";
+import {
+  SUBMISSION_STATUS_LABELS,
+  type SubmissionWithStudent,
+} from "@/types/submission";
+import { formatStudentLabel } from "@/lib/studentLabel";
 
 interface SubmissionCardProps {
-  submission: Submission;
+  submission: SubmissionWithStudent;
   onOpen: (submissionId: string) => void;
 }
 
-function getStatusClass(status: Submission["status"]) {
+function getStatusClass(status: SubmissionWithStudent["status"]) {
   if (status === "reviewed") return "border-teal-700 bg-teal-50 text-teal-700";
   if (status === "grading" || status === "awaiting_approval")
     return "border-blue-600 bg-blue-50 text-blue-600";
@@ -26,7 +30,7 @@ function getStatusClass(status: Submission["status"]) {
 export function SubmissionCard({ submission, onOpen }: SubmissionCardProps) {
   const {
     submissionId,
-    studentId,
+    student,
     status,
     gradedCount,
     questionCount,
@@ -34,6 +38,7 @@ export function SubmissionCard({ submission, onOpen }: SubmissionCardProps) {
     totalPossible,
   } = submission;
 
+  const studentLabel = formatStudentLabel(student);
   const statusLabel = SUBMISSION_STATUS_LABELS[status];
   const showScore = status === "awaiting_approval" || status === "reviewed";
 
@@ -43,9 +48,9 @@ export function SubmissionCard({ submission, onOpen }: SubmissionCardProps) {
         <div className="flex min-w-0 items-start justify-between gap-2">
           <h3
             className="min-w-0 truncate text-h2 font-bold text-neutral-900"
-            title={`Alumno: ${studentId}`}
+            title={studentLabel}
           >
-            Alumno: {studentId}
+            {studentLabel}
           </h3>
           <Badge
             variant="outline"

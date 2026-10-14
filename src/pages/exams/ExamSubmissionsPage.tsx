@@ -12,7 +12,7 @@ import {
 } from "@/services/submissionService.ts";
 import { getApiErrorMessage } from "@/services/error.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
-import type { Submission } from "@/types/submission";
+import type { SubmissionWithStudent } from "@/types/submission";
 
 type LoadResult =
   | {
@@ -20,7 +20,7 @@ type LoadResult =
       examId: string | undefined;
       examTitle: string;
       subjectId: string;
-      submissions: Submission[];
+      submissions: SubmissionWithStudent[];
     }
   | { status: "not-found"; examId: string | undefined }
   | { status: "error"; examId: string | undefined };
@@ -87,7 +87,6 @@ export function ExamSubmissionsPage() {
   ).length;
 
   const handleApproveAll = async () => {
-    if (isApproving) return;
     if (isApproving) return;
     setIsApproving(true);
     try {
