@@ -18,6 +18,8 @@ import { toast } from "@/components/handler/toastHandler.tsx";
 import { getApiErrorMessage } from "@/services/error.ts";
 import { useAuth } from "@/hooks/useAuth.ts";
 import ErrorPage from "@/pages/ErrorPage.tsx";
+import { formatStudentLabel } from "@/lib/studentLabel.ts";
+import type { SubmissionStudent } from "@/types/submission.ts";
 
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLL_ATTEMPTS = 60;
@@ -30,7 +32,7 @@ export function SubmissionAuditPage() {
   const isStudent = role === "Student";
 
   const [examTitle, setExamTitle] = useState<string>("");
-  const [studentId, setStudentId] = useState<string>("");
+  const [student, setStudent] = useState<SubmissionStudent | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>("");
   const [pollAttempts, setPollAttempts] = useState<number>(0);
@@ -59,7 +61,7 @@ export function SubmissionAuditPage() {
 
     try {
       const submissionData = await getSubmission(submissionId);
-      setStudentId(submissionData.submission.studentId);
+      setStudent(submissionData.submission.student);
 
       if (
         isStudent &&
@@ -249,7 +251,7 @@ export function SubmissionAuditPage() {
           </h2>
           {!isStudent && (
             <p className="text-body text-neutral-650 font-normal">
-              Alumno: {studentId}
+              Alumno: {formatStudentLabel(student)}
             </p>
           )}
         </div>
