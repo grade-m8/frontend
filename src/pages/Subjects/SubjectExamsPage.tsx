@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Loader2, Plus } from "lucide-react";
+import { ArrowLeft, Loader2, Plus } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { ExamCard } from "@/components/data-display/ExamCard";
@@ -125,6 +125,16 @@ export default function SubjectExamsPage() {
 
   return (
     <>
+      <div className="px-6 pt-6">
+        <button
+          type="button"
+          onClick={() => navigate("/materias")}
+          className="flex items-center gap-1.5 text-xs font-medium text-neutral-650 hover:text-neutral-900 transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Volver a materias
+        </button>
+      </div>
       <PageHeader
         title={subjectName ?? ""}
         subtitle="Resumen de evaluaciones y métricas académicas en tiempo real"
