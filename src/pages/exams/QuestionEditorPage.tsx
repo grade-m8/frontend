@@ -227,11 +227,16 @@ export function QuestionEditorPage() {
       </div>
 
       <div className="mt-8 flex items-center justify-between border-t border-neutral-300 pt-6">
-        <Button variant="outline" onClick={handleBack} disabled={isPublishing}>
+        <Button
+          variant="outline"
+          onClick={handleBack}
+          disabled={isPublishing}
+          className="h-12 min-w-[186px] gap-2 px-6 text-base font-bold cursor-pointer"
+        >
           Volver a las rúbricas
         </Button>
         <Button
-          className="font-bold"
+          className="h-12 w-[366px] gap-2 text-base font-bold cursor-pointer"
           onClick={handlePublish}
           disabled={isPublishing}
         >

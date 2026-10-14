@@ -293,15 +293,20 @@ export function ExamConfigPage() {
           }))
         }
       />
-      <div className="flex justify-end gap-4 border-t border-neutral-300 pt-6">
+      <div className="flex items-center justify-between border-t border-neutral-300 pt-6">
         <Button
           variant="outline"
           onClick={() => navigate("/materias")}
           disabled={isSubmitting}
+          className="h-12 min-w-[186px] gap-2 px-6 text-base font-bold cursor-pointer"
         >
           Cancelar
         </Button>
-        <Button onClick={handleContinue} disabled={isSubmitting}>
+        <Button
+          onClick={handleContinue}
+          disabled={isSubmitting}
+          className="h-12 w-[366px] gap-2 text-base font-bold cursor-pointer"
+        >
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
           {isSubmitting ? "Guardando..." : "Continuar al editor de preguntas"}
           {!isSubmitting && <ArrowRight className="h-4 w-4" />}
