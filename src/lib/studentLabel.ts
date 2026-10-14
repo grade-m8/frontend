@@ -3,5 +3,5 @@ import type { SubmissionStudent } from "@/types/submission";
 export function formatStudentLabel(student: SubmissionStudent | null): string {
   if (!student) return "Alumno sin datos";
 
-  return `${student.firstName} ${student.lastName} · Legajo ${student.institutionalId}`;
+  return `${student.firstName} ${student.lastName}`;
 }
