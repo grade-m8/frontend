@@ -21,10 +21,6 @@ export default function ErrorPage({
           <img src={logo} alt="Logo Grade-M8" className="w-full h-full" />
         </div>
         <div className="space-y-3">
-          <p className="label-micro text-[var(--color-text-tertiary)]">Error</p>
-          <h1 className="text-display-x1 font-black tracking-tight text-[var(--color-text-brand)]">
-            403
-          </h1>
           <h2 className="text-h1 font-bold text-[var(--color-text-primary)]">
             {title}
           </h2>
