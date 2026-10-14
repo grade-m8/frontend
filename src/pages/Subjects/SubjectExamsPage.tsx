@@ -127,7 +127,7 @@ export default function SubjectExamsPage() {
     <>
       <PageHeader
         title={subjectName ?? ""}
-        subtitle="Resumen de evaluaciones y métricas académicas en tiempo real"
+        subtitle="Resumen de evaluaciones académicas en tiempo real"
         actions={
           !isStudent && (
             <Button className="gap-2 h-12 font-bold" onClick={handleCreateExam}>
