@@ -16,6 +16,10 @@ import { getExam } from "@/services/examService.ts";
 import { useAnswerDetail } from "@/hooks/useAnswerDetail.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import { getApiErrorMessage } from "@/services/error.ts";
+import { useAuth } from "@/hooks/useAuth.ts";
+import ErrorPage from "@/pages/ErrorPage.tsx";
+import { formatStudentLabel } from "@/lib/studentLabel.ts";
+import type { SubmissionStudent } from "@/types/submission.ts";
 
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLL_ATTEMPTS = 60;
@@ -24,15 +28,18 @@ export function SubmissionAuditPage() {
   const { submissionId } = useParams<{ submissionId: string }>();
   const navigate = useNavigate();
 
+  const { role } = useAuth();
+  const isStudent = role === "Student";
+
   const [examTitle, setExamTitle] = useState<string>("");
-  const [studentId, setStudentId] = useState<string>("");
+  const [student, setStudent] = useState<SubmissionStudent | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>("");
   const [pollAttempts, setPollAttempts] = useState<number>(0);
 
   const [isLoadingInitial, setIsLoadingInitial] = useState<boolean>(true);
   const [initialError, setInitialError] = useState<
-    "not-found" | "generic" | null
+    "not-found" | "not-approved" | "generic" | null
   >(null);
 
   const {
@@ -54,7 +61,16 @@ export function SubmissionAuditPage() {
 
     try {
       const submissionData = await getSubmission(submissionId);
-      setStudentId(submissionData.submission.studentId);
+      setStudent(submissionData.submission.student);
+
+      if (
+        isStudent &&
+        submissionData.submission.status !== "reviewed" &&
+        submissionData.submission.status !== "error"
+      ) {
+        setInitialError("not-approved");
+        return;
+      }
 
       const examData = await getExam(submissionData.submission.examId);
       setExamTitle(examData.exam.title);
@@ -69,6 +85,12 @@ export function SubmissionAuditPage() {
       }
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : "";
+
+      if (isStudent && errorMsg === "GRADING_NOT_APPROVED") {
+        setInitialError("not-approved");
+        return;
+      }
+
       if (
         errorMsg === "NOT_PROFESSOR_EXAM" ||
         errorMsg === "NOT_SUBMISSION_OWNER" ||
@@ -95,7 +117,7 @@ export function SubmissionAuditPage() {
     } finally {
       setIsLoadingInitial(false);
     }
-  }, [submissionId, navigate]);
+  }, [submissionId, navigate, isStudent]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -162,6 +184,15 @@ export function SubmissionAuditPage() {
     );
   }
 
+  if (initialError === "not-approved") {
+    return (
+      <ErrorPage
+        title="Corrección no disponible"
+        message="Tu docente todavía no aprobó la corrección de este examen. Cuando la apruebe vas a poder ver tu resultado."
+      />
+    );
+  }
+
   if (initialError === "generic") {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
@@ -188,6 +219,9 @@ export function SubmissionAuditPage() {
     (q) => q.questionId === selectedQuestionId,
   );
   const maxPoints = detail?.question.points ?? currentQuestion?.points ?? "—";
+  const displayedScore = isStudent
+    ? (detail?.answer.finalScore ?? detail?.answer.aiScore)
+    : detail?.answer.aiScore;
 
   return (
     <div className="min-h-screen bg-background">
@@ -202,11 +236,11 @@ export function SubmissionAuditPage() {
               className="flex items-center gap-1.5 text-xs font-medium text-neutral-650 hover:text-neutral-900 transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              Volver a entregas
+              {isStudent ? "Volver" : "Volver a entregas"}
             </button>
             <span className="text-neutral-300">|</span>
             <span className="inline-flex items-center w-fit px-2 py-1 bg-neutral-100 text-neutral-900 font-label text-xs font-medium uppercase tracking-label-wide leading-none">
-              AUDITORÍA Y REVISIÓN
+              {isStudent ? "RESULTADO" : "AUDITORÍA Y REVISIÓN"}
             </span>
           </div>
           <h2
@@ -216,18 +250,18 @@ export function SubmissionAuditPage() {
             {examTitle || "Examen"}
           </h2>
           <p className="text-body text-neutral-650 font-normal">
-            Alumno: {studentId}
+            Alumno: {formatStudentLabel(student)}
           </p>
         </div>
         {/*Points*/}
         <div className="flex flex-col sm:items-end gap-1 shrink-0">
-          <span className="font-label text-xs font-medium uppercase tracking-label-wide leading-none text-neutral-650 sm:text-right">
-            CALIFICACIÓN SUGERIDA (IA)
+          <span className="font-label text-xs font-medium uppercase tracking-label-wide leading-none sm:text-right text-neutral-650">
+            {isStudent ? "CALIFICACIÓN" : "CALIFICACIÓN SUGERIDA (IA)"}
           </span>
 
           <div className="flex items-baseline sm:justify-end">
             <span className="text-display-lg font-bold leading-none tracking-display text-teal-700 sm:text-right">
-              {detail?.answer.aiScore ?? "—"}
+              {displayedScore ?? "—"}
             </span>
             <span className="pl-2 text-h2 font-semibold text-neutral-650 sm:text-right">
               / {maxPoints}
@@ -374,10 +408,16 @@ export function SubmissionAuditPage() {
                   <p className="text-sm font-bold text-danger-900">
                     La IA no pudo corregir esta respuesta.
                   </p>
-                  {detail?.answer.lastGradingError && (
-                    <p className="text-xs text-danger-700 font-mono mt-1">
-                      {detail.answer.lastGradingError}
+                  {isStudent ? (
+                    <p className="text-xs text-danger-700 mt-1">
+                      Consultá con tu docente.
                     </p>
+                  ) : (
+                    detail?.answer.lastGradingError && (
+                      <p className="text-xs text-danger-700 font-mono mt-1">
+                        {detail.answer.lastGradingError}
+                      </p>
+                    )
                   )}
                 </div>
               </div>

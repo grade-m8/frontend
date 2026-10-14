@@ -34,3 +34,14 @@ export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
   reviewed: "Aprobado",
   error: "Error de corrección",
 };
+
+export type SubmissionStudent = {
+  uid: string;
+  firstName: string;
+  lastName: string;
+  institutionalId: string;
+};
+
+export type SubmissionWithStudent = Submission & {
+  student: SubmissionStudent | null;
+};

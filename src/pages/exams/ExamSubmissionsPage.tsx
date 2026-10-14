@@ -1,28 +1,26 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { SubmissionCard } from "@/components/data-display/SubmissionCard";
 import { Button } from "@/components/ui/button";
 import { getExam } from "@/services/examService.ts";
-import { listSubmissionsForExam } from "@/services/submissionService.ts";
+import {
+  approveAllForExam,
+  listSubmissionsForExam,
+} from "@/services/submissionService.ts";
 import { getApiErrorMessage } from "@/services/error.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
-import type { Submission } from "@/types/submission";
-
-const MOCK_APPROVE_DELAY_MS = 600;
-
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import type { SubmissionWithStudent } from "@/types/submission";
 
 type LoadResult =
   | {
       status: "success";
       examId: string | undefined;
       examTitle: string;
-      submissions: Submission[];
+      subjectId: string;
+      submissions: SubmissionWithStudent[];
     }
   | { status: "not-found"; examId: string | undefined }
   | { status: "error"; examId: string | undefined };
@@ -41,6 +39,8 @@ export function ExamSubmissionsPage() {
   const hasError = current?.status === "error";
   const examTitle =
     current?.status === "success" ? current.examTitle : undefined;
+  const subjectId =
+    current?.status === "success" ? current.subjectId : undefined;
   const submissions = current?.status === "success" ? current.submissions : [];
 
   const loadData = useCallback(() => {
@@ -54,6 +54,7 @@ export function ExamSubmissionsPage() {
           status: "success",
           examId,
           examTitle: examDetail.exam.title,
+          subjectId: examDetail.exam.subjectId,
           submissions: submissionList,
         });
       })
@@ -86,24 +87,35 @@ export function ExamSubmissionsPage() {
   ).length;
 
   const handleApproveAll = async () => {
+    if (isApproving) return;
     setIsApproving(true);
     try {
-      await wait(MOCK_APPROVE_DELAY_MS);
+      const { approved } = await approveAllForExam(examId as string);
+      toast.success(
+        approved === 0
+          ? "No había entregas para aprobar."
+          : `Se aprobaron ${approved} entregas`,
+      );
+      const submissionList = await listSubmissionsForExam(examId as string);
       setLoaded((prev) =>
         prev && prev.status === "success"
-          ? {
-              ...prev,
-              submissions: prev.submissions.map((s) =>
-                s.status === "awaiting_approval"
-                  ? { ...s, status: "reviewed" }
-                  : s,
-              ),
-            }
+          ? { ...prev, submissions: submissionList }
           : prev,
       );
+    } catch (err: unknown) {
+      const code = err instanceof Error ? err.message : "";
+      if (code === "NOT_PROFESSOR_EXAM") {
+        navigate("/403");
+        return;
+      }
+      toast.error(getApiErrorMessage(err));
     } finally {
       setIsApproving(false);
     }
+  };
+
+  const handleBack = () => {
+    navigate(subjectId ? `/materias/${subjectId}/examenes` : "/materias");
   };
 
   const handleOpenSubmission = (submissionId: string) => {
@@ -112,6 +124,16 @@ export function ExamSubmissionsPage() {
 
   return (
     <>
+      <div className="px-6 pt-6">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="flex items-center gap-1.5 text-xs font-medium text-neutral-650 hover:text-neutral-900 transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Volver a la materia
+        </button>
+      </div>
       <PageHeader
         title={examTitle ?? ""}
         subtitle="Entregas y corrección con IA"

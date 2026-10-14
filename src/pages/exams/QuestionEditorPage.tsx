@@ -5,7 +5,6 @@ import { getApiErrorMessage } from "@/services/error.ts";
 import { Plus, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { DEFAULT_QUESTION_TYPE } from "@/lib/questionTypes";
 import type { Question } from "@/types/exam.ts";
 import { WizardStepper } from "@/components/layout/WizardStepper.tsx";
 import QuestionCard from "@/components/forms/QuestionCard.tsx";
@@ -20,7 +19,6 @@ function createDraftQuestion(): Question {
     prompt: "",
     order: 1,
     points: 0,
-    type: DEFAULT_QUESTION_TYPE,
     idealAnswer: "",
   };
 }
@@ -142,7 +140,6 @@ export function QuestionEditorPage() {
       prompt: q.prompt,
       points: Number(q.points),
       idealAnswer: q.idealAnswer,
-      type: q.type,
     }));
 
     if (!examId) return;
@@ -230,11 +227,16 @@ export function QuestionEditorPage() {
       </div>
 
       <div className="mt-8 flex items-center justify-between border-t border-neutral-300 pt-6">
-        <Button variant="outline" onClick={handleBack} disabled={isPublishing}>
+        <Button
+          variant="outline"
+          onClick={handleBack}
+          disabled={isPublishing}
+          className="h-12 min-w-[186px] gap-2 px-6 text-base font-bold cursor-pointer"
+        >
           Volver a las rúbricas
         </Button>
         <Button
-          className="font-bold"
+          className="h-12 w-[366px] gap-2 text-base font-bold cursor-pointer"
           onClick={handlePublish}
           disabled={isPublishing}
         >

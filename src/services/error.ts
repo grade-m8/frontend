@@ -42,6 +42,8 @@ const API_ERROR_MESSAGES: Record<string, string> = {
   SUBMISSION_NOT_FOUND: "La entrega no existe.",
   ANSWER_NOT_FOUND: "La respuesta no existe.",
   NOT_SUBMISSION_OWNER: "No tenés permisos sobre esta entrega.",
+  GRADING_NOT_APPROVED:
+    "Tu docente todavía no aprobó la corrección de este examen.",
   EXAM_NOT_PUBLISHED: "El examen todavía no está disponible.",
   SUBMISSION_ALREADY_SUBMITTED: "Este examen ya fue entregado.",
   QUESTIONS_UNANSWERED:
