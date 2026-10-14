@@ -49,6 +49,13 @@ export type AuditSubmissionDetail = {
     submissionId: string;
     examId: string;
     studentId: string;
+    status:
+      | "in_progress"
+      | "submitted"
+      | "grading"
+      | "awaiting_approval"
+      | "reviewed"
+      | "error";
   };
   answers: Answer[];
 };

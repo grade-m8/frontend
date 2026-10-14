@@ -3,7 +3,15 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import logo from "@/assets/logo.svg";
 
-export default function ErrorPage() {
+interface ErrorPageProps {
+  title?: string;
+  message?: string;
+}
+
+export default function ErrorPage({
+  title = "Acceso Denegado",
+  message = "No tenés permiso para acceder a esta página. Si creés que esto es un error, contactate con el administrador.",
+}: ErrorPageProps) {
   const navigate = useNavigate();
 
   return (
@@ -13,16 +21,11 @@ export default function ErrorPage() {
           <img src={logo} alt="Logo Grade-M8" className="w-full h-full" />
         </div>
         <div className="space-y-3">
-          <p className="label-micro text-[var(--color-text-tertiary)]">Error</p>
-          <h1 className="text-display-x1 font-black tracking-tight text-[var(--color-text-brand)]">
-            403
-          </h1>
           <h2 className="text-h1 font-bold text-[var(--color-text-primary)]">
-            Acceso Denegado
+            {title}
           </h2>
           <p className="max-w-md text-body text-[var(--color-text-secondary)]">
-            No tenés permiso para acceder a esta página. Si creés que esto es un
-            error, contactate con el administrador.
+            {message}
           </p>
         </div>
         <Button size="lg" onClick={() => navigate("/materias")}>
