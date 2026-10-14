@@ -40,6 +40,7 @@ export function SubmissionCard({ submission, onOpen }: SubmissionCardProps) {
 
   const studentLabel = formatStudentLabel(student);
   const statusLabel = SUBMISSION_STATUS_LABELS[status];
+  const showScore = status === "awaiting_approval" || status === "reviewed";
 
   return (
     <Card className="h-full rounded-none border border-neutral-650 py-0 shadow-hard ring-0">

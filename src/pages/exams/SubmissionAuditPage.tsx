@@ -249,11 +249,9 @@ export function SubmissionAuditPage() {
           >
             {examTitle || "Examen"}
           </h2>
-          {!isStudent && (
-            <p className="text-body text-neutral-650 font-normal">
-              Alumno: {formatStudentLabel(student)}
-            </p>
-          )}
+          <p className="text-body text-neutral-650 font-normal">
+            Alumno: {formatStudentLabel(student)}
+          </p>
         </div>
         {/*Points*/}
         <div className="flex flex-col sm:items-end gap-1 shrink-0">
