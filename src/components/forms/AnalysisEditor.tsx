@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import type { AnalysisItemInput } from "@/types/audit.ts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ const isValidPoints = (value: string) => {
 export function AnalysisEditor({
   initialItems,
   maxPoints,
+  isSaving = false,
   onSave,
   onCancel,
 }: AnalysisEditorProps) {
@@ -58,6 +60,8 @@ export function AnalysisEditor({
     (item) => item.title.trim() === "" || !isValidPoints(item.points),
   );
   const hasErrors = hasItemErrors || isOverMax;
+  // Solo para mostrar: evita ver sumas como 0.30000000000000004.
+  const displayTotal = Number(total.toFixed(2));
 
   const handleSave = () => {
     onSave(
@@ -148,7 +152,7 @@ export function AnalysisEditor({
               isOverMax ? "text-danger-600" : "text-neutral-900"
             }`}
           >
-            Total: {total} / {maxPoints} pts
+            Total: {displayTotal} / {maxPoints} pts
           </p>
           {isOverMax && (
             <p className="text-sm text-danger-500">
@@ -161,6 +165,7 @@ export function AnalysisEditor({
             type="button"
             variant="outline"
             className="h-13 sm:px-6"
+            disabled={isSaving}
             onClick={onCancel}
           >
             Cancelar
@@ -168,10 +173,17 @@ export function AnalysisEditor({
           <Button
             type="button"
             className="h-13 flex-1 rounded-none bg-teal-700 font-bold tracking-wider text-white uppercase hover:bg-teal-800"
-            disabled={hasErrors}
+            disabled={hasErrors || isSaving}
             onClick={handleSave}
           >
-            Guardar cambios
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                <span>Guardando…</span>
+              </>
+            ) : (
+              "Guardar cambios"
+            )}
           </Button>
         </div>
       </div>
