@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { AnalysisItemInput } from "@/types/audit.ts";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -14,7 +15,12 @@ export interface AnalysisEditorProps {
 // Los puntos se editan como texto para distinguir "vacío" de "0".
 type EditableItem = Omit<AnalysisItemInput, "points"> & { points: string };
 
-export function AnalysisEditor({ initialItems }: AnalysisEditorProps) {
+export function AnalysisEditor({
+  initialItems,
+  maxPoints,
+  onSave,
+  onCancel,
+}: AnalysisEditorProps) {
   const [items, setItems] = useState<EditableItem[]>(() =>
     initialItems.map((item) => ({ ...item, points: String(item.points) })),
   );
@@ -28,6 +34,22 @@ export function AnalysisEditor({ initialItems }: AnalysisEditorProps) {
       prev.map((item) =>
         item.criterionId === criterionId ? { ...item, [field]: value } : item,
       ),
+    );
+  };
+
+  const total = items.reduce(
+    (sum, item) => sum + (Number(item.points) || 0),
+    0,
+  );
+
+  const handleSave = () => {
+    onSave(
+      items.map((item) => ({
+        criterionId: item.criterionId,
+        title: item.title.trim(),
+        description: item.description.trim(),
+        points: Number(item.points),
+      })),
     );
   };
 
@@ -83,6 +105,29 @@ export function AnalysisEditor({ initialItems }: AnalysisEditorProps) {
           </div>
         );
       })}
+
+      <div className="flex flex-col gap-4 border-t border-neutral-650 pt-6">
+        <p className="text-sm font-medium text-neutral-900">
+          Total: {total} / {maxPoints} pts
+        </p>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-13 sm:px-6"
+            onClick={onCancel}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            className="h-13 flex-1 rounded-none bg-teal-700 font-bold tracking-wider text-white uppercase hover:bg-teal-800"
+            onClick={handleSave}
+          >
+            Guardar cambios
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
