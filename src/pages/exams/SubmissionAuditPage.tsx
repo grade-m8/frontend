@@ -6,12 +6,16 @@ import {
   FileText,
   Loader2,
   AlertCircle,
+  Pencil,
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
+import { Button } from "@/components/ui/button";
+import { AnalysisEditor } from "@/components/forms/AnalysisEditor.tsx";
 import { AnalysisItemCard } from "@/components/data-display/AnalysisItemCard.tsx";
 import type { Question } from "@/types/exam.ts";
-import { getSubmission } from "@/services/auditService.ts";
+import type { AnalysisItem, AnalysisItemInput } from "@/types/audit.ts";
+import { getSubmission, updateAnalysis } from "@/services/auditService.ts";
 import { getExam } from "@/services/examService.ts";
 import { useAnswerDetail } from "@/hooks/useAnswerDetail.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
@@ -23,6 +27,24 @@ import type { SubmissionStudent } from "@/types/submission.ts";
 
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLL_ATTEMPTS = 60;
+
+// Ítems vigentes por orden, uno por criterio (si la IA repitió un criterio, gana el primero).
+function toEditableItems(items: AnalysisItem[]): AnalysisItemInput[] {
+  const seen = new Set<string>();
+  return [...items]
+    .sort((a, b) => a.order - b.order)
+    .filter((item) => {
+      if (seen.has(item.criterionId)) return false;
+      seen.add(item.criterionId);
+      return true;
+    })
+    .map(({ criterionId, title, description, points }) => ({
+      criterionId,
+      title,
+      description,
+      points,
+    }));
+}
 
 export function SubmissionAuditPage() {
   const { submissionId } = useParams<{ submissionId: string }>();
@@ -36,6 +58,8 @@ export function SubmissionAuditPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>("");
   const [pollAttempts, setPollAttempts] = useState<number>(0);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const [isLoadingInitial, setIsLoadingInitial] = useState<boolean>(true);
   const [initialError, setInitialError] = useState<
@@ -127,6 +151,27 @@ export function SubmissionAuditPage() {
   function handleSelectQuestion(questionId: string): void {
     setSelectedQuestionId(questionId);
     setPollAttempts(0);
+    setIsEditing(false);
+  }
+
+  async function handleSave(items: AnalysisItemInput[]): Promise<void> {
+    if (isSaving || !submissionId) return;
+
+    setIsSaving(true);
+    try {
+      await updateAnalysis(submissionId, selectedQuestionId, items);
+      toast.success("Corrección guardada.");
+      setIsEditing(false);
+      await reload();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+      if (err instanceof Error && err.message === "ANSWER_NOT_GRADED") {
+        setIsEditing(false);
+        await reload();
+      }
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   const isGrading =
@@ -362,6 +407,16 @@ export function SubmissionAuditPage() {
                 <Cpu className="w-5 h-5 text-teal-700" />
                 <span>Análisis de la IA</span>
               </h3>
+              {!isStudent && isGraded && !isEditing && (
+                <Button
+                  variant="ghost"
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                >
+                  <Pencil className="w-4 h-4" />
+                  Editar
+                </Button>
+              )}
             </div>
           </div>
 
@@ -429,6 +484,15 @@ export function SubmissionAuditPage() {
                   )}
                 </div>
               </div>
+            ) : isGraded && isEditing && detail ? (
+              <AnalysisEditor
+                key={selectedQuestionId}
+                initialItems={toEditableItems(detail.analysisItems)}
+                maxPoints={detail.question.points}
+                isSaving={isSaving}
+                onSave={(items) => void handleSave(items)}
+                onCancel={() => setIsEditing(false)}
+              />
             ) : isGraded ? (
               <>
                 {/* aiFeedback en bloque destacado */}
