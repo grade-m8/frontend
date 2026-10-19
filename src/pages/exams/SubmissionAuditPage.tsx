@@ -219,9 +219,8 @@ export function SubmissionAuditPage() {
     (q) => q.questionId === selectedQuestionId,
   );
   const maxPoints = detail?.question.points ?? currentQuestion?.points ?? "—";
-  const displayedScore = isStudent
-    ? (detail?.answer.finalScore ?? detail?.answer.aiScore)
-    : detail?.answer.aiScore;
+  const displayedScore = detail?.answer.finalScore ?? detail?.answer.aiScore;
+  const isScoreEdited = !isStudent && detail?.answer.teacherEdited;
 
   return (
     <div className="min-h-screen bg-background">
@@ -256,7 +255,11 @@ export function SubmissionAuditPage() {
         {/*Points*/}
         <div className="flex flex-col sm:items-end gap-1 shrink-0">
           <span className="font-label text-xs font-medium uppercase tracking-label-wide leading-none sm:text-right text-neutral-650">
-            {isStudent ? "CALIFICACIÓN" : "CALIFICACIÓN SUGERIDA (IA)"}
+            {isStudent
+              ? "CALIFICACIÓN"
+              : isScoreEdited
+                ? "CALIFICACIÓN (EDITADA)"
+                : "CALIFICACIÓN SUGERIDA (IA)"}
           </span>
 
           <div className="flex items-baseline sm:justify-end">
@@ -267,6 +270,11 @@ export function SubmissionAuditPage() {
               / {maxPoints}
             </span>
           </div>
+          {isScoreEdited && (
+            <span className="text-xs text-neutral-650 sm:text-right">
+              La IA sugirió {detail?.answer.aiScore ?? "—"}
+            </span>
+          )}
         </div>
       </header>
 
