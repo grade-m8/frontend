@@ -1,4 +1,8 @@
-import type { AnswerDetail, AuditSubmissionDetail } from "@/types/audit.ts";
+import type {
+  AnalysisItemInput,
+  AnswerDetail,
+  AuditSubmissionDetail,
+} from "@/types/audit.ts";
 import { apiClient } from "@/services/apiClient.ts";
 
 export function getSubmission(
@@ -13,5 +17,16 @@ export function getAnswerDetail(
 ): Promise<AnswerDetail> {
   return apiClient.get<AnswerDetail>(
     `/submissions/${submissionId}/answers/${questionId}`,
+  );
+}
+
+export function updateAnalysis(
+  submissionId: string,
+  questionId: string,
+  items: AnalysisItemInput[],
+): Promise<AnswerDetail> {
+  return apiClient.put<AnswerDetail>(
+    `/submissions/${submissionId}/answers/${questionId}/analysis`,
+    { items },
   );
 }

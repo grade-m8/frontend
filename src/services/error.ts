@@ -41,6 +41,8 @@ const API_ERROR_MESSAGES: Record<string, string> = {
   unauthenticated: "Tu sesión expiró. Iniciá sesión nuevamente.",
   SUBMISSION_NOT_FOUND: "La entrega no existe.",
   ANSWER_NOT_FOUND: "La respuesta no existe.",
+  ANSWER_NOT_GRADED: "Esta respuesta todavía no fue corregida por la IA.",
+  QUESTION_NOT_FOUND: "La pregunta no pertenece a este examen.",
   NOT_SUBMISSION_OWNER: "No tenés permisos sobre esta entrega.",
   GRADING_NOT_APPROVED:
     "Tu docente todavía no aprobó la corrección de este examen.",
