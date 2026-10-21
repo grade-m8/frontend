@@ -7,6 +7,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
+import { formatScore } from "@/lib/formatScore";
 import {
   SUBMISSION_STATUS_LABELS,
   type SubmissionWithStudent,
@@ -72,7 +73,12 @@ export function SubmissionCard({ submission, onOpen }: SubmissionCardProps) {
         <div className="space-y-0.5 text-right">
           <p className="label-micro text-neutral-650">NOTA</p>
           <p className="text-body font-bold text-teal-700">
-            {showScore ? (totalScore ?? "—") : "—"} / {totalPossible}
+            {showScore
+              ? totalScore != null
+                ? formatScore(totalScore)
+                : "—"
+              : "—"}{" "}
+            / {totalPossible}
           </p>
         </div>
       </CardContent>

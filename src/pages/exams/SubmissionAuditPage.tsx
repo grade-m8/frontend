@@ -22,6 +22,7 @@ import { toast } from "@/components/handler/toastHandler.tsx";
 import { getApiErrorMessage } from "@/services/error.ts";
 import { useAuth } from "@/hooks/useAuth.ts";
 import ErrorPage from "@/pages/ErrorPage.tsx";
+import { formatScore } from "@/lib/formatScore.ts";
 import { formatStudentLabel } from "@/lib/studentLabel.ts";
 import type { SubmissionStudent } from "@/types/submission.ts";
 
@@ -309,7 +310,7 @@ export function SubmissionAuditPage() {
 
           <div className="flex items-baseline sm:justify-end">
             <span className="text-display-lg font-bold leading-none tracking-display text-teal-700 sm:text-right">
-              {displayedScore ?? "—"}
+              {displayedScore != null ? formatScore(displayedScore) : "—"}
             </span>
             <span className="pl-2 text-h2 font-semibold text-neutral-650 sm:text-right">
               / {maxPoints}
@@ -317,7 +318,10 @@ export function SubmissionAuditPage() {
           </div>
           {isScoreEdited && (
             <span className="text-xs text-neutral-650 sm:text-right">
-              La IA sugirió {detail?.answer.aiScore ?? "—"}
+              La IA sugirió{" "}
+              {detail?.answer.aiScore != null
+                ? formatScore(detail.answer.aiScore)
+                : "—"}
             </span>
           )}
         </div>
