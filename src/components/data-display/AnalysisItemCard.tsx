@@ -1,5 +1,6 @@
 import type { AnalysisItem } from "@/types/audit.ts";
 import { cn } from "@/lib/utils";
+import { formatScore } from "@/lib/formatScore";
 
 export interface AnalysisItemCardProps {
   item: AnalysisItem;
@@ -8,8 +9,8 @@ export interface AnalysisItemCardProps {
 export function AnalysisItemCard({ item }: AnalysisItemCardProps) {
   const isPositive = item.points > 0;
   const formattedPoints = isPositive
-    ? `+${item.points} pts`
-    : `${item.points} pts`;
+    ? `+${formatScore(item.points)} pts`
+    : `${formatScore(item.points)} pts`;
 
   return (
     <div
