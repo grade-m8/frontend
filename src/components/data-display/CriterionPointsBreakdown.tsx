@@ -78,11 +78,11 @@ export function CriterionPointsBreakdown({
             >
               <div className="flex items-baseline justify-between gap-4 text-sm">
                 <span
-                  className={
+                  className={`min-w-0 break-words ${
                     hasTitle
                       ? "font-bold text-neutral-900"
                       : "italic text-neutral-650"
-                  }
+                  }`}
                 >
                   {title}
                 </span>
