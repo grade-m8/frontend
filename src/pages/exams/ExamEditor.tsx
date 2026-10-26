@@ -15,6 +15,7 @@ import {
   updateExam,
 } from "@/services/examService.ts";
 import { getApiErrorMessage } from "@/services/error.ts";
+import RubricWeightSummary from "@/components/data-display/RubricWeightSummary.tsx";
 
 const SUGGESTED_CRITERIA: RubricCriterion[] = [
   {
@@ -292,6 +293,7 @@ export function ExamConfigPage() {
             isDirty: true,
           }))
         }
+        footer={<RubricWeightSummary criteria={formState.rubricCriteria} />}
       />
       <div className="flex items-center justify-between border-t border-neutral-300 pt-6">
         <Button
