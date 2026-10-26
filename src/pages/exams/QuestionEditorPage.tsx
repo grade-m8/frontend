@@ -74,6 +74,7 @@ export function QuestionEditorPage() {
 
   const {
     exam,
+    criteria,
     questions: fetchedQuestions,
     isLoading,
     error,
@@ -211,6 +212,7 @@ export function QuestionEditorPage() {
             onCancel={() => handleCancelEdit(question.questionId)}
             onSave={handleSaveQuestion}
             onDelete={handleDeleteQuestion}
+            criteria={criteria ?? []}
           />
         ))}
 
