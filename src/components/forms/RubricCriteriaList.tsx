@@ -2,6 +2,7 @@ import { Plus, SlidersHorizontal, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { RubricCriterionCard } from "@/components/forms/RubricCriterionCard";
 import type { RubricCriterion } from "@/types/exam";
+import type { ReactNode } from "react";
 
 interface RubricCriteriaListProps {
   criteria: RubricCriterion[];
@@ -12,6 +13,7 @@ interface RubricCriteriaListProps {
   ) => void;
   onRemoveCriterion: (criterionId: string) => void;
   showErrors: boolean;
+  footer?: ReactNode;
 }
 
 export function RubricCriteriaList({
@@ -20,6 +22,7 @@ export function RubricCriteriaList({
   onUpdateCriterion,
   onRemoveCriterion,
   showErrors,
+  footer,
 }: RubricCriteriaListProps) {
   // TODO: Al conectar con el backend, estos criterios se enviarán mediante la
   // Callable Function replaceCriteria({ examId, criteria })
@@ -68,6 +71,7 @@ export function RubricCriteriaList({
           showErrors={showErrors}
         />
       ))}
+      {footer}
       <button
         type="button"
         onClick={handleAddCriterion}
