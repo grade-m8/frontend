@@ -1,14 +1,16 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { AICallout } from "@/components/data-display/AICallout";
+import { CriterionPointsBreakdown } from "@/components/data-display/CriterionPointsBreakdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Question } from "@/types/exam.ts";
+import type { Question, RubricCriterion } from "@/types/exam.ts";
 
 interface QuestionReadViewProps {
   question: Question;
   index: number;
   onDelete: (questionId: string) => void;
   onEdit: () => void;
+  criteria?: RubricCriterion[];
 }
 
 export function QuestionReadView({
@@ -16,6 +18,7 @@ export function QuestionReadView({
   index,
   onEdit,
   onDelete,
+  criteria,
 }: QuestionReadViewProps) {
   return (
     <div className="border border-neutral-300 rounded-lg p-6 bg-surface-card shadow-soft space-y-4">
@@ -68,6 +71,16 @@ export function QuestionReadView({
       </div>
 
       <AICallout mode="view" value={question.idealAnswer} />
+
+      {criteria && criteria.length > 0 && (
+        <div className="border-t border-neutral-200 pt-4">
+          <CriterionPointsBreakdown
+            criteria={criteria}
+            questionPoints={question.points}
+            variant="compact"
+          />
+        </div>
+      )}
     </div>
   );
 }
