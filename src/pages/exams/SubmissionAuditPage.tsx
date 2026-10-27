@@ -25,6 +25,9 @@ import ErrorPage from "@/pages/ErrorPage.tsx";
 import { formatScore } from "@/lib/formatScore.ts";
 import { formatStudentLabel } from "@/lib/studentLabel.ts";
 import type { SubmissionStudent } from "@/types/submission.ts";
+import { FailedGradingNotice } from "@/components/data-display/FailedGradingNotice.tsx";
+import { retryGrading } from "@/services/auditService.ts";
+import type { AnswerGradingStatus } from "@/types/audit.ts";
 
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLL_ATTEMPTS = 60;
@@ -62,6 +65,12 @@ export function SubmissionAuditPage() {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
+  const [answerStatusById, setAnswerStatusById] = useState<
+    Record<string, AnswerGradingStatus>
+  >({});
+
+  const [isRetrying, setIsRetrying] = useState<boolean>(false);
+
   const [isLoadingInitial, setIsLoadingInitial] = useState<boolean>(true);
   const [initialError, setInitialError] = useState<
     "not-found" | "not-approved" | "generic" | null
@@ -87,6 +96,12 @@ export function SubmissionAuditPage() {
     try {
       const submissionData = await getSubmission(submissionId);
       setStudent(submissionData.submission.student);
+
+      const statusMap: Record<string, AnswerGradingStatus> = {};
+      for (const answer of submissionData.answers) {
+        statusMap[answer.questionId] = answer.gradingStatus;
+      }
+      setAnswerStatusById(statusMap);
 
       if (
         isStudent &&
@@ -172,6 +187,29 @@ export function SubmissionAuditPage() {
       }
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleRetry(): Promise<void> {
+    if (isRetrying || !submissionId || !selectedQuestionId) return;
+
+    setIsRetrying(true);
+    try {
+      await retryGrading(submissionId, selectedQuestionId);
+      toast.success("Se reenvió la respuesta a corregir.");
+      setAnswerStatusById((prev) => ({
+        ...prev,
+        [selectedQuestionId]: "queued",
+      }));
+      setPollAttempts(0);
+      await reload();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+      if (err instanceof Error && err.message === "ANSWER_NOT_RETRYABLE") {
+        await reload();
+      }
+    } finally {
+      setIsRetrying(false);
     }
   }
 
@@ -268,6 +306,11 @@ export function SubmissionAuditPage() {
   const displayedScore = detail?.answer.finalScore ?? detail?.answer.aiScore;
   const isScoreEdited = !isStudent && detail?.answer.teacherEdited;
 
+  const statusOf = (qid: string): AnswerGradingStatus | undefined =>
+    detail?.answer.questionId === qid
+      ? detail.answer.gradingStatus
+      : answerStatusById[qid];
+
   return (
     <div className="min-h-screen bg-background">
       {/*HEADER*/}
@@ -339,21 +382,35 @@ export function SubmissionAuditPage() {
         >
           {questions.map((q) => {
             const isSelected = q.questionId === selectedQuestionId;
+            const hasFailed = !isStudent && statusOf(q.questionId) === "failed";
             return (
               <button
                 key={q.questionId}
                 role="tab"
                 aria-selected={isSelected}
+                aria-label={
+                  hasFailed
+                    ? `Pregunta ${q.order}: corrección fallida`
+                    : undefined
+                }
                 type="button"
                 onClick={() => handleSelectQuestion(q.questionId)}
                 className={cn(
-                  "px-4 py-2 text-xs font-label uppercase tracking-label border transition-all cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-teal-700",
+                  "inline-flex items-center gap-1.5 px-4 py-2 text-xs font-label uppercase tracking-label border transition-all cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-teal-700",
                   isSelected
                     ? "bg-teal-700 text-white border-teal-800 font-bold shadow-sm"
                     : "bg-card text-neutral-650 hover:text-neutral-900 hover:bg-neutral-100 border-neutral-300 font-medium",
                 )}
               >
                 P{q.order}
+                {hasFailed && (
+                  <AlertCircle
+                    className={cn(
+                      "h-3.5 w-3.5",
+                      isSelected ? "text-white" : "text-danger-600",
+                    )}
+                  />
+                )}
               </button>
             );
           })}
@@ -469,25 +526,15 @@ export function SubmissionAuditPage() {
                 </div>
               )
             ) : isFailed ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center gap-3 p-4 bg-danger-50 border border-danger-200">
-                <AlertCircle className="w-8 h-8 text-danger-600 shrink-0" />
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm font-bold text-danger-900">
-                    La IA no pudo corregir esta respuesta.
-                  </p>
-                  {isStudent ? (
-                    <p className="text-xs text-danger-700 mt-1">
-                      Consultá con tu docente.
-                    </p>
-                  ) : (
-                    detail?.answer.lastGradingError && (
-                      <p className="text-xs text-danger-700 font-mono mt-1">
-                        {detail.answer.lastGradingError}
-                      </p>
-                    )
-                  )}
-                </div>
-              </div>
+              isStudent ? (
+                <FailedGradingNotice description="Consultá con tu docente." />
+              ) : (
+                <FailedGradingNotice
+                  description={detail?.answer.lastGradingError}
+                  onRetry={() => void handleRetry()}
+                  isRetrying={isRetrying}
+                />
+              )
             ) : isGraded && isEditing && detail ? (
               <AnalysisEditor
                 key={selectedQuestionId}

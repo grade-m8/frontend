@@ -50,6 +50,9 @@ const API_ERROR_MESSAGES: Record<string, string> = {
   SUBMISSION_ALREADY_SUBMITTED: "Este examen ya fue entregado.",
   QUESTIONS_UNANSWERED:
     "Tenés que responder todas las preguntas antes de entregar.",
+  ANSWER_NOT_RETRYABLE: "La corrección de esta respuesta ya no está en error.",
+  GRADING_RETRY_FAILED:
+    "No se pudo reenviar la respuesta a corregir. Intentá de nuevo.",
 };
 
 export function getApiErrorMessage(

@@ -2,6 +2,7 @@ import type {
   AnalysisItemInput,
   AnswerDetail,
   AuditSubmissionDetail,
+  Answer,
 } from "@/types/audit.ts";
 import { apiClient } from "@/services/apiClient.ts";
 
@@ -28,5 +29,14 @@ export function updateAnalysis(
   return apiClient.put<AnswerDetail>(
     `/submissions/${submissionId}/answers/${questionId}/analysis`,
     { items },
+  );
+}
+
+export function retryGrading(
+  submissionId: string,
+  questionId: string,
+): Promise<Answer> {
+  return apiClient.post<Answer>(
+    `/submissions/${submissionId}/answers/${questionId}/retry`,
   );
 }
