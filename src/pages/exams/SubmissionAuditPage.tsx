@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -69,7 +69,11 @@ export function SubmissionAuditPage() {
     Record<string, AnswerGradingStatus>
   >({});
 
-  const [isRetrying, setIsRetrying] = useState<boolean>(false);
+  const [retryingByQuestionId, setRetryingByQuestionId] = useState<
+    Record<string, boolean>
+  >({});
+  const selectedQuestionIdRef = useRef<string>("");
+  const isRetrying = Boolean(retryingByQuestionId[selectedQuestionId]);
 
   const [isLoadingInitial, setIsLoadingInitial] = useState<boolean>(true);
   const [initialError, setInitialError] = useState<
@@ -121,6 +125,7 @@ export function SubmissionAuditPage() {
       setQuestions(sortedQuestions);
 
       if (sortedQuestions.length > 0) {
+        selectedQuestionIdRef.current = sortedQuestions[0].questionId;
         setSelectedQuestionId(sortedQuestions[0].questionId);
       }
     } catch (err: unknown) {
@@ -165,6 +170,17 @@ export function SubmissionAuditPage() {
   }, [loadInitialData]);
 
   function handleSelectQuestion(questionId: string): void {
+    if (detail) {
+      setAnswerStatusById((prev) =>
+        prev[detail.answer.questionId] === detail.answer.gradingStatus
+          ? prev
+          : {
+              ...prev,
+              [detail.answer.questionId]: detail.answer.gradingStatus,
+            },
+      );
+    }
+    selectedQuestionIdRef.current = questionId;
     setSelectedQuestionId(questionId);
     setPollAttempts(0);
     setIsEditing(false);
@@ -191,25 +207,34 @@ export function SubmissionAuditPage() {
   }
 
   async function handleRetry(): Promise<void> {
-    if (isRetrying || !submissionId || !selectedQuestionId) return;
+    const questionId = selectedQuestionId;
+    if (retryingByQuestionId[questionId] || !submissionId || !questionId) {
+      return;
+    }
 
-    setIsRetrying(true);
+    setRetryingByQuestionId((prev) => ({ ...prev, [questionId]: true }));
     try {
-      await retryGrading(submissionId, selectedQuestionId);
+      await retryGrading(submissionId, questionId);
       toast.success("Se reenvió la respuesta a corregir.");
       setAnswerStatusById((prev) => ({
         ...prev,
-        [selectedQuestionId]: "queued",
+        [questionId]: "queued",
       }));
-      setPollAttempts(0);
-      await reload();
+      if (selectedQuestionIdRef.current === questionId) {
+        setPollAttempts(0);
+        await reload();
+      }
     } catch (err) {
       toast.error(getApiErrorMessage(err));
-      if (err instanceof Error && err.message === "ANSWER_NOT_RETRYABLE") {
+      if (
+        err instanceof Error &&
+        err.message === "ANSWER_NOT_RETRYABLE" &&
+        selectedQuestionIdRef.current === questionId
+      ) {
         await reload();
       }
     } finally {
-      setIsRetrying(false);
+      setRetryingByQuestionId((prev) => ({ ...prev, [questionId]: false }));
     }
   }
 
