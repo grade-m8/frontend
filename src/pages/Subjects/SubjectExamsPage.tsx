@@ -97,8 +97,13 @@ export default function SubjectExamsPage() {
     navigate(`/teacher/exams/new?subjectId=${subjectId}`);
   };
 
-  const handleGoToExam = (examId: string) => {
-    navigate(`/teacher/exams/${examId}/submissions`);
+  const handleGoToExam = (exam: Exam) => {
+    if (exam.status === "draft") {
+      navigate(`/teacher/exams/${exam.examId}/questions`);
+      return;
+    }
+
+    navigate(`/teacher/exams/${exam.examId}/submissions`);
   };
 
   const handleStudentAction = (examId: string, cta: StudentExamCta) => {
@@ -184,12 +189,17 @@ export default function SubjectExamsPage() {
                   date={formatDate(exam.scheduledAt)}
                   durationMinutes={exam.durationMinutes}
                   status={cta?.statusLabel ?? EXAM_STATUS_LABELS[exam.status]}
-                  actionLabel={cta?.label}
+                  actionLabel={
+                    cta?.label ??
+                    (exam.status === "draft"
+                      ? "Continuar edición"
+                      : "Ver entregas")
+                  }
                   actionDisabled={cta?.kind === "waiting"}
                   onActionClick={
                     cta
                       ? () => handleStudentAction(exam.examId, cta)
-                      : () => handleGoToExam(exam.examId)
+                      : () => handleGoToExam(exam)
                   }
                 />
               );
