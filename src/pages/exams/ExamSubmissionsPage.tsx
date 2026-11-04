@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Lock } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { SubmissionCard } from "@/components/data-display/SubmissionCard";
+import { CloseExamDialog } from "@/components/data-display/CloseExamDialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getExam } from "@/services/examService.ts";
 import {
@@ -12,6 +14,7 @@ import {
 } from "@/services/submissionService.ts";
 import { getApiErrorMessage } from "@/services/error.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
+import type { ExamStatus } from "@/types/exam";
 import type { SubmissionWithStudent } from "@/types/submission";
 
 type LoadResult =
@@ -19,6 +22,7 @@ type LoadResult =
       status: "success";
       examId: string | undefined;
       examTitle: string;
+      examStatus: ExamStatus;
       subjectId: string;
       submissions: SubmissionWithStudent[];
     }
@@ -32,6 +36,8 @@ export function ExamSubmissionsPage() {
 
   const [loaded, setLoaded] = useState<LoadResult | null>(null);
   const [isApproving, setIsApproving] = useState(false);
+  const [isCloseDialogOpen, setIsCloseDialogOpen] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const current = loaded && loaded.examId === examId ? loaded : null;
   const isLoading = current === null;
@@ -39,6 +45,8 @@ export function ExamSubmissionsPage() {
   const hasError = current?.status === "error";
   const examTitle =
     current?.status === "success" ? current.examTitle : undefined;
+  const examStatus =
+    current?.status === "success" ? current.examStatus : undefined;
   const subjectId =
     current?.status === "success" ? current.subjectId : undefined;
   const submissions = current?.status === "success" ? current.submissions : [];
@@ -54,6 +62,7 @@ export function ExamSubmissionsPage() {
           status: "success",
           examId,
           examTitle: examDetail.exam.title,
+          examStatus: examDetail.exam.status,
           subjectId: examDetail.exam.subjectId,
           submissions: submissionList,
         });
@@ -114,6 +123,17 @@ export function ExamSubmissionsPage() {
     }
   };
 
+  const handleCancelClose = useCallback(() => {
+    setIsCloseDialogOpen(false);
+    closeButtonRef.current?.focus();
+  }, []);
+
+  // TODO: conectar con PATCH /exams/:id/close (próximo ticket). Por ahora el
+  // diálogo solo confirma visualmente y se cierra.
+  const handleConfirmClose = () => {
+    handleCancelClose();
+  };
+
   const handleBack = () => {
     navigate(subjectId ? `/materias/${subjectId}/examenes` : "/materias");
   };
@@ -138,15 +158,40 @@ export function ExamSubmissionsPage() {
         title={examTitle ?? ""}
         subtitle="Entregas y corrección con IA"
         actions={
-          <Button
-            className="gap-2 h-12 font-bold cursor-pointer"
-            onClick={handleApproveAll}
-            disabled={pendingCount === 0 || isApproving}
-          >
-            {isApproving && <Loader2 className="h-4 w-4 animate-spin" />}
-            Aprobar todas ({pendingCount})
-          </Button>
+          <>
+            {examStatus === "closed" && (
+              <Badge
+                variant="outline"
+                className="label-micro h-auto rounded-none border-danger-500 bg-danger-50 px-2 py-1 text-danger-500"
+              >
+                CERRADO
+              </Badge>
+            )}
+            <Button
+              ref={closeButtonRef}
+              variant="outline"
+              className="gap-2 h-12 rounded-none border-danger-500 font-bold text-danger-500 hover:bg-danger-50 hover:text-danger-600 cursor-pointer"
+              onClick={() => setIsCloseDialogOpen(true)}
+              disabled={examStatus !== "published"}
+            >
+              <Lock className="h-4 w-4" />
+              Cerrar examen
+            </Button>
+            <Button
+              className="gap-2 h-12 font-bold cursor-pointer"
+              onClick={handleApproveAll}
+              disabled={pendingCount === 0 || isApproving}
+            >
+              {isApproving && <Loader2 className="h-4 w-4 animate-spin" />}
+              Aprobar todas ({pendingCount})
+            </Button>
+          </>
         }
+      />
+      <CloseExamDialog
+        isOpen={isCloseDialogOpen}
+        onCancel={handleCancelClose}
+        onConfirm={handleConfirmClose}
       />
       <div className="px-6">
         <SectionHeader title="Entregas" />
