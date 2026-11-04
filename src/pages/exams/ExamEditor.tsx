@@ -16,6 +16,7 @@ import {
 } from "@/services/examService.ts";
 import { getApiErrorMessage } from "@/services/error.ts";
 import RubricWeightSummary from "@/components/data-display/RubricWeightSummary.tsx";
+import { fromDateTimeLocalValue, getNowDateTimeLocal } from "@/lib/date.ts";
 
 const SUGGESTED_CRITERIA: RubricCriterion[] = [
   {
@@ -121,6 +122,8 @@ export function ExamConfigPage() {
           generalInfo: {
             ...EMPTY_GENERAL_INFO,
             subjectId: initialSubjectId,
+            // Por defecto, el examen arranca ahora (a la precisión del input).
+            scheduledAt: fromDateTimeLocalValue(getNowDateTimeLocal()),
           },
         },
   );
