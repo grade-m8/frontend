@@ -7,7 +7,7 @@ import { SubmissionCard } from "@/components/data-display/SubmissionCard";
 import { CloseExamDialog } from "@/components/data-display/CloseExamDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getExam } from "@/services/examService.ts";
+import { closeExam, getExam } from "@/services/examService.ts";
 import {
   approveAllForExam,
   listSubmissionsForExam,
@@ -38,6 +38,7 @@ export function ExamSubmissionsPage() {
   const [loaded, setLoaded] = useState<LoadResult | null>(null);
   const [isApproving, setIsApproving] = useState(false);
   const [isCloseDialogOpen, setIsCloseDialogOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const [isRetryingFailed, setIsRetryingFailed] = useState(false);
 
@@ -164,10 +165,33 @@ export function ExamSubmissionsPage() {
     closeButtonRef.current?.focus();
   }, []);
 
-  // TODO: conectar con PATCH /exams/:id/close (próximo ticket). Por ahora el
-  // diálogo solo confirma visualmente y se cierra.
-  const handleConfirmClose = () => {
-    handleCancelClose();
+  const setExamStatus = (status: ExamStatus) =>
+    setLoaded((prev) =>
+      prev && prev.status === "success"
+        ? { ...prev, examStatus: status }
+        : prev,
+    );
+
+  const handleConfirmClose = async () => {
+    if (isClosing) return;
+    setIsClosing(true);
+    try {
+      const closed = await closeExam(examId as string);
+      setExamStatus(closed.status);
+      toast.success("Examen cerrado correctamente");
+    } catch (err: unknown) {
+      const code = err instanceof Error ? err.message : "";
+      if (code === "NOT_PROFESSOR_EXAM") {
+        navigate("/403");
+        return;
+      }
+      // Ya estaba cerrado (p. ej. desde otra pestaña): la pantalla lo refleja.
+      if (code === "EXAM_CLOSED") setExamStatus("closed");
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setIsClosing(false);
+      handleCancelClose();
+    }
   };
 
   const handleBack = () => {
@@ -246,6 +270,7 @@ export function ExamSubmissionsPage() {
       />
       <CloseExamDialog
         isOpen={isCloseDialogOpen}
+        isClosing={isClosing}
         onCancel={handleCancelClose}
         onConfirm={handleConfirmClose}
       />
