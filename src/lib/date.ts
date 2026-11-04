@@ -20,6 +20,11 @@ function toDate(value: unknown): Date | null {
   return null;
 }
 
+/** Epoch millis of an API date (ISO string), or `undefined` if absent/invalid. */
+export function toMillis(value: unknown): number | undefined {
+  return toDate(value)?.getTime();
+}
+
 const DATE_FORMATTER = new Intl.DateTimeFormat("es-AR", {
   day: "numeric",
   month: "short",
