@@ -65,3 +65,20 @@ export function fromDateTimeLocalValue(value: string): string | undefined {
 export function getNowDateTimeLocal(): string {
   return toDateTimeLocalValue(new Date().toISOString());
 }
+
+const MS_PER_SECOND = 1000;
+const SECONDS_PER_MINUTE = 60;
+const SECONDS_PER_HOUR = 3600;
+
+/** "MM:SS", or "H:MM:SS" from one hour up. Rounds up: "00:00" only at 0 ms. */
+export function formatCountdown(remainingMs: number): string {
+  const totalSeconds = Math.ceil(Math.max(remainingMs, 0) / MS_PER_SECOND);
+  const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+  const minutes = Math.floor(
+    (totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE,
+  );
+  const seconds = totalSeconds % SECONDS_PER_MINUTE;
+  const mm = String(minutes).padStart(2, "0");
+  const ss = String(seconds).padStart(2, "0");
+  return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
+}
