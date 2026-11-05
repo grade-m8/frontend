@@ -30,7 +30,7 @@ export default function ProtectedRoutes({ allowedRoles }: Props) {
     toast.error("Iniciá sesión para acceder a esta página");
   }, [loading, user, role, allowedRoles]);
 
-  if (loading) return <h1>Loading...</h1>;
+  if (loading) return <h1>Cargando sesión...</h1>;
   if (!user || !role)
     return <Navigate to={"/"} state={{ from: location }} replace />;
   if (role === "Admin") return <Outlet />;
