@@ -271,7 +271,7 @@ export function ExamSubmissionsPage() {
             <Button
               className="gap-2 h-12 font-bold cursor-pointer"
               onClick={handleApproveAll}
-              disabled={pendingCount === 0 || isApproving}
+              disabled={pendingCount === 0 || isApproving || isRetryingFailed}
             >
               {isApproving && <Loader2 className="h-4 w-4 animate-spin" />}
               Aprobar todas ({pendingCount})
