@@ -32,6 +32,14 @@ export function updateAnalysis(
   );
 }
 
+export function approveSubmission(
+  submissionId: string,
+): Promise<Pick<AuditSubmissionDetail, "submission">> {
+  return apiClient.post<Pick<AuditSubmissionDetail, "submission">>(
+    `/submissions/${submissionId}/approve`,
+  );
+}
+
 export function retryGrading(
   submissionId: string,
   questionId: string,
