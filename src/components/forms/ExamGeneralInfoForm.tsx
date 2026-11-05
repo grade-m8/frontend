@@ -6,6 +6,11 @@ import type { ExamGeneralInfo } from "@/types/exam";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth.ts";
 import { useSubject } from "@/hooks/useSubject.ts";
+import {
+  fromDateTimeLocalValue,
+  getNowDateTimeLocal,
+  toDateTimeLocalValue,
+} from "@/lib/date.ts";
 
 interface ExamGeneralInfoFormProps {
   values: ExamGeneralInfo;
@@ -91,6 +96,10 @@ export function ExamGeneralInfoForm({
     }
   }, [isLoadingSubjects, isEditMode, subjects, values.subjectId]);
 
+  // Fijo al montar: evita que `min` cambie en cada render y que el valor por
+  // defecto (la hora de apertura del formulario) quede "en el pasado".
+  const [minScheduledAt] = useState(getNowDateTimeLocal);
+
   const [touched, setTouched] = useState<Partial<Record<FieldName, boolean>>>(
     {},
   );
@@ -116,8 +125,8 @@ export function ExamGeneralInfoForm({
           Información General
         </h2>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 gap-8 px-6 pb-6 md:grid-cols-2 lg:grid-cols-4">
-        <div className="flex flex-col gap-2">
+      <CardContent className="grid grid-cols-1 gap-8 px-6 pb-6 md:grid-cols-2 lg:grid-cols-6">
+        <div className="flex flex-col gap-2 lg:col-span-3">
           <Label htmlFor="exam-title" className={LABEL_CLASS}>
             Título del examen
           </Label>
@@ -135,7 +144,7 @@ export function ExamGeneralInfoForm({
           />
           <FieldError id="exam-title-error" message={fieldErrors.title} />
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 lg:col-span-3">
           <Label htmlFor="exam-subject" className={LABEL_CLASS}>
             Materia / Módulo
           </Label>
@@ -180,7 +189,22 @@ export function ExamGeneralInfoForm({
           </div>
           <FieldError id="exam-subject-error" message={fieldErrors.subjectId} />
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 lg:col-span-2">
+          <Label htmlFor="exam-scheduled-at" className={LABEL_CLASS}>
+            Fecha y hora de inicio
+          </Label>
+          <Input
+            id="exam-scheduled-at"
+            type="datetime-local"
+            min={minScheduledAt}
+            value={toDateTimeLocalValue(values.scheduledAt)}
+            onChange={(e) =>
+              onChange({ scheduledAt: fromDateTimeLocalValue(e.target.value) })
+            }
+            className={INPUT_CLASS}
+          />
+        </div>
+        <div className="flex flex-col gap-2 lg:col-span-2">
           <Label htmlFor="exam-duration" className={LABEL_CLASS}>
             Duración
           </Label>
@@ -209,7 +233,7 @@ export function ExamGeneralInfoForm({
             message={fieldErrors.durationMinutes}
           />
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 lg:col-span-2">
           <Label htmlFor="exam-passing" className={LABEL_CLASS}>
             Porcentaje de aprobación
           </Label>
