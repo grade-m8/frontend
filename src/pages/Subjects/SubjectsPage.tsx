@@ -107,12 +107,37 @@ export default function SubjectsPage() {
         />
         {filteredSubjects.length === 0 ? (
           <div className="mt-4 rounded-xl border border-dashed border-neutral-300 py-16 text-center">
-            <p className="text-body font-bold text-neutral-900">
-              No se encontraron resultados
-            </p>
-            <p className="text-sm text-neutral-650">
-              No hay materias que coincidan con "{query}".
-            </p>
+            {query === "" ? (
+              <>
+                <p className="text-body font-bold text-neutral-900">
+                  Todavía no tenés materias
+                </p>
+                {authContext.role === "Student" && (
+                  <>
+                    <p className="text-sm text-neutral-650">
+                      Inscribite a tu primera cátedra para empezar.
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsModalOpen(true)}
+                      className="mt-4 h-12 cursor-pointer gap-2 border-teal-700 font-bold text-teal-700 hover:bg-teal-50"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Explorar Materias Disponibles
+                    </Button>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-body font-bold text-neutral-900">
+                  No se encontraron resultados
+                </p>
+                <p className="text-sm text-neutral-650">
+                  No hay materias que coincidan con "{query}".
+                </p>
+              </>
+            )}
           </div>
         ) : (
           <div className="mt-4 grid grid-cols-1 gap-4 pb-12 md:grid-cols-2 lg:grid-cols-3">
