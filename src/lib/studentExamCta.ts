@@ -5,18 +5,20 @@ import type {
   StudentExamCta,
 } from "@/types/studentSubmission";
 
-// Un examen cerrado bloquea siempre al alumno, haya entregado o no: el backend
-// responde EXAM_CLOSED al pedirle el examen, así que "Ver resultado" no cargaría.
+// Un examen cerrado bloquea al alumno que todavía no tiene resultado, haya
+// entregado o no. Si su entrega ya tiene resultado, siempre puede consultarlo.
 export function getStudentExamCta(
   status: MyExamSubmissionStatus | undefined,
   exam: Pick<Exam, "status" | "scheduledAt">,
   nowMillis: number = Date.now(),
 ): StudentExamCta {
+  const cta = getSubmissionCta(status);
+  if (cta.kind === "review") return cta;
+
   if (exam.status === "closed") {
     return { kind: "waiting", label: "Examen cerrado", statusLabel: "CERRADO" };
   }
 
-  const cta = getSubmissionCta(status);
   if (cta.kind !== "take") return cta;
 
   const scheduledMillis = toMillis(exam.scheduledAt);
