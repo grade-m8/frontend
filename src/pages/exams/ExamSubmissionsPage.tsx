@@ -185,8 +185,19 @@ export function ExamSubmissionsPage() {
         navigate("/403");
         return;
       }
-      // Ya estaba cerrado (p. ej. desde otra pestaña): la pantalla lo refleja.
-      if (code === "EXAM_CLOSED") setExamStatus("closed");
+      // El estado local puede estar desactualizado (p. ej. otra pestaña ya lo
+      // cerró). EXAM_NOT_CLOSEABLE no dice por qué falló, así que se consulta
+      // el estado real del examen.
+      if (code === "EXAM_CLOSED") {
+        setExamStatus("closed");
+      } else if (code === "EXAM_NOT_CLOSEABLE") {
+        try {
+          const { exam } = await getExam(examId as string);
+          setExamStatus(exam.status);
+        } catch {
+          // El toast de abajo ya informa el fallo; se conserva el estado actual.
+        }
+      }
       toast.error(getApiErrorMessage(err));
     } finally {
       setIsClosing(false);
