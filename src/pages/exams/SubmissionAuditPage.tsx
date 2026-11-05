@@ -6,15 +6,22 @@ import {
   FileText,
   Loader2,
   AlertCircle,
+  CheckCircle,
   Pencil,
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ApproveSubmissionDialog } from "@/components/forms/ApproveSubmissionDialog.tsx";
 import { AnalysisEditor } from "@/components/forms/AnalysisEditor.tsx";
 import { AnalysisItemCard } from "@/components/data-display/AnalysisItemCard.tsx";
 import type { Question } from "@/types/exam.ts";
-import type { AnalysisItem, AnalysisItemInput } from "@/types/audit.ts";
+import type {
+  AnalysisItem,
+  AnalysisItemInput,
+  AuditSubmissionDetail,
+} from "@/types/audit.ts";
 import { getSubmission, updateAnalysis } from "@/services/auditService.ts";
 import { getExam } from "@/services/examService.ts";
 import { useAnswerDetail } from "@/hooks/useAnswerDetail.ts";
@@ -64,6 +71,11 @@ export function SubmissionAuditPage() {
   const [pollAttempts, setPollAttempts] = useState<number>(0);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [submission, setSubmission] = useState<
+    AuditSubmissionDetail["submission"] | null
+  >(null);
+  const [isApproveDialogOpen, setIsApproveDialogOpen] =
+    useState<boolean>(false);
 
   const [answerStatusById, setAnswerStatusById] = useState<
     Record<string, AnswerGradingStatus>
@@ -100,6 +112,7 @@ export function SubmissionAuditPage() {
     try {
       const submissionData = await getSubmission(submissionId);
       setStudent(submissionData.submission.student);
+      setSubmission(submissionData.submission);
 
       const statusMap: Record<string, AnswerGradingStatus> = {};
       for (const answer of submissionData.answers) {
@@ -392,6 +405,22 @@ export function SubmissionAuditPage() {
                 : "—"}
             </span>
           )}
+          {!isStudent && submission?.status === "awaiting_approval" && (
+            <Button
+              type="button"
+              className="mt-2 bg-teal-700 hover:bg-teal-800 text-white"
+              onClick={() => setIsApproveDialogOpen(true)}
+            >
+              <CheckCircle />
+              Aprobar entrega
+            </Button>
+          )}
+          {!isStudent && submission?.status === "reviewed" && (
+            <Badge className="mt-2 bg-teal-50 text-teal-800 border-teal-200">
+              <CheckCircle />
+              Aprobada
+            </Badge>
+          )}
         </div>
       </header>
 
@@ -607,6 +636,17 @@ export function SubmissionAuditPage() {
           </div>
         </section>
       </main>
+
+      {!isStudent && submission && (
+        <ApproveSubmissionDialog
+          open={isApproveDialogOpen}
+          studentName={formatStudentLabel(student)}
+          totalScore={submission.totalScore ?? null}
+          totalPossible={submission.totalPossible}
+          onClose={() => setIsApproveDialogOpen(false)}
+          onConfirm={() => setIsApproveDialogOpen(false)}
+        />
+      )}
     </div>
   );
 }

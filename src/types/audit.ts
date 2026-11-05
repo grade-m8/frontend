@@ -62,6 +62,8 @@ export type AuditSubmissionDetail = {
       | "awaiting_approval"
       | "reviewed"
       | "error";
+    totalScore?: number;
+    totalPossible: number;
   };
   answers: Answer[];
 };
