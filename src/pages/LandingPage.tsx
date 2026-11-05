@@ -24,7 +24,7 @@ export default function LandingPage() {
 
     login(email, password)
       .then(() => {
-        toast.success("Log in successful!");
+        toast.success("¡Inicio de sesión exitoso!");
         navigate("/materias");
       })
       .catch(function (error: firebase.FirebaseError) {
