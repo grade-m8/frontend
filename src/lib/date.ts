@@ -82,3 +82,33 @@ export function formatCountdown(remainingMs: number): string {
   const ss = String(seconds).padStart(2, "0");
   return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
 }
+
+const WARNING_THRESHOLD_MS = 5 * MS_PER_MINUTE;
+const CRITICAL_THRESHOLD_MS = MS_PER_MINUTE;
+
+/**
+ * Tailwind classes for the exam countdown, by how much time is left:
+ * neutral above 5 min, amber from 5 min down to 1 min, red (pulsing) in the
+ * last minute. Pure: it only reads `remainingMs`, it starts no timers.
+ */
+export function getTimerColorClass(remainingMs: number): {
+  labelClass: string;
+  digitsClass: string;
+} {
+  if (remainingMs > WARNING_THRESHOLD_MS) {
+    return {
+      labelClass: "text-neutral-650",
+      digitsClass: "font-bold tabular-nums text-neutral-900",
+    };
+  }
+  if (remainingMs > CRITICAL_THRESHOLD_MS) {
+    return {
+      labelClass: "text-amber-600",
+      digitsClass: "font-black tabular-nums text-amber-600",
+    };
+  }
+  return {
+    labelClass: "font-semibold text-danger-500",
+    digitsClass: "animate-pulse font-black tabular-nums text-danger-500",
+  };
+}
