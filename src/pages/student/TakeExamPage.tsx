@@ -37,7 +37,7 @@ export function TakeExamPage() {
 
   // Estado para errores de carga inicial
   const [loadError, setLoadError] = useState<
-    "not_available" | "closed" | "generic" | null
+    "not_available" | "closed" | "not_started" | "generic" | null
   >(null);
 
   // Bloqueo de la pantalla de resolución: el docente cerró el examen o se
@@ -84,6 +84,8 @@ export function TakeExamPage() {
         const errorCode = err instanceof Error ? err.message : "";
         if (errorCode === "EXAM_CLOSED") {
           setLoadError("closed");
+        } else if (errorCode === "EXAM_NOT_STARTED") {
+          setLoadError("not_started");
         } else if (
           errorCode === "EXAM_NOT_FOUND" ||
           errorCode === "exam-not-found" ||
@@ -330,15 +332,20 @@ export function TakeExamPage() {
     );
   }
 
-  // 2. Errores de carga: no disponible o cerrado
-  if (loadError === "not_available" || loadError === "closed") {
+  // 2. Errores de carga: no disponible, cerrado o todavía no comenzó
+  if (
+    loadError === "not_available" ||
+    loadError === "closed" ||
+    loadError === "not_started"
+  ) {
+    const loadErrorTitle = {
+      closed: "El examen está cerrado.",
+      not_started: "El examen todavía no comenzó.",
+      not_available: "El examen no está disponible.",
+    }[loadError];
     return (
       <div className="mx-auto flex max-w-md flex-col items-center justify-center gap-4 px-4 py-24 text-center">
-        <h2 className="text-h3 font-bold text-neutral-900">
-          {loadError === "closed"
-            ? "El examen está cerrado."
-            : "El examen no está disponible."}
-        </h2>
+        <h2 className="text-h3 font-bold text-neutral-900">{loadErrorTitle}</h2>
         <Button
           variant="outline"
           onClick={() => navigate(-1)}

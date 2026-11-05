@@ -49,6 +49,7 @@ const API_ERROR_MESSAGES: Record<string, string> = {
   EXAM_NOT_PUBLISHED: "El examen todavía no está disponible.",
   EXAM_NOT_CLOSEABLE: "Solo se puede cerrar un examen publicado.",
   EXAM_CLOSED: "El examen ya está cerrado.",
+  EXAM_NOT_STARTED: "El examen todavía no comenzó.",
   SUBMISSION_ALREADY_SUBMITTED: "Este examen ya fue entregado.",
   QUESTIONS_UNANSWERED:
     "Tenés que responder todas las preguntas antes de entregar.",
