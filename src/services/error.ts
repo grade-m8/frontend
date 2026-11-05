@@ -3,21 +3,21 @@ export function mapAuthErrorMessage(code: string): string {
     case "auth/invalid-credential":
     case "auth/user-not-found":
     case "auth/wrong-password":
-      return "Invalid email or password.";
+      return "Correo electrónico o contraseña incorrectos.";
     case "auth/invalid-email":
-      return "Please enter a valid email address.";
+      return "Por favor, ingresá una dirección de correo válida.";
     case "auth/user-disabled":
-      return "This account has been disabled. Please contact support.";
+      return "Esta cuenta ha sido deshabilitada. Por favor, contactate con soporte.";
     case "auth/too-many-requests":
-      return "Too many failed login attempts. Please try again later.";
+      return "Demasiados intentos fallidos. Por favor, intentá nuevamente en unos minutos.";
     case "auth/network-request-failed":
-      return "Network error. Please check your internet connection.";
+      return "Error de red. Comprobá tu conexión a internet.";
     case "auth/email-already-in-use":
-      return "An account with this email already exists.";
+      return "Ya existe una cuenta registrada con este correo electrónico.";
     case "auth/weak-password":
-      return "Password should be at least 6 characters.";
+      return "La contraseña debe contener al menos 6 caracteres.";
     default:
-      return "An unexpected error occurred. Please try again.";
+      return "Ocurrió un error inesperado al autenticar. Intentá nuevamente.";
   }
 }
 
