@@ -15,6 +15,7 @@ export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword] = useState(false);
 
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -86,7 +87,7 @@ export default function LandingPage() {
                 </Label>
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="h-12"
