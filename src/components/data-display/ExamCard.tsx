@@ -25,7 +25,11 @@ interface ExamCardProps {
 function getStatusClass(status: string) {
   if (status === "CORREGIDO" || status === "PUBLICADO" || status === "EN CURSO")
     return "border-teal-700 bg-teal-50 text-teal-700";
-  if (status === "EN REVISIÓN" || status === "PENDIENTE DE APROBACIÓN")
+  if (
+    status === "EN REVISIÓN" ||
+    status === "PENDIENTE DE APROBACIÓN" ||
+    status === "PROGRAMADO"
+  )
     return "border-neutral-650 bg-neutral-50 text-neutral-650";
   if (
     status === "PENDIENTE" ||

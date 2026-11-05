@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader.tsx";
@@ -6,6 +6,9 @@ import { QuestionAnswerCard } from "@/components/forms/QuestionAnswerCard.tsx";
 import { ExamNavigationFooter } from "@/components/forms/ExamNavigationFooter.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { toast } from "@/components/handler/toastHandler.tsx";
+import { useCountdown } from "@/hooks/useCountdown.ts";
+import { formatCountdown } from "@/lib/date.ts";
+import { getExamDeadlineMillis } from "@/lib/examDeadline.ts";
 import { getApiErrorMessage } from "@/services/error.ts";
 import {
   getMySubmission,
@@ -34,8 +37,15 @@ export function TakeExamPage() {
 
   // Estado para errores de carga inicial
   const [loadError, setLoadError] = useState<
-    "not_available" | "generic" | null
+    "not_available" | "closed" | "not_started" | "generic" | null
   >(null);
+
+  // Bloqueo de la pantalla de resolución: el docente cerró el examen o se
+  // acabó el tiempo grupal y la entrega automática no pudo completarse.
+  const [lockReason, setLockReason] = useState<"closed" | "time_over" | null>(
+    null,
+  );
+  const timeUpFiredRef = useRef(false);
 
   const [reloadKey, setReloadKey] = useState<number>(0);
 
@@ -72,7 +82,11 @@ export function TakeExamPage() {
       .catch((err: unknown) => {
         if (isCancelled) return;
         const errorCode = err instanceof Error ? err.message : "";
-        if (
+        if (errorCode === "EXAM_CLOSED") {
+          setLoadError("closed");
+        } else if (errorCode === "EXAM_NOT_STARTED") {
+          setLoadError("not_started");
+        } else if (
           errorCode === "EXAM_NOT_FOUND" ||
           errorCode === "exam-not-found" ||
           errorCode === "EXAM_NOT_PUBLISHED"
@@ -160,6 +174,10 @@ export function TakeExamPage() {
       }));
       return true;
     } catch (err: unknown) {
+      if (err instanceof Error && err.message === "EXAM_CLOSED") {
+        setLockReason("closed");
+        return false;
+      }
       toast.error(getApiErrorMessage(err));
       return false;
     } finally {
@@ -224,6 +242,10 @@ export function TakeExamPage() {
       navigate(`/materias/${detail.exam.subjectId}/examenes`);
     } catch (err: unknown) {
       const errorCode = err instanceof Error ? err.message : "";
+      if (errorCode === "EXAM_CLOSED") {
+        setLockReason("closed");
+        return;
+      }
       if (errorCode === "SUBMISSION_ALREADY_SUBMITTED") {
         setSubmission((prev) =>
           prev ? { ...prev, status: "submitted" } : null,
@@ -244,6 +266,62 @@ export function TakeExamPage() {
     navigate,
   ]);
 
+  const deadlineMillis = useMemo(
+    () => (detail ? getExamDeadlineMillis(detail.exam) : undefined),
+    [detail],
+  );
+  const remainingMs = useCountdown(deadlineMillis);
+
+  // Se acabó el tiempo grupal: guarda lo que quedó sin guardar y entrega. Si el
+  // backend no lo acepta (p. ej. quedaron preguntas sin responder, o el docente
+  // ya cerró el examen), la pantalla igual se bloquea.
+  const handleTimeUp = useCallback(async () => {
+    if (!submission || !detail) return;
+    const subjectExamsPath = `/materias/${detail.exam.subjectId}/examenes`;
+
+    setIsSubmitting(true);
+    try {
+      const unsaved = questions.filter((q) => {
+        const text = answers[q.questionId] ?? "";
+        return (
+          text.trim() !== "" && text !== (savedAnswers[q.questionId] ?? "")
+        );
+      });
+      await Promise.all(
+        unsaved.map((q) =>
+          saveAnswer(
+            submission.submissionId,
+            q.questionId,
+            answers[q.questionId],
+          ),
+        ),
+      );
+
+      const updatedSub = await submitExam(submission.submissionId);
+      setSubmission(updatedSub);
+      toast.success("Se terminó el tiempo. Tu examen fue entregado.");
+      navigate(subjectExamsPath, { replace: true });
+    } catch (err: unknown) {
+      const errorCode = err instanceof Error ? err.message : "";
+      if (errorCode === "SUBMISSION_ALREADY_SUBMITTED") {
+        navigate(subjectExamsPath, { replace: true });
+        return;
+      }
+      setLockReason(errorCode === "EXAM_CLOSED" ? "closed" : "time_over");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [submission, detail, questions, answers, savedAnswers, navigate]);
+
+  useEffect(() => {
+    if (remainingMs !== 0 || timeUpFiredRef.current) return;
+    if (submission?.status !== "in_progress" || lockReason) return;
+    timeUpFiredRef.current = true;
+    // Es el cruce del límite lo que dispara la entrega (una sola vez, por el ref).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void handleTimeUp();
+  }, [remainingMs, submission, lockReason, handleTimeUp]);
+
   // 1. Estado de carga
   if (isLoading) {
     return (
@@ -254,13 +332,20 @@ export function TakeExamPage() {
     );
   }
 
-  // 2. Errores de carga: no disponible
-  if (loadError === "not_available") {
+  // 2. Errores de carga: no disponible, cerrado o todavía no comenzó
+  if (
+    loadError === "not_available" ||
+    loadError === "closed" ||
+    loadError === "not_started"
+  ) {
+    const loadErrorTitle = {
+      closed: "El examen está cerrado.",
+      not_started: "El examen todavía no comenzó.",
+      not_available: "El examen no está disponible.",
+    }[loadError];
     return (
       <div className="mx-auto flex max-w-md flex-col items-center justify-center gap-4 px-4 py-24 text-center">
-        <h2 className="text-h3 font-bold text-neutral-900">
-          El examen no está disponible.
-        </h2>
+        <h2 className="text-h3 font-bold text-neutral-900">{loadErrorTitle}</h2>
         <Button
           variant="outline"
           onClick={() => navigate(-1)}
@@ -285,6 +370,40 @@ export function TakeExamPage() {
         >
           Reintentar
         </Button>
+      </div>
+    );
+  }
+
+  // 3b. Pantalla bloqueada: examen cerrado o tiempo agotado sin entrega
+  if (lockReason) {
+    return (
+      <div className="w-full">
+        <PageHeader title={detail.exam.title.toUpperCase()} />
+        <div
+          role="alert"
+          className="mx-auto flex max-w-md flex-col items-center justify-center gap-4 px-4 py-24 text-center"
+        >
+          <h2 className="text-h3 font-bold text-neutral-900">
+            {lockReason === "closed"
+              ? "El docente cerró el examen."
+              : "Se terminó el tiempo."}
+          </h2>
+          <p className="text-body text-neutral-700">
+            {lockReason === "closed"
+              ? "Ya no se pueden enviar más respuestas."
+              : "El examen no pudo entregarse automáticamente. Las respuestas que alcanzaste a guardar quedaron registradas."}
+          </p>
+          <Button
+            onClick={() =>
+              navigate(`/materias/${detail.exam.subjectId}/examenes`, {
+                replace: true,
+              })
+            }
+            className="h-10 bg-teal-700 px-6 font-semibold text-white hover:bg-teal-800"
+          >
+            Volver a la materia
+          </Button>
+        </div>
       </div>
     );
   }
@@ -315,7 +434,21 @@ export function TakeExamPage() {
   // 5. Examen en curso
   return (
     <div className="w-full">
-      <PageHeader title={examTitle} />
+      <PageHeader
+        title={examTitle}
+        actions={
+          remainingMs !== undefined && (
+            <div role="timer" className="flex flex-col items-end gap-1">
+              <span className="label-micro text-neutral-650">
+                TIEMPO RESTANTE
+              </span>
+              <span className="text-h2 font-bold tabular-nums text-neutral-900">
+                {formatCountdown(remainingMs)}
+              </span>
+            </div>
+          )
+        }
+      />
 
       <main className="flex w-full flex-col gap-8 px-6 py-8">
         {currentQuestion && (
