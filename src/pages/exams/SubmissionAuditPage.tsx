@@ -22,7 +22,11 @@ import type {
   AnalysisItemInput,
   AuditSubmissionDetail,
 } from "@/types/audit.ts";
-import { getSubmission, updateAnalysis } from "@/services/auditService.ts";
+import {
+  approveSubmission,
+  getSubmission,
+  updateAnalysis,
+} from "@/services/auditService.ts";
 import { getExam } from "@/services/examService.ts";
 import { useAnswerDetail } from "@/hooks/useAnswerDetail.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
@@ -76,6 +80,7 @@ export function SubmissionAuditPage() {
   >(null);
   const [isApproveDialogOpen, setIsApproveDialogOpen] =
     useState<boolean>(false);
+  const [isApproving, setIsApproving] = useState<boolean>(false);
 
   const [answerStatusById, setAnswerStatusById] = useState<
     Record<string, AnswerGradingStatus>
@@ -248,6 +253,29 @@ export function SubmissionAuditPage() {
       }
     } finally {
       setRetryingByQuestionId((prev) => ({ ...prev, [questionId]: false }));
+    }
+  }
+
+  async function handleConfirmApprove(): Promise<void> {
+    if (isApproving || !submissionId) return;
+
+    setIsApproving(true);
+    try {
+      const { submission: approved } = await approveSubmission(submissionId);
+      setSubmission(approved);
+      setIsApproveDialogOpen(false);
+      toast.success(
+        "Entrega aprobada exitosamente. La nota ya es visible para el alumno.",
+      );
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "";
+      if (errorMsg === "NOT_PROFESSOR_EXAM" || errorMsg.includes("403")) {
+        navigate("/403");
+        return;
+      }
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setIsApproving(false);
     }
   }
 
@@ -643,8 +671,9 @@ export function SubmissionAuditPage() {
           studentName={formatStudentLabel(student)}
           totalScore={submission.totalScore ?? null}
           totalPossible={submission.totalPossible}
+          isApproving={isApproving}
           onClose={() => setIsApproveDialogOpen(false)}
-          onConfirm={() => setIsApproveDialogOpen(false)}
+          onConfirm={() => void handleConfirmApprove()}
         />
       )}
     </div>
