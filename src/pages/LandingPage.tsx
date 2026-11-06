@@ -11,16 +11,32 @@ import { useAuth } from "@/hooks/useAuth.ts";
 import { mapAuthErrorMessage } from "@/services/error.ts";
 import firebase from "firebase/compat/app";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [touched, setTouched] = useState({ email: false, password: false });
+  const [submitted, setSubmitted] = useState(false);
+
+  const emailError = !email.trim()
+    ? "El correo electrónico es obligatorio"
+    : !EMAIL_REGEX.test(email.trim())
+      ? "Ingresa un correo electrónico válido"
+      : "";
+  const passwordError = !password ? "La contraseña es obligatoria" : "";
+  const showEmailError = (touched.email || submitted) && emailError;
+  const showPasswordError = (touched.password || submitted) && passwordError;
 
   const navigate = useNavigate();
   const { login } = useAuth();
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setSubmitted(true);
+
+    if (emailError || passwordError) return;
 
     login(email, password)
       .then(() => {
@@ -51,7 +67,11 @@ export default function LandingPage() {
       </div>
       <div className="bg-background p-8 md:p-20 flex flex-col items-center justify-center gap-12">
         {showLogin ? (
-          <form onSubmit={handleSubmit} className="w-full max-w-150 space-y-8">
+          <form
+            onSubmit={handleSubmit}
+            noValidate
+            className="w-full max-w-150 space-y-8"
+          >
             <div className="space-y-3">
               <h2 className="text-display tracking-wide font-extrabold text-foreground">
                 Acceso al Sistema
@@ -70,13 +90,19 @@ export default function LandingPage() {
                 <Input
                   id="email"
                   type="email"
-                  pattern=".+@.+\..+"
                   placeholder="usuario@institucion.edu.ar"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                  aria-invalid={!!showEmailError}
+                  aria-describedby={showEmailError ? "email-error" : undefined}
                   className="h-12"
-                  required
                 />
+                {showEmailError && (
+                  <p id="email-error" className="text-sm text-destructive">
+                    {emailError}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -89,9 +115,18 @@ export default function LandingPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+                  aria-invalid={!!showPasswordError}
+                  aria-describedby={
+                    showPasswordError ? "password-error" : undefined
+                  }
                   className="h-12"
-                  required
                 />
+                {showPasswordError && (
+                  <p id="password-error" className="text-sm text-destructive">
+                    {passwordError}
+                  </p>
+                )}
               </div>
             </div>
 
