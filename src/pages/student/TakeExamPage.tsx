@@ -7,7 +7,7 @@ import { ExamNavigationFooter } from "@/components/forms/ExamNavigationFooter.ts
 import { Button } from "@/components/ui/button.tsx";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import { useCountdown } from "@/hooks/useCountdown.ts";
-import { formatCountdown } from "@/lib/date.ts";
+import { formatCountdown, getTimerColorClass } from "@/lib/date.ts";
 import { getExamDeadlineMillis } from "@/lib/examDeadline.ts";
 import { getApiErrorMessage } from "@/services/error.ts";
 import {
@@ -430,6 +430,8 @@ export function TakeExamPage() {
   }
 
   const examTitle = detail.exam.title.toUpperCase();
+  const timerClasses =
+    remainingMs !== undefined ? getTimerColorClass(remainingMs) : undefined;
 
   // 5. Examen en curso
   return (
@@ -437,12 +439,13 @@ export function TakeExamPage() {
       <PageHeader
         title={examTitle}
         actions={
-          remainingMs !== undefined && (
+          remainingMs !== undefined &&
+          timerClasses && (
             <div role="timer" className="flex flex-col items-end gap-1">
-              <span className="label-micro text-neutral-650">
+              <span className={`label-micro ${timerClasses.labelClass}`}>
                 TIEMPO RESTANTE
               </span>
-              <span className="text-h2 font-bold tabular-nums text-neutral-900">
+              <span className={`text-h2 ${timerClasses.digitsClass}`}>
                 {formatCountdown(remainingMs)}
               </span>
             </div>
