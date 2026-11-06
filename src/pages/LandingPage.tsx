@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { ArrowRight, Mail, Lock } from "lucide-react";
+import { ArrowRight, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import logo from "@/assets/logo.svg";
 import { Label } from "@/components/ui/label";
@@ -17,13 +17,14 @@ export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState({ email: false, password: false });
   const [submitted, setSubmitted] = useState(false);
 
   const emailError = !email.trim()
     ? "El correo electrónico es obligatorio"
     : !EMAIL_REGEX.test(email.trim())
-      ? "Ingresa un correo electrónico válido"
+      ? "Ingresá un correo electrónico válido"
       : "";
   const passwordError = !password ? "La contraseña es obligatoria" : "";
   const showEmailError = (touched.email || submitted) && emailError;
@@ -110,18 +111,34 @@ export default function LandingPage() {
                   <Lock className="w-4 h-4" />
                   Contraseña
                 </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onBlur={() => setTouched((t) => ({ ...t, password: true }))}
-                  aria-invalid={!!showPasswordError}
-                  aria-describedby={
-                    showPasswordError ? "password-error" : undefined
-                  }
-                  className="h-12"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+                    aria-invalid={!!showPasswordError}
+                    aria-describedby={
+                      showPasswordError ? "password-error" : undefined
+                    }
+                    className="h-12 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={
+                      showPassword ? "Ocultar contraseña" : "Ver contraseña"
+                    }
+                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-neutral-500 hover:text-neutral-700 focus:outline-none"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
                 {showPasswordError && (
                   <p id="password-error" className="text-sm text-destructive">
                     {passwordError}
