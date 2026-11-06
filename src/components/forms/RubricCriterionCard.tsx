@@ -11,6 +11,7 @@ interface RubricCriterionCardProps {
   onRemove: (criterionId: string) => void;
   canRemove: boolean;
   showErrors: boolean;
+  disabled?: boolean;
 }
 
 const WEIGHT_OPTIONS: {
@@ -46,6 +47,7 @@ export function RubricCriterionCard({
   onRemove,
   canRemove,
   showErrors,
+  disabled = false,
 }: RubricCriterionCardProps) {
   const { criterionId } = criterion;
   const [touched, setTouched] = useState({ title: false, guidance: false });
@@ -89,6 +91,7 @@ export function RubricCriterionCard({
               titleError ? `criterion-title-error-${criterionId}` : undefined
             }
             className={`${UNDERLINE_CLASS} font-bold`}
+            disabled={disabled}
           />
           <FieldError
             id={`criterion-title-error-${criterionId}`}
@@ -108,6 +111,7 @@ export function RubricCriterionCard({
               value={criterion.weight}
               onChange={(e) => handleWeightChange(e.target.value)}
               className={SELECT_CLASS}
+              disabled={disabled}
             >
               {WEIGHT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -125,7 +129,7 @@ export function RubricCriterionCard({
         size="icon-xs"
         aria-label="Eliminar criterio"
         onClick={() => onRemove(criterionId)}
-        disabled={!canRemove}
+        disabled={disabled || !canRemove}
         className="absolute top-3.5 right-3.5 text-neutral-650"
       >
         <Trash2 className="size-4" />
@@ -152,6 +156,7 @@ export function RubricCriterionCard({
               : undefined
           }
           className={TEXTAREA_CLASS}
+          disabled={disabled}
         />
         <FieldError
           id={`criterion-guidance-error-${criterionId}`}
