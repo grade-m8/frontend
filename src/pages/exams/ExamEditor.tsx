@@ -157,6 +157,16 @@ export function ExamConfigPage() {
     navigate("/materias", { replace: true });
   }, [error, navigate]);
 
+  const handleCancel = () => {
+    const currentSubjectId =
+      formState.generalInfo.subjectId || initialSubjectId || exam?.subjectId;
+    if (currentSubjectId) {
+      navigate(`/materias/${currentSubjectId}/examenes`);
+    } else {
+      navigate("/materias");
+    }
+  };
+
   const handleContinue = async () => {
     setSubmitted(true);
     const errors = validateGeneralInfo(formState.generalInfo);
@@ -301,7 +311,7 @@ export function ExamConfigPage() {
       <div className="flex items-center justify-between border-t border-neutral-300 pt-6">
         <Button
           variant="outline"
-          onClick={() => navigate("/materias")}
+          onClick={handleCancel}
           disabled={isSubmitting}
           className="h-12 min-w-[186px] gap-2 px-6 text-base font-bold cursor-pointer"
         >
