@@ -17,6 +17,7 @@ interface ExamGeneralInfoFormProps {
   onChange: (updatedFields: Partial<ExamGeneralInfo>) => void;
   errors?: Record<string, string>;
   isEditMode?: boolean;
+  disabled?: boolean;
 }
 
 const LABEL_CLASS = "label-micro text-neutral-650";
@@ -70,6 +71,7 @@ export function ExamGeneralInfoForm({
   onChange,
   errors = {},
   isEditMode = false,
+  disabled = false,
 }: ExamGeneralInfoFormProps) {
   const { user, role } = useAuth();
 
@@ -141,6 +143,7 @@ export function ExamGeneralInfoForm({
             }
             className={INPUT_CLASS}
             onBlur={() => markTouched("title")}
+            disabled={disabled}
           />
           <FieldError id="exam-title-error" message={fieldErrors.title} />
         </div>
@@ -168,7 +171,7 @@ export function ExamGeneralInfoForm({
               }
               className={`${SELECT_CLASS} cursor-pointer appearance-none pr-10`}
               onBlur={() => markTouched("subjectId")}
-              disabled={isEditMode || isLoadingSubjects}
+              disabled={disabled || isEditMode || isLoadingSubjects}
             >
               <option value="">
                 {isLoadingSubjects
@@ -183,7 +186,7 @@ export function ExamGeneralInfoForm({
             </select>
             <ChevronDown
               className={`pointer-events-none absolute top-1/2 right-3 h-5 w-5 -translate-y-1/2 text-neutral-500 ${
-                isEditMode || isLoadingSubjects ? "opacity-50" : ""
+                disabled || isEditMode || isLoadingSubjects ? "opacity-50" : ""
               }`}
             />
           </div>
@@ -202,6 +205,7 @@ export function ExamGeneralInfoForm({
               onChange({ scheduledAt: fromDateTimeLocalValue(e.target.value) })
             }
             className={INPUT_CLASS}
+            disabled={disabled}
           />
         </div>
         <div className="flex flex-col gap-2 lg:col-span-2">
@@ -223,6 +227,7 @@ export function ExamGeneralInfoForm({
               placeholder="90"
               className={`${INPUT_CLASS} pr-12`}
               onBlur={() => markTouched("durationMinutes")}
+              disabled={disabled}
             />
             <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-base text-neutral-500">
               min
@@ -254,6 +259,7 @@ export function ExamGeneralInfoForm({
               placeholder="60"
               className={`${INPUT_CLASS} pr-12`}
               onBlur={() => markTouched("passingPercentage")}
+              disabled={disabled}
             />
             <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-base text-neutral-500">
               %

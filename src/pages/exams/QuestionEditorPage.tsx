@@ -79,6 +79,9 @@ export function QuestionEditorPage() {
     isLoading,
     error,
   } = useExam(examId);
+  // Un examen publicado o cerrado no admite cambios (el backend responde 409
+  // EXAM_NOT_EDITABLE), así que el editor pasa a modo solo lectura.
+  const isReadOnly = !!exam && exam.status !== "draft";
   const [questions, setQuestions] = useState<Question[]>([]);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(
     null,
@@ -88,6 +91,7 @@ export function QuestionEditorPage() {
   const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
 
   const handleAddQuestion = () => {
+    if (isReadOnly) return;
     const draft = createDraftQuestion();
     setQuestions((prev) => [...prev, draft]);
     if (editingQuestionId != null) handleCancelEdit(editingQuestionId);
@@ -129,7 +133,7 @@ export function QuestionEditorPage() {
   };
 
   const handlePublish = async () => {
-    if (isPublishing) return;
+    if (isPublishing || isReadOnly) return;
     const publishError = getPublishError(questions, editingQuestionId);
     if (publishError) {
       toast.error(publishError);
@@ -195,6 +199,14 @@ export function QuestionEditorPage() {
         Editor de Preguntas
       </h1>
 
+      {isReadOnly && (
+        <div className="mb-6 border border-neutral-300 bg-neutral-50 p-4 text-sm font-semibold text-neutral-800">
+          Este examen ya se encuentra{" "}
+          {exam.status === "closed" ? "cerrado" : "publicado"} y no permite
+          modificaciones.
+        </div>
+      )}
+
       <ExamSummaryBanner
         title={exam?.title ?? ""}
         totalQuestions={questions.length}
@@ -213,13 +225,15 @@ export function QuestionEditorPage() {
             onSave={handleSaveQuestion}
             onDelete={handleDeleteQuestion}
             criteria={criteria ?? []}
+            disabled={isReadOnly}
           />
         ))}
 
         <button
           type="button"
           onClick={handleAddQuestion}
-          className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-white/50 py-6 text-center transition-colors hover:border-neutral-500 hover:bg-white"
+          disabled={isReadOnly}
+          className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-white/50 py-6 text-center transition-colors hover:border-neutral-500 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-neutral-300 disabled:hover:bg-white/50"
         >
           <Plus className="size-5 text-neutral-650" />
           <span className="label-micro text-neutral-650">
@@ -237,14 +251,16 @@ export function QuestionEditorPage() {
         >
           Volver a las rúbricas
         </Button>
-        <Button
-          className="h-12 w-[366px] gap-2 text-base font-bold cursor-pointer"
-          onClick={handlePublish}
-          disabled={isPublishing}
-        >
-          {isPublishing && <Loader2 className="h-4 w-4 animate-spin" />}
-          {isPublishing ? "Publicando…" : "Guardar y publicar"}
-        </Button>
+        {!isReadOnly && (
+          <Button
+            className="h-12 w-[366px] gap-2 text-base font-bold cursor-pointer"
+            onClick={handlePublish}
+            disabled={isPublishing}
+          >
+            {isPublishing && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isPublishing ? "Publicando…" : "Guardar y publicar"}
+          </Button>
+        )}
       </div>
     </div>
   );
