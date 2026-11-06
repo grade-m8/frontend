@@ -38,7 +38,7 @@ export default function LandingPage() {
 
     if (emailError || passwordError) return;
 
-    login(email, password)
+    login(email.trim(), password)
       .then(() => {
         toast.success("¡Inicio de sesión exitoso!");
         navigate("/materias");
