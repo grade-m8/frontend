@@ -1,5 +1,5 @@
 import { PageHeader } from "@/components/layout/PageHeader";
-import { LayoutGrid, Search, Loader2, LogOut, Plus } from "lucide-react";
+import { LayoutGrid, Search, LogOut, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { AuthContext } from "@/context/AuthContext.ts";
 import { useSubject } from "@/hooks/useSubject.ts";
 import EnrollSubjectModal from "@/components/data-display/EnrollSubjectModal.tsx";
 import { toast } from "@/components/handler/toastHandler.tsx";
+import { RouteLoadingSpinner } from "@/components/layout/RouteLoadingSpinner.tsx";
 
 export default function SubjectsPage() {
   const [query, setQuery] = useState("");
@@ -32,11 +33,7 @@ export default function SubjectsPage() {
   const navigate = useNavigate();
 
   if (!authContext || authContext.loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        Cargando sesión...
-      </div>
-    );
+    return <RouteLoadingSpinner message="Preparando tu espacio..." />;
   }
   const handleLogout = async (): Promise<void> => {
     try {
@@ -50,12 +47,7 @@ export default function SubjectsPage() {
 
   // 2. Prevenir el renderizado de la grilla mientras se buscan las materias
   if (isLoading) {
-    return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4 text-neutral-500">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <p>Cargando tus materias...</p>
-      </div>
-    );
+    return <RouteLoadingSpinner message="Cargando tus materias..." />;
   }
 
   const filteredSubjects = subjects.filter((s) =>
