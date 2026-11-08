@@ -123,7 +123,7 @@ export default function SubjectExamsPage() {
 
   const handleGoToExam = (exam: Exam) => {
     if (exam.status === "draft") {
-      navigate(`/teacher/exams/${exam.examId}/questions`);
+      navigate(`/teacher/exams/${exam.examId}/config`);
       return;
     }
 

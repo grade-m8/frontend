@@ -15,6 +15,7 @@ export type ReplaceCriteriaDto = {
 
 export type ReplaceQuestionsDto = {
   questions: Omit<Question, "questionId">[];
+  publish?: boolean;
 };
 
 export interface ExamDetail {
