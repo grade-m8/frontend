@@ -29,6 +29,9 @@ function isEmptyDraft(question: Question): boolean {
   return question.prompt.trim() === "" && question.idealAnswer.trim() === "";
 }
 
+const EDITING_QUESTION_IN_PROGRESS_MESSAGE =
+  "Confirmá o cancelá la pregunta que estás editando.";
+
 // Devuelve el primer motivo por el que el examen no se puede publicar, o null
 // si está listo. Exige título, enunciado, puntos y respuesta ideal en cada
 // pregunta: QuestionEditForm valida los mismos campos al confirmar, así que
@@ -42,7 +45,7 @@ function getPublishError(
     return "Agregá al menos una pregunta antes de publicar.";
   }
   if (editingQuestionId !== null) {
-    return "Confirmá o cancelá la pregunta que estás editando.";
+    return EDITING_QUESTION_IN_PROGRESS_MESSAGE;
   }
   const hasIncomplete = questions.some(
     (q) =>
@@ -142,6 +145,10 @@ export function QuestionEditorPage() {
 
   const handleBack = async () => {
     if (isBusy || !examId) return;
+    if (editingQuestionId !== null) {
+      toast.error(EDITING_QUESTION_IN_PROGRESS_MESSAGE);
+      return;
+    }
     setIsNavigatingBack(true);
     try {
       const payload = buildDraftPayload();
@@ -155,6 +162,10 @@ export function QuestionEditorPage() {
 
   const handleSaveDraft = async () => {
     if (isBusy || !examId) return;
+    if (editingQuestionId !== null) {
+      toast.error(EDITING_QUESTION_IN_PROGRESS_MESSAGE);
+      return;
+    }
     setIsSavingDraft(true);
     try {
       const payload = buildDraftPayload();
@@ -294,7 +305,7 @@ export function QuestionEditorPage() {
             className="h-12 min-w-[180px] gap-2 px-6 text-base font-bold cursor-pointer"
           >
             {isSavingDraft && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isSavingDraft ? "Guardando…" : "Guardar borrador"}
+            {isSavingDraft ? "Guardando y saliendo…" : "Guardar y salir"}
           </Button>
           <Button
             className="h-12 min-w-[200px] gap-2 text-base font-bold cursor-pointer"
