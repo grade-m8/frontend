@@ -75,9 +75,12 @@ export function QuestionEditorPage() {
   const navigate = useNavigate();
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isSavingAndContinuing, setIsSavingAndContinuing] = useState(false);
   const [isNavigatingBack, setIsNavigatingBack] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
-  const isBusy = isPublishing || isSavingDraft || isNavigatingBack;
+  const isBusy =
+    isPublishing || isSavingDraft || isSavingAndContinuing || isNavigatingBack;
 
   const {
     exam,
@@ -94,11 +97,25 @@ export function QuestionEditorPage() {
 
   const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
 
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty || editingQuestionId !== null) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isDirty, editingQuestionId]);
+
   const handleAddQuestion = () => {
     const draft = createDraftQuestion();
     setQuestions((prev) => [...prev, draft]);
     if (editingQuestionId != null) handleCancelEdit(editingQuestionId);
     setEditingQuestionId(draft.questionId);
+    setIsDirty(true);
   };
 
   const handleSaveQuestion = (updated: Question) => {
@@ -106,6 +123,7 @@ export function QuestionEditorPage() {
       prev.map((q) => (q.questionId === updated.questionId ? updated : q)),
     );
     setEditingQuestionId(null);
+    setIsDirty(true);
     toast.success("Pregunta guardada");
   };
 
@@ -129,6 +147,7 @@ export function QuestionEditorPage() {
     setEditingQuestionId((current) =>
       current === questionId ? null : current,
     );
+    setIsDirty(true);
   };
 
   const buildDraftPayload = () => {
@@ -143,6 +162,32 @@ export function QuestionEditorPage() {
       }));
   };
 
+  const handleSaveAndContinue = async () => {
+    if (isBusy || !examId) return;
+    if (editingQuestionId !== null) {
+      toast.error(EDITING_QUESTION_IN_PROGRESS_MESSAGE);
+      return;
+    }
+    setIsSavingAndContinuing(true);
+    try {
+      const payload = buildDraftPayload();
+      const updatedQuestions = await replaceQuestions(examId, {
+        questions: payload,
+        publish: false,
+      });
+      const sortedQuestions = [...updatedQuestions].sort(
+        (a, b) => a.order - b.order,
+      );
+      setQuestions(sortedQuestions);
+      setIsDirty(false);
+      toast.success("Borrador guardado exitosamente.");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setIsSavingAndContinuing(false);
+    }
+  };
+
   const handleBack = async () => {
     if (isBusy || !examId) return;
     if (editingQuestionId !== null) {
@@ -153,6 +198,7 @@ export function QuestionEditorPage() {
     try {
       const payload = buildDraftPayload();
       await replaceQuestions(examId, { questions: payload, publish: false });
+      setIsDirty(false);
       navigate(`/teacher/exams/${examId}/config`);
     } catch (err) {
       toast.error(getApiErrorMessage(err));
@@ -170,6 +216,7 @@ export function QuestionEditorPage() {
     try {
       const payload = buildDraftPayload();
       await replaceQuestions(examId, { questions: payload, publish: false });
+      setIsDirty(false);
       toast.success("Borrador guardado exitosamente.");
       const destination = exam?.subjectId
         ? `/materias/${exam.subjectId}/examenes`
@@ -201,6 +248,7 @@ export function QuestionEditorPage() {
     setIsPublishing(true);
     try {
       await replaceQuestions(examId, { questions: payload, publish: true });
+      setIsDirty(false);
       toast.success(
         "¡Examen publicado exitosamente! Ya se encuentra disponible.",
       );
@@ -223,6 +271,7 @@ export function QuestionEditorPage() {
       (a, b) => a.order - b.order,
     );
     setQuestions(sortedQuestions);
+    setIsDirty(false);
   }, [exam, fetchedQuestions, setQuestions]);
 
   useEffect(() => {
@@ -245,7 +294,14 @@ export function QuestionEditorPage() {
 
   return (
     <div className="mx-auto mt-3.5 px-4 pb-12">
-      <WizardStepper currentStep="questions" />
+      <WizardStepper
+        currentStep="questions"
+        onStepClick={(stepId) => {
+          if (stepId === "config") {
+            handleBack();
+          }
+        }}
+      />
 
       <h1 className="text-h1 mt-4 mb-6 font-bold text-neutral-900">
         Editor de Preguntas
@@ -298,6 +354,17 @@ export function QuestionEditorPage() {
             : "Volver a las rúbricas"}
         </Button>
         <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            onClick={handleSaveAndContinue}
+            disabled={isBusy}
+            className="h-12 min-w-[180px] gap-2 px-6 text-base font-bold cursor-pointer"
+          >
+            {isSavingAndContinuing && (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            )}
+            {isSavingAndContinuing ? "Guardando…" : "Guardar y seguir editando"}
+          </Button>
           <Button
             variant="outline"
             onClick={handleSaveDraft}
