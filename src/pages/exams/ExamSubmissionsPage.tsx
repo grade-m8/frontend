@@ -1,17 +1,21 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, RotateCcw, Lock } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { SubmissionCard } from "@/components/data-display/SubmissionCard";
+import { CloseExamDialog } from "@/components/data-display/CloseExamDialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getExam } from "@/services/examService.ts";
+import { closeExam, getExam } from "@/services/examService.ts";
 import {
   approveAllForExam,
   listSubmissionsForExam,
+  retryFailedForExam,
 } from "@/services/submissionService.ts";
 import { getApiErrorMessage } from "@/services/error.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
+import type { ExamStatus } from "@/types/exam";
 import type { SubmissionWithStudent } from "@/types/submission";
 
 type LoadResult =
@@ -19,6 +23,7 @@ type LoadResult =
       status: "success";
       examId: string | undefined;
       examTitle: string;
+      examStatus: ExamStatus;
       subjectId: string;
       submissions: SubmissionWithStudent[];
     }
@@ -32,6 +37,10 @@ export function ExamSubmissionsPage() {
 
   const [loaded, setLoaded] = useState<LoadResult | null>(null);
   const [isApproving, setIsApproving] = useState(false);
+  const [isCloseDialogOpen, setIsCloseDialogOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const [isRetryingFailed, setIsRetryingFailed] = useState(false);
 
   const current = loaded && loaded.examId === examId ? loaded : null;
   const isLoading = current === null;
@@ -39,6 +48,8 @@ export function ExamSubmissionsPage() {
   const hasError = current?.status === "error";
   const examTitle =
     current?.status === "success" ? current.examTitle : undefined;
+  const examStatus =
+    current?.status === "success" ? current.examStatus : undefined;
   const subjectId =
     current?.status === "success" ? current.subjectId : undefined;
   const submissions = current?.status === "success" ? current.submissions : [];
@@ -54,6 +65,7 @@ export function ExamSubmissionsPage() {
           status: "success",
           examId,
           examTitle: examDetail.exam.title,
+          examStatus: examDetail.exam.status,
           subjectId: examDetail.exam.subjectId,
           submissions: submissionList,
         });
@@ -85,6 +97,40 @@ export function ExamSubmissionsPage() {
   const pendingCount = submissions.filter(
     (s) => s.status === "awaiting_approval",
   ).length;
+  const errorCount = submissions.filter((s) => s.status === "error").length;
+
+  const handleRetryFailed = async () => {
+    if (isRetryingFailed) return;
+    setIsRetryingFailed(true);
+    try {
+      const { retried, failed } = await retryFailedForExam(examId as string);
+      toast.success(
+        retried > 0
+          ? `Se reenviaron ${retried} respuestas a corregir.`
+          : "No había respuestas para reintentar.",
+      );
+      if (failed > 0) {
+        toast.error(
+          `${failed} respuestas no se pudieron reenviar. Intentá de nuevo.`,
+        );
+      }
+      const submissionList = await listSubmissionsForExam(examId as string);
+      setLoaded((prev) =>
+        prev && prev.status === "success"
+          ? { ...prev, submissions: submissionList }
+          : prev,
+      );
+    } catch (err: unknown) {
+      const code = err instanceof Error ? err.message : "";
+      if (code === "NOT_PROFESSOR_EXAM") {
+        navigate("/403");
+        return;
+      }
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setIsRetryingFailed(false);
+    }
+  };
 
   const handleApproveAll = async () => {
     if (isApproving) return;
@@ -114,6 +160,51 @@ export function ExamSubmissionsPage() {
     }
   };
 
+  const handleCancelClose = useCallback(() => {
+    setIsCloseDialogOpen(false);
+    closeButtonRef.current?.focus();
+  }, []);
+
+  const setExamStatus = (status: ExamStatus) =>
+    setLoaded((prev) =>
+      prev && prev.status === "success"
+        ? { ...prev, examStatus: status }
+        : prev,
+    );
+
+  const handleConfirmClose = async () => {
+    if (isClosing) return;
+    setIsClosing(true);
+    try {
+      const closed = await closeExam(examId as string);
+      setExamStatus(closed.status);
+      toast.success("Examen cerrado correctamente");
+    } catch (err: unknown) {
+      const code = err instanceof Error ? err.message : "";
+      if (code === "NOT_PROFESSOR_EXAM") {
+        navigate("/403");
+        return;
+      }
+      // El estado local puede estar desactualizado (p. ej. otra pestaña ya lo
+      // cerró). EXAM_NOT_CLOSEABLE no dice por qué falló, así que se consulta
+      // el estado real del examen.
+      if (code === "EXAM_CLOSED") {
+        setExamStatus("closed");
+      } else if (code === "EXAM_NOT_CLOSEABLE") {
+        try {
+          const { exam } = await getExam(examId as string);
+          setExamStatus(exam.status);
+        } catch {
+          // El toast de abajo ya informa el fallo; se conserva el estado actual.
+        }
+      }
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setIsClosing(false);
+      handleCancelClose();
+    }
+  };
+
   const handleBack = () => {
     navigate(subjectId ? `/materias/${subjectId}/examenes` : "/materias");
   };
@@ -138,15 +229,61 @@ export function ExamSubmissionsPage() {
         title={examTitle ?? ""}
         subtitle="Entregas y corrección con IA"
         actions={
-          <Button
-            className="gap-2 h-12 font-bold cursor-pointer"
-            onClick={handleApproveAll}
-            disabled={pendingCount === 0 || isApproving}
-          >
-            {isApproving && <Loader2 className="h-4 w-4 animate-spin" />}
-            Aprobar todas ({pendingCount})
-          </Button>
+          <>
+            {examStatus === "closed" && (
+              <Badge
+                variant="outline"
+                className="label-micro h-auto rounded-none border-danger-500 bg-danger-50 px-2 py-1 text-danger-500"
+              >
+                CERRADO
+              </Badge>
+            )}
+            <Button
+              ref={closeButtonRef}
+              variant="outline"
+              className="gap-2 h-12 rounded-none border-danger-500 font-bold text-danger-500 hover:bg-danger-50 hover:text-danger-600 cursor-pointer"
+              onClick={() => setIsCloseDialogOpen(true)}
+              disabled={examStatus !== "published"}
+            >
+              <Lock className="h-4 w-4" />
+              Cerrar examen
+            </Button>
+            {errorCount > 0 && (
+              <Button
+                variant="outline"
+                className="gap-2 h-12 font-bold cursor-pointer"
+                onClick={handleRetryFailed}
+                disabled={isRetryingFailed || isApproving}
+              >
+                {isRetryingFailed ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Reintentando…
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="h-4 w-4" />
+                    Reintentar fallidas ({errorCount})
+                  </>
+                )}
+              </Button>
+            )}
+            <Button
+              className="gap-2 h-12 font-bold cursor-pointer"
+              onClick={handleApproveAll}
+              disabled={pendingCount === 0 || isApproving || isRetryingFailed}
+            >
+              {isApproving && <Loader2 className="h-4 w-4 animate-spin" />}
+              Aprobar todas ({pendingCount})
+            </Button>
+          </>
         }
+      />
+      <CloseExamDialog
+        isOpen={isCloseDialogOpen}
+        isClosing={isClosing}
+        onCancel={handleCancelClose}
+        onConfirm={handleConfirmClose}
       />
       <div className="px-6">
         <SectionHeader title="Entregas" />

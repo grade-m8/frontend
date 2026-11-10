@@ -19,6 +19,10 @@ export async function updateExam(
   return apiClient.patch<Exam>(`/exams/${examId}`, patch);
 }
 
+export async function closeExam(examId: string): Promise<Exam> {
+  return apiClient.patch<Exam>(`/exams/${examId}/close`);
+}
+
 export async function replaceCriteria(
   examId: string,
   dto: ReplaceCriteriaDto,

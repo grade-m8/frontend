@@ -1,4 +1,9 @@
-import type { AnswerDetail, AuditSubmissionDetail } from "@/types/audit.ts";
+import type {
+  AnalysisItemInput,
+  AnswerDetail,
+  AuditSubmissionDetail,
+  Answer,
+} from "@/types/audit.ts";
 import { apiClient } from "@/services/apiClient.ts";
 
 export function getSubmission(
@@ -13,5 +18,33 @@ export function getAnswerDetail(
 ): Promise<AnswerDetail> {
   return apiClient.get<AnswerDetail>(
     `/submissions/${submissionId}/answers/${questionId}`,
+  );
+}
+
+export function updateAnalysis(
+  submissionId: string,
+  questionId: string,
+  items: AnalysisItemInput[],
+): Promise<AnswerDetail> {
+  return apiClient.put<AnswerDetail>(
+    `/submissions/${submissionId}/answers/${questionId}/analysis`,
+    { items },
+  );
+}
+
+export function approveSubmission(
+  submissionId: string,
+): Promise<Pick<AuditSubmissionDetail, "submission">> {
+  return apiClient.post<Pick<AuditSubmissionDetail, "submission">>(
+    `/submissions/${submissionId}/approve`,
+  );
+}
+
+export function retryGrading(
+  submissionId: string,
+  questionId: string,
+): Promise<Answer> {
+  return apiClient.post<Answer>(
+    `/submissions/${submissionId}/answers/${questionId}/retry`,
   );
 }

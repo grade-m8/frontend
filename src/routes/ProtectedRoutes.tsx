@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
+import { RouteLoadingSpinner } from "@/components/layout/RouteLoadingSpinner.tsx";
 
 interface Props {
   allowedRoles: Array<Role>;
@@ -20,17 +21,18 @@ export default function ProtectedRoutes({ allowedRoles }: Props) {
     if (user && role) {
       hadSession.current = true;
       if (role !== "Admin" && !allowedRoles.includes(role)) {
-        toast.error("No tienes acceso a esta pagina");
+        toast.error("No tenés acceso a esta página");
       }
       return;
     }
 
     if (hadSession.current) return;
 
-    toast.error("Inicia sesión para acceder a esta página");
+    toast.error("Iniciá sesión para acceder a esta página");
   }, [loading, user, role, allowedRoles]);
 
-  if (loading) return <h1>Loading...</h1>;
+  if (loading)
+    return <RouteLoadingSpinner message="Preparando tu espacio..." />;
   if (!user || !role)
     return <Navigate to={"/"} state={{ from: location }} replace />;
   if (role === "Admin") return <Outlet />;

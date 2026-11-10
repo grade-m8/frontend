@@ -4,6 +4,8 @@ import type { SubmissionStudent } from "@/types/submission.ts";
 export type AnswerGradingStatus =
   "pending" | "queued" | "grading" | "graded" | "failed";
 
+export type GradingVerdict = "correct" | "partially_correct" | "incorrect";
+
 export type Answer = {
   questionId: string;
   text: string;
@@ -14,6 +16,8 @@ export type Answer = {
   aiScore?: number;
   finalScore?: number;
   aiFeedback?: string;
+  verdict?: GradingVerdict;
+  verdictReason?: string;
   teacherEdited: boolean;
   gradedAt?: string;
 };
@@ -58,6 +62,8 @@ export type AuditSubmissionDetail = {
       | "awaiting_approval"
       | "reviewed"
       | "error";
+    totalScore?: number;
+    totalPossible: number;
   };
   answers: Answer[];
 };

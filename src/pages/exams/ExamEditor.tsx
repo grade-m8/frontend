@@ -15,6 +15,8 @@ import {
   updateExam,
 } from "@/services/examService.ts";
 import { getApiErrorMessage } from "@/services/error.ts";
+import RubricWeightSummary from "@/components/data-display/RubricWeightSummary.tsx";
+import { fromDateTimeLocalValue, getNowDateTimeLocal } from "@/lib/date.ts";
 
 const SUGGESTED_CRITERIA: RubricCriterion[] = [
   {
@@ -112,6 +114,9 @@ export function ExamConfigPage() {
     : "";
 
   const { exam, criteria, isLoading, error } = useExam(examId);
+  // Un examen publicado o cerrado no admite cambios (el backend responde 409
+  // EXAM_NOT_EDITABLE), así que la pantalla pasa a modo solo lectura.
+  const isReadOnly = !!exam && exam.status !== "draft";
   const [formState, setFormState] = useState<ExamConfigFormState>(() =>
     isEditMode
       ? EDITION_INITIAL_STATE
@@ -120,6 +125,8 @@ export function ExamConfigPage() {
           generalInfo: {
             ...EMPTY_GENERAL_INFO,
             subjectId: initialSubjectId,
+            // Por defecto, el examen arranca ahora (a la precisión del input).
+            scheduledAt: fromDateTimeLocalValue(getNowDateTimeLocal()),
           },
         },
   );
@@ -153,7 +160,18 @@ export function ExamConfigPage() {
     navigate("/materias", { replace: true });
   }, [error, navigate]);
 
+  const handleCancel = () => {
+    const currentSubjectId =
+      formState.generalInfo.subjectId || initialSubjectId || exam?.subjectId;
+    if (currentSubjectId) {
+      navigate(`/materias/${currentSubjectId}/examenes`);
+    } else {
+      navigate("/materias");
+    }
+  };
+
   const handleContinue = async () => {
+    if (isReadOnly) return;
     setSubmitted(true);
     const errors = validateGeneralInfo(formState.generalInfo);
     setGeneralInfoErrors(errors);
@@ -252,7 +270,15 @@ export function ExamConfigPage() {
           técnica.
         </p>
       </div>
+      {isReadOnly && (
+        <div className="border border-neutral-300 bg-neutral-50 p-4 text-sm font-semibold text-neutral-800">
+          Este examen ya se encuentra{" "}
+          {exam.status === "closed" ? "cerrado" : "publicado"} y no permite
+          modificaciones.
+        </div>
+      )}
       <ExamGeneralInfoForm
+        disabled={isReadOnly}
         values={formState.generalInfo}
         errors={generalInfoErrors}
         isEditMode={isEditMode}
@@ -265,6 +291,7 @@ export function ExamConfigPage() {
         }
       />
       <RubricCriteriaList
+        disabled={isReadOnly}
         criteria={formState.rubricCriteria}
         showErrors={submitted}
         onAddCriterion={(criterion) =>
@@ -292,25 +319,35 @@ export function ExamConfigPage() {
             isDirty: true,
           }))
         }
+        footer={<RubricWeightSummary criteria={formState.rubricCriteria} />}
       />
       <div className="flex items-center justify-between border-t border-neutral-300 pt-6">
         <Button
           variant="outline"
-          onClick={() => navigate("/materias")}
+          onClick={handleCancel}
           disabled={isSubmitting}
           className="h-12 min-w-[186px] gap-2 px-6 text-base font-bold cursor-pointer"
         >
           Cancelar
         </Button>
-        <Button
-          onClick={handleContinue}
-          disabled={isSubmitting}
-          className="h-12 w-[366px] gap-2 text-base font-bold cursor-pointer"
-        >
-          {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {isSubmitting ? "Guardando..." : "Continuar al editor de preguntas"}
-          {!isSubmitting && <ArrowRight className="h-4 w-4" />}
-        </Button>
+        {isReadOnly ? (
+          <Button
+            onClick={() => navigate(`/teacher/exams/${examId}/submissions`)}
+            className="h-12 w-[366px] gap-2 text-base font-bold cursor-pointer"
+          >
+            Volver a entregas
+          </Button>
+        ) : (
+          <Button
+            onClick={handleContinue}
+            disabled={isSubmitting}
+            className="h-12 w-[366px] gap-2 text-base font-bold cursor-pointer"
+          >
+            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isSubmitting ? "Guardando..." : "Continuar al editor de preguntas"}
+            {!isSubmitting && <ArrowRight className="h-4 w-4" />}
+          </Button>
+        )}
       </div>
     </div>
   );

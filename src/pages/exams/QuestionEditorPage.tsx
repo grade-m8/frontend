@@ -29,6 +29,9 @@ function isEmptyDraft(question: Question): boolean {
   return question.prompt.trim() === "" && question.idealAnswer.trim() === "";
 }
 
+const EDITING_QUESTION_IN_PROGRESS_MESSAGE =
+  "Confirmá o cancelá la pregunta que estás editando.";
+
 // Devuelve el primer motivo por el que el examen no se puede publicar, o null
 // si está listo. Exige título, enunciado, puntos y respuesta ideal en cada
 // pregunta: QuestionEditForm valida los mismos campos al confirmar, así que
@@ -42,7 +45,7 @@ function getPublishError(
     return "Agregá al menos una pregunta antes de publicar.";
   }
   if (editingQuestionId !== null) {
-    return "Confirmá o cancelá la pregunta que estás editando.";
+    return EDITING_QUESTION_IN_PROGRESS_MESSAGE;
   }
   const hasIncomplete = questions.some(
     (q) =>
@@ -71,13 +74,24 @@ export function QuestionEditorPage() {
   const { examId } = useParams<{ examId: string }>();
   const navigate = useNavigate();
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isSavingAndContinuing, setIsSavingAndContinuing] = useState(false);
+  const [isNavigatingBack, setIsNavigatingBack] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+
+  const isBusy =
+    isPublishing || isSavingDraft || isSavingAndContinuing || isNavigatingBack;
 
   const {
     exam,
+    criteria,
     questions: fetchedQuestions,
     isLoading,
     error,
   } = useExam(examId);
+  // Un examen publicado o cerrado no admite cambios (el backend responde 409
+  // EXAM_NOT_EDITABLE), así que el editor pasa a modo solo lectura.
+  const isReadOnly = !!exam && exam.status !== "draft";
   const [questions, setQuestions] = useState<Question[]>([]);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(
     null,
@@ -86,11 +100,26 @@ export function QuestionEditorPage() {
 
   const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
 
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty || editingQuestionId !== null) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isDirty, editingQuestionId]);
+
   const handleAddQuestion = () => {
+    if (isReadOnly) return;
     const draft = createDraftQuestion();
     setQuestions((prev) => [...prev, draft]);
     if (editingQuestionId != null) handleCancelEdit(editingQuestionId);
     setEditingQuestionId(draft.questionId);
+    setIsDirty(true);
   };
 
   const handleSaveQuestion = (updated: Question) => {
@@ -98,6 +127,7 @@ export function QuestionEditorPage() {
       prev.map((q) => (q.questionId === updated.questionId ? updated : q)),
     );
     setEditingQuestionId(null);
+    setIsDirty(true);
     toast.success("Pregunta guardada");
   };
 
@@ -112,23 +142,107 @@ export function QuestionEditorPage() {
   };
 
   const handleEdit = (questionId: string) => {
+    if (isReadOnly) return;
     if (editingQuestionId != null) handleCancelEdit(editingQuestionId);
     setEditingQuestionId(questionId);
   };
 
   const handleDeleteQuestion = (questionId: string) => {
+    if (isReadOnly) return;
     setQuestions((prev) => prev.filter((q) => q.questionId !== questionId));
     setEditingQuestionId((current) =>
       current === questionId ? null : current,
     );
+    setIsDirty(true);
   };
 
-  const handleBack = () => {
-    navigate(`/teacher/exams/${examId}/config`);
+  const buildDraftPayload = () => {
+    return questions
+      .filter((q) => !isEmptyDraft(q))
+      .map((q, i) => ({
+        order: i + 1,
+        title: q.title,
+        prompt: q.prompt,
+        points: Number(q.points),
+        idealAnswer: q.idealAnswer,
+      }));
+  };
+
+  const handleSaveAndContinue = async () => {
+    if (isReadOnly) return;
+    if (isBusy || !examId) return;
+    if (editingQuestionId !== null) {
+      toast.error(EDITING_QUESTION_IN_PROGRESS_MESSAGE);
+      return;
+    }
+    setIsSavingAndContinuing(true);
+    try {
+      const payload = buildDraftPayload();
+      const updatedQuestions = await replaceQuestions(examId, {
+        questions: payload,
+        publish: false,
+      });
+      const sortedQuestions = [...updatedQuestions].sort(
+        (a, b) => a.order - b.order,
+      );
+      setQuestions(sortedQuestions);
+      setIsDirty(false);
+      toast.success("Borrador guardado exitosamente.");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setIsSavingAndContinuing(false);
+    }
+  };
+
+  const handleBack = async () => {
+    if (isReadOnly) {
+      navigate(`/teacher/exams/${examId}/config`);
+      return;
+    }
+    if (isBusy || !examId) return;
+    if (editingQuestionId !== null) {
+      toast.error(EDITING_QUESTION_IN_PROGRESS_MESSAGE);
+      return;
+    }
+    setIsNavigatingBack(true);
+    try {
+      const payload = buildDraftPayload();
+      await replaceQuestions(examId, { questions: payload, publish: false });
+      setIsDirty(false);
+      navigate(`/teacher/exams/${examId}/config`);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+      setIsNavigatingBack(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    if (isReadOnly) return;
+    if (isBusy || !examId) return;
+    if (editingQuestionId !== null) {
+      toast.error(EDITING_QUESTION_IN_PROGRESS_MESSAGE);
+      return;
+    }
+    setIsSavingDraft(true);
+    try {
+      const payload = buildDraftPayload();
+      await replaceQuestions(examId, { questions: payload, publish: false });
+      setIsDirty(false);
+      toast.success("Borrador guardado exitosamente.");
+      const destination = exam?.subjectId
+        ? `/materias/${exam.subjectId}/examenes`
+        : "/materias";
+      navigate(destination);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+      setIsSavingDraft(false);
+    }
   };
 
   const handlePublish = async () => {
-    if (isPublishing) return;
+    if (isPublishing || isReadOnly) return;
+    if (isBusy) return;
     const publishError = getPublishError(questions, editingQuestionId);
     if (publishError) {
       toast.error(publishError);
@@ -146,11 +260,15 @@ export function QuestionEditorPage() {
 
     setIsPublishing(true);
     try {
-      await replaceQuestions(examId, { questions: payload });
+      await replaceQuestions(examId, { questions: payload, publish: true });
+      setIsDirty(false);
       toast.success(
         "¡Examen publicado exitosamente! Ya se encuentra disponible.",
       );
-      navigate("/materias");
+      const destination = exam?.subjectId
+        ? `/materias/${exam.subjectId}/examenes`
+        : "/materias";
+      navigate(destination);
     } catch (err) {
       toast.error(getApiErrorMessage(err));
       setIsPublishing(false);
@@ -166,6 +284,7 @@ export function QuestionEditorPage() {
       (a, b) => a.order - b.order,
     );
     setQuestions(sortedQuestions);
+    setIsDirty(false);
   }, [exam, fetchedQuestions, setQuestions]);
 
   useEffect(() => {
@@ -188,11 +307,26 @@ export function QuestionEditorPage() {
 
   return (
     <div className="mx-auto mt-3.5 px-4 pb-12">
-      <WizardStepper currentStep="questions" />
+      <WizardStepper
+        currentStep="questions"
+        onStepClick={(stepId) => {
+          if (stepId === "config") {
+            handleBack();
+          }
+        }}
+      />
 
       <h1 className="text-h1 mt-4 mb-6 font-bold text-neutral-900">
         Editor de Preguntas
       </h1>
+
+      {isReadOnly && (
+        <div className="mb-6 border border-neutral-300 bg-neutral-50 p-4 text-sm font-semibold text-neutral-800">
+          Este examen ya se encuentra{" "}
+          {exam.status === "closed" ? "cerrado" : "publicado"} y no permite
+          modificaciones.
+        </div>
+      )}
 
       <ExamSummaryBanner
         title={exam?.title ?? ""}
@@ -211,13 +345,16 @@ export function QuestionEditorPage() {
             onCancel={() => handleCancelEdit(question.questionId)}
             onSave={handleSaveQuestion}
             onDelete={handleDeleteQuestion}
+            criteria={criteria ?? []}
+            disabled={isReadOnly}
           />
         ))}
 
         <button
           type="button"
           onClick={handleAddQuestion}
-          className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-white/50 py-6 text-center transition-colors hover:border-neutral-500 hover:bg-white"
+          disabled={isReadOnly || isBusy}
+          className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-white/50 py-6 text-center transition-colors hover:border-neutral-500 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-neutral-300 disabled:hover:bg-white/50"
         >
           <Plus className="size-5 text-neutral-650" />
           <span className="label-micro text-neutral-650">
@@ -230,19 +367,50 @@ export function QuestionEditorPage() {
         <Button
           variant="outline"
           onClick={handleBack}
-          disabled={isPublishing}
+          disabled={!isReadOnly && isBusy}
           className="h-12 min-w-[186px] gap-2 px-6 text-base font-bold cursor-pointer"
         >
-          Volver a las rúbricas
+          {!isReadOnly && isNavigatingBack && (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          )}
+          {!isReadOnly && isNavigatingBack
+            ? "Guardando y volviendo…"
+            : "Volver a las rúbricas"}
         </Button>
-        <Button
-          className="h-12 w-[366px] gap-2 text-base font-bold cursor-pointer"
-          onClick={handlePublish}
-          disabled={isPublishing}
-        >
-          {isPublishing && <Loader2 className="h-4 w-4 animate-spin" />}
-          {isPublishing ? "Publicando…" : "Guardar y publicar"}
-        </Button>
+        {!isReadOnly && (
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              onClick={handleSaveAndContinue}
+              disabled={isBusy}
+              className="h-12 min-w-[180px] gap-2 px-6 text-base font-bold cursor-pointer"
+            >
+              {isSavingAndContinuing && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              {isSavingAndContinuing
+                ? "Guardando…"
+                : "Guardar y seguir editando"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSaveDraft}
+              disabled={isBusy}
+              className="h-12 min-w-[180px] gap-2 px-6 text-base font-bold cursor-pointer"
+            >
+              {isSavingDraft && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isSavingDraft ? "Guardando y saliendo…" : "Guardar y salir"}
+            </Button>
+            <Button
+              className="h-12 min-w-[200px] gap-2 text-base font-bold cursor-pointer"
+              onClick={handlePublish}
+              disabled={isBusy}
+            >
+              {isPublishing && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isPublishing ? "Publicando…" : "Guardar y publicar"}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

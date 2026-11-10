@@ -1,6 +1,6 @@
 import { QuestionEditForm } from "@/components/forms/QuestionEditForm";
 import { QuestionReadView } from "@/components/forms/QuestionReadView";
-import type { Question } from "@/types/exam.ts";
+import type { Question, RubricCriterion } from "@/types/exam.ts";
 
 export interface QuestionCardProps {
   question: Question;
@@ -10,6 +10,8 @@ export interface QuestionCardProps {
   onDelete: (questionId: string) => void;
   onSave: (updateQuestion: Question) => void;
   onCancel: () => void;
+  criteria?: RubricCriterion[];
+  disabled?: boolean;
 }
 
 export default function QuestionCard({
@@ -20,8 +22,11 @@ export default function QuestionCard({
   onDelete,
   onSave,
   onCancel,
+  criteria,
+  disabled = false,
 }: QuestionCardProps) {
-  if (isEditing) {
+  // En modo solo lectura nunca se muestra el formulario de edición.
+  if (isEditing && !disabled) {
     return (
       <QuestionEditForm
         question={question}
@@ -29,6 +34,7 @@ export default function QuestionCard({
         onDelete={onDelete}
         onSave={onSave}
         onCancel={onCancel}
+        criteria={criteria}
       />
     );
   }
@@ -39,6 +45,8 @@ export default function QuestionCard({
       index={index}
       onEdit={() => onEdit(question.questionId)}
       onDelete={onDelete}
+      criteria={criteria}
+      disabled={disabled}
     />
   );
 }

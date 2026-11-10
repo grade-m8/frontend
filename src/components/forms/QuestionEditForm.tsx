@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { AICallout } from "@/components/data-display/AICallout";
+import { CriterionPointsBreakdown } from "@/components/data-display/CriterionPointsBreakdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +11,7 @@ import { Badge } from "@/components/ui/badge.tsx";
 
 type QuestionEditFormProps = Pick<
   QuestionCardProps,
-  "question" | "index" | "onSave" | "onDelete" | "onCancel"
+  "question" | "index" | "onSave" | "onDelete" | "onCancel" | "criteria"
 >;
 
 const ERROR_CLASS =
@@ -59,6 +60,7 @@ export function QuestionEditForm({
   onSave,
   onDelete,
   onCancel,
+  criteria,
 }: QuestionEditFormProps) {
   const [draft, setDraft] = useState<Question>(question);
   const [submitted, setSubmitted] = useState(false);
@@ -130,6 +132,14 @@ export function QuestionEditForm({
           />
         </div>
       </div>
+
+      {criteria && criteria.length > 0 && (
+        <CriterionPointsBreakdown
+          criteria={criteria}
+          questionPoints={draft.points}
+          variant="full"
+        />
+      )}
 
       <div className="flex flex-col gap-2">
         <Label

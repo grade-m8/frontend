@@ -16,3 +16,11 @@ export async function approveAllForExam(
     `/submissions/by-exam/${examId}/approve`,
   );
 }
+
+export async function retryFailedForExam(
+  examId: string,
+): Promise<{ retried: number; failed: number }> {
+  return apiClient.post<{ retried: number; failed: number }>(
+    `/submissions/by-exam/${examId}/retry-failed`,
+  );
+}

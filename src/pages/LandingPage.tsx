@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { ArrowRight, Mail, Lock } from "lucide-react";
+import { ArrowRight, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import logo from "@/assets/logo.svg";
 import { Label } from "@/components/ui/label";
@@ -11,20 +11,37 @@ import { useAuth } from "@/hooks/useAuth.ts";
 import { mapAuthErrorMessage } from "@/services/error.ts";
 import firebase from "firebase/compat/app";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [touched, setTouched] = useState({ email: false, password: false });
+  const [submitted, setSubmitted] = useState(false);
+
+  const emailError = !email.trim()
+    ? "El correo electrónico es obligatorio"
+    : !EMAIL_REGEX.test(email.trim())
+      ? "Ingresá un correo electrónico válido"
+      : "";
+  const passwordError = !password ? "La contraseña es obligatoria" : "";
+  const showEmailError = (touched.email || submitted) && emailError;
+  const showPasswordError = (touched.password || submitted) && passwordError;
 
   const navigate = useNavigate();
   const { login } = useAuth();
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setSubmitted(true);
 
-    login(email, password)
+    if (emailError || passwordError) return;
+
+    login(email.trim(), password)
       .then(() => {
-        toast.success("Log in successful!");
+        toast.success("¡Inicio de sesión exitoso!");
         navigate("/materias");
       })
       .catch(function (error: firebase.FirebaseError) {
@@ -51,7 +68,11 @@ export default function LandingPage() {
       </div>
       <div className="bg-background p-8 md:p-20 flex flex-col items-center justify-center gap-12">
         {showLogin ? (
-          <form onSubmit={handleSubmit} className="w-full max-w-150 space-y-8">
+          <form
+            onSubmit={handleSubmit}
+            noValidate
+            className="w-full max-w-150 space-y-8"
+          >
             <div className="space-y-3">
               <h2 className="text-display tracking-wide font-extrabold text-foreground">
                 Acceso al Sistema
@@ -70,13 +91,19 @@ export default function LandingPage() {
                 <Input
                   id="email"
                   type="email"
-                  pattern=".+@.+\..+"
                   placeholder="usuario@institucion.edu.ar"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                  aria-invalid={!!showEmailError}
+                  aria-describedby={showEmailError ? "email-error" : undefined}
                   className="h-12"
-                  required
                 />
+                {showEmailError && (
+                  <p id="email-error" className="text-sm text-destructive">
+                    {emailError}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -84,14 +111,39 @@ export default function LandingPage() {
                   <Lock className="w-4 h-4" />
                   Contraseña
                 </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-12"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+                    aria-invalid={!!showPasswordError}
+                    aria-describedby={
+                      showPasswordError ? "password-error" : undefined
+                    }
+                    className="h-12 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={
+                      showPassword ? "Ocultar contraseña" : "Ver contraseña"
+                    }
+                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-neutral-500 hover:text-neutral-700 focus:outline-none"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                {showPasswordError && (
+                  <p id="password-error" className="text-sm text-destructive">
+                    {passwordError}
+                  </p>
+                )}
               </div>
             </div>
 

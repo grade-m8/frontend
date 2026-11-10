@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -6,23 +6,60 @@ import {
   FileText,
   Loader2,
   AlertCircle,
+  CheckCircle,
+  Pencil,
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ApproveSubmissionDialog } from "@/components/forms/ApproveSubmissionDialog.tsx";
+import { AnalysisEditor } from "@/components/forms/AnalysisEditor.tsx";
 import { AnalysisItemCard } from "@/components/data-display/AnalysisItemCard.tsx";
 import type { Question } from "@/types/exam.ts";
-import { getSubmission } from "@/services/auditService.ts";
+import type {
+  AnalysisItem,
+  AnalysisItemInput,
+  AuditSubmissionDetail,
+} from "@/types/audit.ts";
+import {
+  approveSubmission,
+  getSubmission,
+  updateAnalysis,
+} from "@/services/auditService.ts";
 import { getExam } from "@/services/examService.ts";
 import { useAnswerDetail } from "@/hooks/useAnswerDetail.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import { getApiErrorMessage } from "@/services/error.ts";
 import { useAuth } from "@/hooks/useAuth.ts";
 import ErrorPage from "@/pages/ErrorPage.tsx";
+import { formatScore } from "@/lib/formatScore.ts";
 import { formatStudentLabel } from "@/lib/studentLabel.ts";
 import type { SubmissionStudent } from "@/types/submission.ts";
+import { FailedGradingNotice } from "@/components/data-display/FailedGradingNotice.tsx";
+import { retryGrading } from "@/services/auditService.ts";
+import type { AnswerGradingStatus } from "@/types/audit.ts";
 
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLL_ATTEMPTS = 60;
+
+// Ítems vigentes por orden, uno por criterio (si la IA repitió un criterio, gana el primero).
+function toEditableItems(items: AnalysisItem[]): AnalysisItemInput[] {
+  const seen = new Set<string>();
+  return [...items]
+    .sort((a, b) => a.order - b.order)
+    .filter((item) => {
+      if (seen.has(item.criterionId)) return false;
+      seen.add(item.criterionId);
+      return true;
+    })
+    .map(({ criterionId, title, description, points }) => ({
+      criterionId,
+      title,
+      description,
+      points,
+    }));
+}
 
 export function SubmissionAuditPage() {
   const { submissionId } = useParams<{ submissionId: string }>();
@@ -36,6 +73,24 @@ export function SubmissionAuditPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>("");
   const [pollAttempts, setPollAttempts] = useState<number>(0);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [submission, setSubmission] = useState<
+    AuditSubmissionDetail["submission"] | null
+  >(null);
+  const [isApproveDialogOpen, setIsApproveDialogOpen] =
+    useState<boolean>(false);
+  const [isApproving, setIsApproving] = useState<boolean>(false);
+
+  const [answerStatusById, setAnswerStatusById] = useState<
+    Record<string, AnswerGradingStatus>
+  >({});
+
+  const [retryingByQuestionId, setRetryingByQuestionId] = useState<
+    Record<string, boolean>
+  >({});
+  const selectedQuestionIdRef = useRef<string>("");
+  const isRetrying = Boolean(retryingByQuestionId[selectedQuestionId]);
 
   const [isLoadingInitial, setIsLoadingInitial] = useState<boolean>(true);
   const [initialError, setInitialError] = useState<
@@ -62,6 +117,13 @@ export function SubmissionAuditPage() {
     try {
       const submissionData = await getSubmission(submissionId);
       setStudent(submissionData.submission.student);
+      setSubmission(submissionData.submission);
+
+      const statusMap: Record<string, AnswerGradingStatus> = {};
+      for (const answer of submissionData.answers) {
+        statusMap[answer.questionId] = answer.gradingStatus;
+      }
+      setAnswerStatusById(statusMap);
 
       if (
         isStudent &&
@@ -81,6 +143,7 @@ export function SubmissionAuditPage() {
       setQuestions(sortedQuestions);
 
       if (sortedQuestions.length > 0) {
+        selectedQuestionIdRef.current = sortedQuestions[0].questionId;
         setSelectedQuestionId(sortedQuestions[0].questionId);
       }
     } catch (err: unknown) {
@@ -125,8 +188,95 @@ export function SubmissionAuditPage() {
   }, [loadInitialData]);
 
   function handleSelectQuestion(questionId: string): void {
+    if (detail) {
+      setAnswerStatusById((prev) =>
+        prev[detail.answer.questionId] === detail.answer.gradingStatus
+          ? prev
+          : {
+              ...prev,
+              [detail.answer.questionId]: detail.answer.gradingStatus,
+            },
+      );
+    }
+    selectedQuestionIdRef.current = questionId;
     setSelectedQuestionId(questionId);
     setPollAttempts(0);
+    setIsEditing(false);
+  }
+
+  async function handleSave(items: AnalysisItemInput[]): Promise<void> {
+    if (isSaving || !submissionId) return;
+
+    setIsSaving(true);
+    try {
+      await updateAnalysis(submissionId, selectedQuestionId, items);
+      toast.success("Corrección guardada.");
+      setIsEditing(false);
+      await reload();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+      if (err instanceof Error && err.message === "ANSWER_NOT_GRADED") {
+        setIsEditing(false);
+        await reload();
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleRetry(): Promise<void> {
+    const questionId = selectedQuestionId;
+    if (retryingByQuestionId[questionId] || !submissionId || !questionId) {
+      return;
+    }
+
+    setRetryingByQuestionId((prev) => ({ ...prev, [questionId]: true }));
+    try {
+      await retryGrading(submissionId, questionId);
+      toast.success("Se reenvió la respuesta a corregir.");
+      setAnswerStatusById((prev) => ({
+        ...prev,
+        [questionId]: "queued",
+      }));
+      if (selectedQuestionIdRef.current === questionId) {
+        setPollAttempts(0);
+        await reload();
+      }
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+      if (
+        err instanceof Error &&
+        err.message === "ANSWER_NOT_RETRYABLE" &&
+        selectedQuestionIdRef.current === questionId
+      ) {
+        await reload();
+      }
+    } finally {
+      setRetryingByQuestionId((prev) => ({ ...prev, [questionId]: false }));
+    }
+  }
+
+  async function handleConfirmApprove(): Promise<void> {
+    if (isApproving || !submissionId) return;
+
+    setIsApproving(true);
+    try {
+      const { submission: approved } = await approveSubmission(submissionId);
+      setSubmission(approved);
+      setIsApproveDialogOpen(false);
+      toast.success(
+        "Entrega aprobada exitosamente. La nota ya es visible para el alumno.",
+      );
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "";
+      if (errorMsg === "NOT_PROFESSOR_EXAM" || errorMsg.includes("403")) {
+        navigate("/403");
+        return;
+      }
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setIsApproving(false);
+    }
   }
 
   const isGrading =
@@ -219,9 +369,13 @@ export function SubmissionAuditPage() {
     (q) => q.questionId === selectedQuestionId,
   );
   const maxPoints = detail?.question.points ?? currentQuestion?.points ?? "—";
-  const displayedScore = isStudent
-    ? (detail?.answer.finalScore ?? detail?.answer.aiScore)
-    : detail?.answer.aiScore;
+  const displayedScore = detail?.answer.finalScore ?? detail?.answer.aiScore;
+  const isScoreEdited = !isStudent && detail?.answer.teacherEdited;
+
+  const statusOf = (qid: string): AnswerGradingStatus | undefined =>
+    detail?.answer.questionId === qid
+      ? detail.answer.gradingStatus
+      : answerStatusById[qid];
 
   return (
     <div className="min-h-screen bg-background">
@@ -256,17 +410,45 @@ export function SubmissionAuditPage() {
         {/*Points*/}
         <div className="flex flex-col sm:items-end gap-1 shrink-0">
           <span className="font-label text-xs font-medium uppercase tracking-label-wide leading-none sm:text-right text-neutral-650">
-            {isStudent ? "CALIFICACIÓN" : "CALIFICACIÓN SUGERIDA (IA)"}
+            {isStudent
+              ? "CALIFICACIÓN"
+              : isScoreEdited
+                ? "CALIFICACIÓN (EDITADA)"
+                : "CALIFICACIÓN SUGERIDA (IA)"}
           </span>
 
           <div className="flex items-baseline sm:justify-end">
             <span className="text-display-lg font-bold leading-none tracking-display text-teal-700 sm:text-right">
-              {displayedScore ?? "—"}
+              {displayedScore != null ? formatScore(displayedScore) : "—"}
             </span>
             <span className="pl-2 text-h2 font-semibold text-neutral-650 sm:text-right">
               / {maxPoints}
             </span>
           </div>
+          {isScoreEdited && (
+            <span className="text-xs text-neutral-650 sm:text-right">
+              La IA sugirió{" "}
+              {detail?.answer.aiScore != null
+                ? formatScore(detail.answer.aiScore)
+                : "—"}
+            </span>
+          )}
+          {!isStudent && submission?.status === "awaiting_approval" && (
+            <Button
+              type="button"
+              className="mt-2 bg-teal-700 hover:bg-teal-800 text-white"
+              onClick={() => setIsApproveDialogOpen(true)}
+            >
+              <CheckCircle />
+              Aprobar entrega
+            </Button>
+          )}
+          {!isStudent && submission?.status === "reviewed" && (
+            <Badge className="mt-2 bg-teal-50 text-teal-800 border-teal-200">
+              <CheckCircle />
+              Aprobada
+            </Badge>
+          )}
         </div>
       </header>
 
@@ -282,21 +464,35 @@ export function SubmissionAuditPage() {
         >
           {questions.map((q) => {
             const isSelected = q.questionId === selectedQuestionId;
+            const hasFailed = !isStudent && statusOf(q.questionId) === "failed";
             return (
               <button
                 key={q.questionId}
                 role="tab"
                 aria-selected={isSelected}
+                aria-label={
+                  hasFailed
+                    ? `Pregunta ${q.order}: corrección fallida`
+                    : undefined
+                }
                 type="button"
                 onClick={() => handleSelectQuestion(q.questionId)}
                 className={cn(
-                  "px-4 py-2 text-xs font-label uppercase tracking-label border transition-all cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-teal-700",
+                  "inline-flex items-center gap-1.5 px-4 py-2 text-xs font-label uppercase tracking-label border transition-all cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-teal-700",
                   isSelected
                     ? "bg-teal-700 text-white border-teal-800 font-bold shadow-sm"
                     : "bg-card text-neutral-650 hover:text-neutral-900 hover:bg-neutral-100 border-neutral-300 font-medium",
                 )}
               >
                 P{q.order}
+                {hasFailed && (
+                  <AlertCircle
+                    className={cn(
+                      "h-3.5 w-3.5",
+                      isSelected ? "text-white" : "text-danger-600",
+                    )}
+                  />
+                )}
               </button>
             );
           })}
@@ -354,6 +550,16 @@ export function SubmissionAuditPage() {
                 <Cpu className="w-5 h-5 text-teal-700" />
                 <span>Análisis de la IA</span>
               </h3>
+              {!isStudent && isGraded && !isEditing && (
+                <Button
+                  variant="ghost"
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                >
+                  <Pencil className="w-4 h-4" />
+                  Editar
+                </Button>
+              )}
             </div>
           </div>
 
@@ -402,25 +608,24 @@ export function SubmissionAuditPage() {
                 </div>
               )
             ) : isFailed ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center gap-3 p-4 bg-danger-50 border border-danger-200">
-                <AlertCircle className="w-8 h-8 text-danger-600 shrink-0" />
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm font-bold text-danger-900">
-                    La IA no pudo corregir esta respuesta.
-                  </p>
-                  {isStudent ? (
-                    <p className="text-xs text-danger-700 mt-1">
-                      Consultá con tu docente.
-                    </p>
-                  ) : (
-                    detail?.answer.lastGradingError && (
-                      <p className="text-xs text-danger-700 font-mono mt-1">
-                        {detail.answer.lastGradingError}
-                      </p>
-                    )
-                  )}
-                </div>
-              </div>
+              isStudent ? (
+                <FailedGradingNotice description="Consultá con tu docente." />
+              ) : (
+                <FailedGradingNotice
+                  description={detail?.answer.lastGradingError}
+                  onRetry={() => void handleRetry()}
+                  isRetrying={isRetrying}
+                />
+              )
+            ) : isGraded && isEditing && detail ? (
+              <AnalysisEditor
+                key={selectedQuestionId}
+                initialItems={toEditableItems(detail.analysisItems)}
+                maxPoints={detail.question.points}
+                isSaving={isSaving}
+                onSave={(items) => void handleSave(items)}
+                onCancel={() => setIsEditing(false)}
+              />
             ) : isGraded ? (
               <>
                 {/* aiFeedback en bloque destacado */}
@@ -459,6 +664,18 @@ export function SubmissionAuditPage() {
           </div>
         </section>
       </main>
+
+      {!isStudent && submission && (
+        <ApproveSubmissionDialog
+          open={isApproveDialogOpen}
+          studentName={formatStudentLabel(student)}
+          totalScore={submission.totalScore ?? null}
+          totalPossible={submission.totalPossible}
+          isApproving={isApproving}
+          onClose={() => setIsApproveDialogOpen(false)}
+          onConfirm={() => void handleConfirmApprove()}
+        />
+      )}
     </div>
   );
 }

@@ -10,7 +10,7 @@ import { getSubject } from "@/services/subjectService.ts";
 import { listActiveExams, listOwnedExams } from "@/services/examService.ts";
 import { getApiErrorMessage } from "@/services/error.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
-import { formatDate } from "@/lib/date.ts";
+import { formatDate, toMillis } from "@/lib/date.ts";
 import type { Exam, ExamStatus } from "@/types/exam.ts";
 import { listMyStatusForSubject } from "@/services/studentStatusService.ts";
 import { getStudentExamCta } from "@/lib/studentExamCta.ts";
@@ -18,6 +18,9 @@ import type {
   MyExamSubmissionStatus,
   StudentExamCta,
 } from "@/types/studentSubmission.ts";
+
+// Tope de setTimeout (2^31 - 1 ms): un delay mayor se dispara al instante.
+const MAX_TIMEOUT_MS = 2_147_483_647;
 
 const EXAM_STATUS_LABELS: Record<ExamStatus, string> = {
   draft: "BORRADOR",
@@ -44,6 +47,9 @@ export default function SubjectExamsPage() {
   const [loaded, setLoaded] = useState<LoadResult | null>(null);
 
   const [reloadKey, setReloadKey] = useState(0);
+  // Reloj de la pantalla: solo avanza cuando algún examen programado arranca,
+  // para que el alumno vea pasar PROGRAMADO → Comenzar sin recargar.
+  const [now, setNow] = useState(() => Date.now());
 
   const current = loaded && loaded.subjectId === subjectId ? loaded : null;
   const isLoading = current === null;
@@ -93,12 +99,35 @@ export default function SubjectExamsPage() {
     };
   }, [subjectId, role, reloadKey]);
 
+  useEffect(() => {
+    if (role !== "Student" || !exams) return;
+
+    const upcomingStarts = exams
+      .map((exam) => toMillis(exam.scheduledAt))
+      .filter(
+        (millis): millis is number => millis !== undefined && millis > now,
+      );
+    if (upcomingStarts.length === 0) return;
+
+    const delay = Math.min(
+      Math.max(Math.min(...upcomingStarts) - Date.now(), 0),
+      MAX_TIMEOUT_MS,
+    );
+    const timeout = setTimeout(() => setNow(Date.now()), delay);
+    return () => clearTimeout(timeout);
+  }, [exams, role, now]);
+
   const handleCreateExam = () => {
     navigate(`/teacher/exams/new?subjectId=${subjectId}`);
   };
 
-  const handleGoToExam = (examId: string) => {
-    navigate(`/teacher/exams/${examId}/submissions`);
+  const handleGoToExam = (exam: Exam) => {
+    if (exam.status === "draft") {
+      navigate(`/teacher/exams/${exam.examId}/config`);
+      return;
+    }
+
+    navigate(`/teacher/exams/${exam.examId}/submissions`);
   };
 
   const handleStudentAction = (examId: string, cta: StudentExamCta) => {
@@ -173,7 +202,7 @@ export default function SubjectExamsPage() {
           <div className="mt-4 grid grid-cols-1 gap-4 pb-12 md:grid-cols-2 lg:grid-cols-3">
             {exams.map((exam) => {
               const cta = isStudent
-                ? getStudentExamCta(myStatuses?.get(exam.examId))
+                ? getStudentExamCta(myStatuses?.get(exam.examId), exam, now)
                 : undefined;
 
               return (
@@ -184,12 +213,17 @@ export default function SubjectExamsPage() {
                   date={formatDate(exam.scheduledAt)}
                   durationMinutes={exam.durationMinutes}
                   status={cta?.statusLabel ?? EXAM_STATUS_LABELS[exam.status]}
-                  actionLabel={cta?.label}
+                  actionLabel={
+                    cta?.label ??
+                    (exam.status === "draft"
+                      ? "Continuar edición"
+                      : "Ver entregas")
+                  }
                   actionDisabled={cta?.kind === "waiting"}
                   onActionClick={
                     cta
                       ? () => handleStudentAction(exam.examId, cta)
-                      : () => handleGoToExam(exam.examId)
+                      : () => handleGoToExam(exam)
                   }
                 />
               );
