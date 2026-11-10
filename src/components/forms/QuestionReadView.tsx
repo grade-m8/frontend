@@ -11,6 +11,7 @@ interface QuestionReadViewProps {
   onDelete: (questionId: string) => void;
   onEdit: () => void;
   criteria?: RubricCriterion[];
+  disabled?: boolean;
 }
 
 export function QuestionReadView({
@@ -19,6 +20,7 @@ export function QuestionReadView({
   onEdit,
   onDelete,
   criteria,
+  disabled = false,
 }: QuestionReadViewProps) {
   return (
     <div className="border border-neutral-300 rounded-lg p-6 bg-surface-card shadow-soft space-y-4">
@@ -45,6 +47,7 @@ export function QuestionReadView({
             size="icon-sm"
             aria-label="Editar pregunta"
             onClick={() => onEdit()}
+            disabled={disabled}
             className="text-neutral-650"
           >
             <Pencil className="size-4" />
@@ -54,6 +57,7 @@ export function QuestionReadView({
             size="icon-sm"
             aria-label="Eliminar pregunta"
             onClick={() => onDelete(question.questionId)}
+            disabled={disabled}
             className="text-danger-500"
           >
             <Trash2 className="size-4" />

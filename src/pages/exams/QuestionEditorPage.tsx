@@ -89,6 +89,9 @@ export function QuestionEditorPage() {
     isLoading,
     error,
   } = useExam(examId);
+  // Un examen publicado o cerrado no admite cambios (el backend responde 409
+  // EXAM_NOT_EDITABLE), así que el editor pasa a modo solo lectura.
+  const isReadOnly = !!exam && exam.status !== "draft";
   const [questions, setQuestions] = useState<Question[]>([]);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(
     null,
@@ -111,6 +114,7 @@ export function QuestionEditorPage() {
   }, [isDirty, editingQuestionId]);
 
   const handleAddQuestion = () => {
+    if (isReadOnly) return;
     const draft = createDraftQuestion();
     setQuestions((prev) => [...prev, draft]);
     if (editingQuestionId != null) handleCancelEdit(editingQuestionId);
@@ -138,11 +142,13 @@ export function QuestionEditorPage() {
   };
 
   const handleEdit = (questionId: string) => {
+    if (isReadOnly) return;
     if (editingQuestionId != null) handleCancelEdit(editingQuestionId);
     setEditingQuestionId(questionId);
   };
 
   const handleDeleteQuestion = (questionId: string) => {
+    if (isReadOnly) return;
     setQuestions((prev) => prev.filter((q) => q.questionId !== questionId));
     setEditingQuestionId((current) =>
       current === questionId ? null : current,
@@ -163,6 +169,7 @@ export function QuestionEditorPage() {
   };
 
   const handleSaveAndContinue = async () => {
+    if (isReadOnly) return;
     if (isBusy || !examId) return;
     if (editingQuestionId !== null) {
       toast.error(EDITING_QUESTION_IN_PROGRESS_MESSAGE);
@@ -189,6 +196,10 @@ export function QuestionEditorPage() {
   };
 
   const handleBack = async () => {
+    if (isReadOnly) {
+      navigate(`/teacher/exams/${examId}/config`);
+      return;
+    }
     if (isBusy || !examId) return;
     if (editingQuestionId !== null) {
       toast.error(EDITING_QUESTION_IN_PROGRESS_MESSAGE);
@@ -207,6 +218,7 @@ export function QuestionEditorPage() {
   };
 
   const handleSaveDraft = async () => {
+    if (isReadOnly) return;
     if (isBusy || !examId) return;
     if (editingQuestionId !== null) {
       toast.error(EDITING_QUESTION_IN_PROGRESS_MESSAGE);
@@ -229,6 +241,7 @@ export function QuestionEditorPage() {
   };
 
   const handlePublish = async () => {
+    if (isPublishing || isReadOnly) return;
     if (isBusy) return;
     const publishError = getPublishError(questions, editingQuestionId);
     if (publishError) {
@@ -307,6 +320,14 @@ export function QuestionEditorPage() {
         Editor de Preguntas
       </h1>
 
+      {isReadOnly && (
+        <div className="mb-6 border border-neutral-300 bg-neutral-50 p-4 text-sm font-semibold text-neutral-800">
+          Este examen ya se encuentra{" "}
+          {exam.status === "closed" ? "cerrado" : "publicado"} y no permite
+          modificaciones.
+        </div>
+      )}
+
       <ExamSummaryBanner
         title={exam?.title ?? ""}
         totalQuestions={questions.length}
@@ -325,14 +346,15 @@ export function QuestionEditorPage() {
             onSave={handleSaveQuestion}
             onDelete={handleDeleteQuestion}
             criteria={criteria ?? []}
+            disabled={isReadOnly}
           />
         ))}
 
         <button
           type="button"
           onClick={handleAddQuestion}
-          disabled={isBusy}
-          className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-white/50 py-6 text-center transition-colors hover:border-neutral-500 hover:bg-white disabled:pointer-events-none disabled:opacity-50"
+          disabled={isReadOnly || isBusy}
+          className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-white/50 py-6 text-center transition-colors hover:border-neutral-500 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-neutral-300 disabled:hover:bg-white/50"
         >
           <Plus className="size-5 text-neutral-650" />
           <span className="label-micro text-neutral-650">
@@ -345,44 +367,50 @@ export function QuestionEditorPage() {
         <Button
           variant="outline"
           onClick={handleBack}
-          disabled={isBusy}
+          disabled={!isReadOnly && isBusy}
           className="h-12 min-w-[186px] gap-2 px-6 text-base font-bold cursor-pointer"
         >
-          {isNavigatingBack && <Loader2 className="h-4 w-4 animate-spin" />}
-          {isNavigatingBack
+          {!isReadOnly && isNavigatingBack && (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          )}
+          {!isReadOnly && isNavigatingBack
             ? "Guardando y volviendo…"
             : "Volver a las rúbricas"}
         </Button>
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            onClick={handleSaveAndContinue}
-            disabled={isBusy}
-            className="h-12 min-w-[180px] gap-2 px-6 text-base font-bold cursor-pointer"
-          >
-            {isSavingAndContinuing && (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            )}
-            {isSavingAndContinuing ? "Guardando…" : "Guardar y seguir editando"}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleSaveDraft}
-            disabled={isBusy}
-            className="h-12 min-w-[180px] gap-2 px-6 text-base font-bold cursor-pointer"
-          >
-            {isSavingDraft && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isSavingDraft ? "Guardando y saliendo…" : "Guardar y salir"}
-          </Button>
-          <Button
-            className="h-12 min-w-[200px] gap-2 text-base font-bold cursor-pointer"
-            onClick={handlePublish}
-            disabled={isBusy}
-          >
-            {isPublishing && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isPublishing ? "Publicando…" : "Guardar y publicar"}
-          </Button>
-        </div>
+        {!isReadOnly && (
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              onClick={handleSaveAndContinue}
+              disabled={isBusy}
+              className="h-12 min-w-[180px] gap-2 px-6 text-base font-bold cursor-pointer"
+            >
+              {isSavingAndContinuing && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              {isSavingAndContinuing
+                ? "Guardando…"
+                : "Guardar y seguir editando"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSaveDraft}
+              disabled={isBusy}
+              className="h-12 min-w-[180px] gap-2 px-6 text-base font-bold cursor-pointer"
+            >
+              {isSavingDraft && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isSavingDraft ? "Guardando y saliendo…" : "Guardar y salir"}
+            </Button>
+            <Button
+              className="h-12 min-w-[200px] gap-2 text-base font-bold cursor-pointer"
+              onClick={handlePublish}
+              disabled={isBusy}
+            >
+              {isPublishing && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isPublishing ? "Publicando…" : "Guardar y publicar"}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

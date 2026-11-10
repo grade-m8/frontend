@@ -11,6 +11,7 @@ export interface QuestionCardProps {
   onSave: (updateQuestion: Question) => void;
   onCancel: () => void;
   criteria?: RubricCriterion[];
+  disabled?: boolean;
 }
 
 export default function QuestionCard({
@@ -22,8 +23,10 @@ export default function QuestionCard({
   onSave,
   onCancel,
   criteria,
+  disabled = false,
 }: QuestionCardProps) {
-  if (isEditing) {
+  // En modo solo lectura nunca se muestra el formulario de edición.
+  if (isEditing && !disabled) {
     return (
       <QuestionEditForm
         question={question}
@@ -43,6 +46,7 @@ export default function QuestionCard({
       onEdit={() => onEdit(question.questionId)}
       onDelete={onDelete}
       criteria={criteria}
+      disabled={disabled}
     />
   );
 }

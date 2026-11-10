@@ -14,6 +14,7 @@ interface RubricCriteriaListProps {
   onRemoveCriterion: (criterionId: string) => void;
   showErrors: boolean;
   footer?: ReactNode;
+  disabled?: boolean;
 }
 
 export function RubricCriteriaList({
@@ -23,6 +24,7 @@ export function RubricCriteriaList({
   onRemoveCriterion,
   showErrors,
   footer,
+  disabled = false,
 }: RubricCriteriaListProps) {
   // TODO: Al conectar con el backend, estos criterios se enviarán mediante la
   // Callable Function replaceCriteria({ examId, criteria })
@@ -69,19 +71,22 @@ export function RubricCriteriaList({
           onRemove={onRemoveCriterion}
           canRemove={criteria.length > 1}
           showErrors={showErrors}
+          disabled={disabled}
         />
       ))}
       {footer}
-      <button
-        type="button"
-        onClick={handleAddCriterion}
-        className="flex w-full flex-col items-center justify-center gap-2 border-2 border-dashed border-neutral-500 py-4 text-center transition-colors hover:border-teal-700 cursor-pointer"
-      >
-        <Plus className="h-5 w-5 text-neutral-700" />
-        <span className="text-body font-bold text-neutral-700">
-          Añadir Nuevo Criterio
-        </span>
-      </button>
+      {!disabled && (
+        <button
+          type="button"
+          onClick={handleAddCriterion}
+          className="flex w-full flex-col items-center justify-center gap-2 border-2 border-dashed border-neutral-500 py-4 text-center transition-colors hover:border-teal-700 cursor-pointer"
+        >
+          <Plus className="h-5 w-5 text-neutral-700" />
+          <span className="text-body font-bold text-neutral-700">
+            Añadir Nuevo Criterio
+          </span>
+        </button>
+      )}
     </section>
   );
 }
