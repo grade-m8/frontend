@@ -142,11 +142,13 @@ export function QuestionEditorPage() {
   };
 
   const handleEdit = (questionId: string) => {
+    if (isReadOnly) return;
     if (editingQuestionId != null) handleCancelEdit(editingQuestionId);
     setEditingQuestionId(questionId);
   };
 
   const handleDeleteQuestion = (questionId: string) => {
+    if (isReadOnly) return;
     setQuestions((prev) => prev.filter((q) => q.questionId !== questionId));
     setEditingQuestionId((current) =>
       current === questionId ? null : current,
@@ -167,6 +169,7 @@ export function QuestionEditorPage() {
   };
 
   const handleSaveAndContinue = async () => {
+    if (isReadOnly) return;
     if (isBusy || !examId) return;
     if (editingQuestionId !== null) {
       toast.error(EDITING_QUESTION_IN_PROGRESS_MESSAGE);
@@ -193,6 +196,10 @@ export function QuestionEditorPage() {
   };
 
   const handleBack = async () => {
+    if (isReadOnly) {
+      navigate(`/teacher/exams/${examId}/config`);
+      return;
+    }
     if (isBusy || !examId) return;
     if (editingQuestionId !== null) {
       toast.error(EDITING_QUESTION_IN_PROGRESS_MESSAGE);
@@ -211,6 +218,7 @@ export function QuestionEditorPage() {
   };
 
   const handleSaveDraft = async () => {
+    if (isReadOnly) return;
     if (isBusy || !examId) return;
     if (editingQuestionId !== null) {
       toast.error(EDITING_QUESTION_IN_PROGRESS_MESSAGE);
@@ -359,46 +367,50 @@ export function QuestionEditorPage() {
         <Button
           variant="outline"
           onClick={handleBack}
-          disabled={isPublishing || isBusy}
+          disabled={!isReadOnly && isBusy}
           className="h-12 min-w-[186px] gap-2 px-6 text-base font-bold cursor-pointer"
         >
-          {isNavigatingBack && <Loader2 className="h-4 w-4 animate-spin" />}
-          {isNavigatingBack
+          {!isReadOnly && isNavigatingBack && (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          )}
+          {!isReadOnly && isNavigatingBack
             ? "Guardando y volviendo…"
             : "Volver a las rúbricas"}
         </Button>
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            onClick={handleSaveAndContinue}
-            disabled={isBusy}
-            className="h-12 min-w-[180px] gap-2 px-6 text-base font-bold cursor-pointer"
-          >
-            {isSavingAndContinuing && (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            )}
-            {isSavingAndContinuing ? "Guardando…" : "Guardar y seguir editando"}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleSaveDraft}
-            disabled={isBusy}
-            className="h-12 min-w-[180px] gap-2 px-6 text-base font-bold cursor-pointer"
-          >
-            {isSavingDraft && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isSavingDraft ? "Guardando y saliendo…" : "Guardar y salir"}
-          </Button>
-          {!isReadOnly && (
+        {!isReadOnly && (
+          <div className="flex items-center gap-4">
             <Button
-              className="h-12 min-w-[366px] gap-2 text-base font-bold cursor-pointer"
+              variant="outline"
+              onClick={handleSaveAndContinue}
+              disabled={isBusy}
+              className="h-12 min-w-[180px] gap-2 px-6 text-base font-bold cursor-pointer"
+            >
+              {isSavingAndContinuing && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              {isSavingAndContinuing
+                ? "Guardando…"
+                : "Guardar y seguir editando"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSaveDraft}
+              disabled={isBusy}
+              className="h-12 min-w-[180px] gap-2 px-6 text-base font-bold cursor-pointer"
+            >
+              {isSavingDraft && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isSavingDraft ? "Guardando y saliendo…" : "Guardar y salir"}
+            </Button>
+            <Button
+              className="h-12 min-w-[200px] gap-2 text-base font-bold cursor-pointer"
               onClick={handlePublish}
               disabled={isBusy}
             >
               {isPublishing && <Loader2 className="h-4 w-4 animate-spin" />}
               {isPublishing ? "Publicando…" : "Guardar y publicar"}
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
