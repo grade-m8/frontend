@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth.ts";
 import { toast } from "@/components/handler/toastHandler.tsx";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
+import { RouteLoadingSpinner } from "@/components/layout/RouteLoadingSpinner.tsx";
 
 interface Props {
   allowedRoles: Array<Role>;
@@ -30,7 +31,8 @@ export default function ProtectedRoutes({ allowedRoles }: Props) {
     toast.error("Iniciá sesión para acceder a esta página");
   }, [loading, user, role, allowedRoles]);
 
-  if (loading) return <h1>Cargando sesión...</h1>;
+  if (loading)
+    return <RouteLoadingSpinner message="Preparando tu espacio..." />;
   if (!user || !role)
     return <Navigate to={"/"} state={{ from: location }} replace />;
   if (role === "Admin") return <Outlet />;
